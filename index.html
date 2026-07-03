@@ -5,287 +5,323 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Tech Interview Knowledge Base</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── TOKENS ── */
 :root {
-  --bg:      #0a0c10;
-  --bg2:     #111318;
-  --bg3:     #181b22;
-  --border:  #1e2230;
-  --border2: #252a38;
-  --text:    #b8bdd0;
-  --muted:   #4a5068;
-  --bright:  #e8eaf2;
-  --blue:    #5b9cf6;
-  --blue-bg: #0d1a2e;
-  --green:   #34d399;
-  --green-bg:#0a1f16;
-  --purple:  #a78bfa;
-  --purple-bg:#160f2a;
-  --teal:    #22d3ee;
-  --teal-bg: #082028;
-  --amber:   #fbbf24;
-  --amber-bg:#1e1500;
-  --rose:    #fb7185;
-  --rose-bg: #1e0a10;
-  --orange:  #f97316;
-  --orange-bg:#1e0e00;
-  --slate:   #94a3b8;
-  --slate-bg:#111820;
+  --nav-h: 54px;
+  --sidebar-w: 220px;
+  --blue: #1565c0;
+  --blue-hover: #1976d2;
+  --blue-light: #e3f0fd;
+  --blue-text: #1565c0;
+
+  /* light (default) */
+  --page-bg:   #f0f2f5;
+  --sidebar-bg:#ffffff;
+  --sidebar-border: #e0e4ea;
+  --card-bg:   #ffffff;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --card-shadow-hover: 0 4px 12px rgba(0,0,0,0.12);
+  --border:    #e0e4ea;
+  --text:      #1a1a2e;
+  --text-2:    #444c6a;
+  --muted:     #7a849e;
+  --tag-bg:    #eef1f8;
+  --tag-text:  #444c6a;
+  --input-bg:  rgba(255,255,255,0.15);
+  --input-border: rgba(255,255,255,0.25);
 }
 
-html.light {
-  --bg:        #f4f6fb;
-  --bg2:       #ffffff;
-  --bg3:       #edf0f7;
-  --border:    #dde1ed;
-  --border2:   #cdd2e0;
-  --text:      #4a5068;
-  --muted:     #8892a8;
-  --bright:    #0d1117;
-  --blue:      #2563eb;
-  --blue-bg:   #eff4ff;
-  --green:     #059669;
-  --green-bg:  #ecfdf5;
-  --purple:    #7c3aed;
-  --purple-bg: #f5f3ff;
-  --teal:      #0891b2;
-  --teal-bg:   #ecfeff;
-  --amber:     #d97706;
-  --amber-bg:  #fffbeb;
-  --rose:      #e11d48;
-  --rose-bg:   #fff1f2;
-  --orange:    #ea580c;
-  --orange-bg: #fff7ed;
-  --slate:     #475569;
-  --slate-bg:  #f1f5f9;
+html.dark {
+  --page-bg:   #0d0f14;
+  --sidebar-bg:#111318;
+  --sidebar-border: #1e2230;
+  --card-bg:   #111318;
+  --card-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --card-shadow-hover: 0 4px 12px rgba(0,0,0,0.4);
+  --border:    #1e2230;
+  --text:      #e8eaf2;
+  --text-2:    #9aa3be;
+  --muted:     #4a5068;
+  --tag-bg:    #1a1f2e;
+  --tag-text:  #7a849e;
+  --input-bg:  rgba(0,0,0,0.2);
+  --input-border: rgba(255,255,255,0.12);
 }
 
 html { scroll-behavior: smooth; }
-
 body {
-  background: var(--bg);
-  color: var(--text);
   font-family: 'Inter', system-ui, sans-serif;
-  min-height: 100vh;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.6;
+  background: var(--page-bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── THEME TOGGLE ── */
-.theme-toggle {
+/* ── TOP NAV ── */
+.topnav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--nav-h);
+  background: var(--blue);
+  z-index: 200;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
-  border: 1px solid var(--border2);
-  background: var(--bg3);
-  color: var(--muted);
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  padding: 0 1.25rem;
+  gap: 1rem;
 }
-.theme-toggle:hover { border-color: var(--blue); color: var(--blue); }
-.theme-toggle svg { width: 14px; height: 14px; }
-.icon-moon { display: block; }
-.icon-sun  { display: none; }
-html.light .icon-moon { display: none; }
-html.light .icon-sun  { display: block; }
-
-/* ── TOPBAR ── */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(10,12,16,0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-}
-html.light .topbar {
-  background: rgba(244,246,251,0.95);
-}
-.topbar {
-  border-bottom: 1px solid var(--border);
-  padding: 0.6rem 2rem;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 2rem;
-}
-.topbar-left {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
-}
-.topbar-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.6rem;
-  font-weight: 600;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--blue);
-}
-.topbar-eyebrow svg { width: 9px; height: 9px; flex-shrink: 0; }
-.topbar-brand {
-  font-size: 1.05rem;
+.nav-brand {
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--bright);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  color: #fff;
+  letter-spacing: -0.03em;
   white-space: nowrap;
+  flex-shrink: 0;
+  text-decoration: none;
 }
-.topbar-brand span { color: var(--blue); }
+.nav-brand span { opacity: 0.75; font-weight: 400; }
 
-.topbar-search {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
+.nav-search {
+  flex: 1;
+  max-width: 520px;
   margin: 0 auto;
+  position: relative;
 }
-.topbar-search svg {
+.nav-search svg {
   position: absolute;
-  left: 11px;
-  top: 50%;
+  left: 11px; top: 50%;
   transform: translateY(-50%);
-  color: var(--muted);
+  color: rgba(255,255,255,0.6);
+  width: 15px; height: 15px;
   pointer-events: none;
-  width: 14px; height: 14px;
 }
 #search {
   width: 100%;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 8px;
-  padding: 0.45rem 2.5rem 0.45rem 2.2rem;
-  color: var(--bright);
+  height: 34px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  padding: 0 2rem 0 2.2rem;
+  color: #fff;
   font-family: 'Inter', sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
-#search:focus {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(91,156,246,0.1);
-}
-#search::placeholder { color: var(--muted); }
-.search-shortcut {
+#search:focus { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.4); }
+#search::placeholder { color: rgba(255,255,255,0.55); }
+.nav-search-key {
   position: absolute;
-  right: 9px;
-  top: 50%;
+  right: 8px; top: 50%;
   transform: translateY(-50%);
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.6rem;
-  color: var(--muted);
-  background: var(--bg2);
-  border: 1px solid var(--border2);
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.45);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: 3px;
   pointer-events: none;
 }
 
-.topbar-right {
+.nav-right {
   display: flex;
   align-items: center;
-  gap: 0;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 7px;
-  overflow: hidden;
-  white-space: nowrap;
+  gap: 0.5rem;
+  margin-left: auto;
   flex-shrink: 0;
 }
-.topbar-stat {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.3rem 0.8rem;
-  border-right: 1px solid var(--border2);
+.nav-count {
   font-size: 0.72rem;
-}
-.topbar-stat:last-child { border-right: none; }
-.topbar-stat-num {
+  color: rgba(255,255,255,0.65);
+  white-space: nowrap;
   font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  color: var(--bright);
-  font-size: 0.78rem;
 }
-.topbar-stat-label { color: var(--muted); }
-
-
-/* ── FILTER PILLS ── */
-.filters {
+.theme-btn {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.6rem 2rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg2);
-}
-.filters::-webkit-scrollbar { display: none; }
-.filter-pill {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.72rem;
-  font-weight: 500;
-  padding: 0.3rem 0.75rem;
-  border-radius: 20px;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--muted);
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
   cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.theme-btn:hover { background: rgba(255,255,255,0.18); }
+.theme-btn svg { width: 14px; height: 14px; }
+.icon-sun  { display: none; }
+.icon-moon { display: block; }
+html.dark .icon-sun  { display: block; }
+html.dark .icon-moon { display: none; }
+
+/* ── LAYOUT ── */
+.layout {
+  display: flex;
+  padding-top: var(--nav-h);
+  min-height: 100vh;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  position: sticky;
+  top: var(--nav-h);
+  height: calc(100vh - var(--nav-h));
+  overflow-y: auto;
+  padding: 1rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.sidebar-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0.5rem 1.1rem 0.35rem;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.52rem 1.1rem;
+  color: var(--text-2);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
   font-family: 'Inter', sans-serif;
 }
-.filter-pill:hover { color: var(--bright); border-color: var(--border2); background: var(--bg3); }
-.filter-pill.active { color: var(--bright); border-color: var(--blue); background: var(--blue-bg); }
-.filter-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.sidebar-item:hover { background: var(--blue-light); color: var(--blue-text); }
+html.dark .sidebar-item:hover { background: rgba(21,101,192,0.15); }
+.sidebar-item.active {
+  color: var(--blue-text);
+  background: var(--blue-light);
+  border-left-color: var(--blue);
+  font-weight: 600;
+}
+html.dark .sidebar-item.active { background: rgba(21,101,192,0.2); }
+.sidebar-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: 0.7; }
+.sidebar-item.active svg { opacity: 1; }
+.sidebar-badge {
+  margin-left: auto;
+  font-size: 0.62rem;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--muted);
+  background: var(--tag-bg);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-weight: 500;
+}
+.sidebar-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0.6rem 1.1rem;
 }
 
 /* ── MAIN ── */
-.main {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem 3rem;
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 1.5rem 1.75rem 3rem;
+}
+
+/* ── HERO STRIP ── */
+.hero-strip {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.hero-strip h1 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.hero-strip p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+.hero-stats {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.hero-stat {
+  text-align: center;
+  background: var(--page-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  min-width: 80px;
+}
+.hero-stat-num {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--blue-text);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.hero-stat-label {
+  display: block;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  margin-top: 0.2rem;
 }
 
 /* ── SECTION ── */
-.section { margin-bottom: 1.75rem; }
+.section { margin-bottom: 1.5rem; }
 .section.all-hidden { display: none; }
 
 .section-header {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.25rem;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
 }
-.section-accent {
-  width: 3px;
-  height: 18px;
-  border-radius: 2px;
+.section-icon {
+  width: 22px; height: 22px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
+.section-icon svg { width: 12px; height: 12px; }
 .section-title {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--bright);
+  color: var(--text);
 }
 .section-count {
   margin-left: auto;
@@ -293,71 +329,81 @@ html.light .topbar {
   font-size: 0.65rem;
   color: var(--muted);
 }
-.section-divider {
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-  margin-left: 0.5rem;
-}
+
+/* category icon colors */
+.cat-cloud   .section-icon { background:#e3f0fd; color:#1565c0; }
+.cat-devops  .section-icon { background:#e6f7f1; color:#1b7a4a; }
+.cat-design  .section-icon { background:#f0ecfe; color:#6d28d9; }
+.cat-data    .section-icon { background:#e0fafa; color:#0e7490; }
+.cat-ai      .section-icon { background:#fef9e3; color:#b45309; }
+.cat-security .section-icon { background:#fdecea; color:#c62828; }
+.cat-code    .section-icon { background:#fff0e6; color:#c2410c; }
+.cat-interview .section-icon { background:#f1f5f9; color:#475569; }
+html.dark .cat-cloud   .section-icon { background:rgba(21,101,192,0.15); color:#5b9cf6; }
+html.dark .cat-devops  .section-icon { background:rgba(27,122,74,0.15);  color:#34d399; }
+html.dark .cat-design  .section-icon { background:rgba(109,40,217,0.15); color:#a78bfa; }
+html.dark .cat-data    .section-icon { background:rgba(14,116,144,0.15); color:#22d3ee; }
+html.dark .cat-ai      .section-icon { background:rgba(180,83,9,0.15);   color:#fbbf24; }
+html.dark .cat-security .section-icon { background:rgba(198,40,40,0.15); color:#fb7185; }
+html.dark .cat-code    .section-icon { background:rgba(194,65,12,0.15);  color:#f97316; }
+html.dark .cat-interview .section-icon { background:rgba(71,85,105,0.15);color:#94a3b8; }
 
 /* ── GRID ── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-  gap: 1px;
-  background: var(--border);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
 }
 
 /* ── CARD ── */
 .card {
   display: flex;
   flex-direction: column;
-  background: var(--bg2);
-  padding: 1.25rem 1.35rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
   text-decoration: none;
-  transition: background 0.15s;
-  position: relative;
-  overflow: hidden;
-  min-height: 108px;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow 0.15s, border-color 0.15s, transform 0.12s;
 }
-.card:hover { background: var(--bg3); }
-.card:hover .card-arrow { opacity: 1; transform: translate(2px, -2px); }
+.card:hover {
+  box-shadow: var(--card-shadow-hover);
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+.card:hover .card-arrow { opacity: 1; }
 
 .card-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 .card-title {
-  font-size: 0.875rem;
+  font-size: 0.84rem;
   font-weight: 600;
-  color: var(--bright);
+  color: var(--blue-text);
   line-height: 1.35;
 }
+html.dark .card-title { color: #5b9cf6; }
 .card-arrow {
   flex-shrink: 0;
   color: var(--muted);
   opacity: 0;
-  transition: opacity 0.15s, transform 0.15s;
+  transition: opacity 0.15s;
   margin-top: 1px;
 }
-.card-arrow svg { width: 14px; height: 14px; }
-
+.card-arrow svg { width: 13px; height: 13px; }
 .card-desc {
-  font-size: 0.73rem;
-  color: var(--muted);
+  font-size: 0.72rem;
+  color: var(--text-2);
   line-height: 1.55;
   flex: 1;
 }
 .card-footer {
-  display: flex;
-  align-items: center;
-  margin-top: 0.85rem;
+  margin-top: 0.75rem;
 }
 .card-tag {
   font-family: 'JetBrains Mono', monospace;
@@ -365,642 +411,514 @@ html.light .topbar {
   font-weight: 500;
   padding: 2px 7px;
   border-radius: 4px;
-  border: 1px solid transparent;
-  letter-spacing: 0.03em;
+  background: var(--tag-bg);
+  color: var(--tag-text);
+  border: 1px solid var(--border);
+  letter-spacing: 0.02em;
 }
 
-/* per-category accent colors */
-.cat-cloud  .section-accent { background: var(--blue); }
-.cat-devops .section-accent { background: var(--green); }
-.cat-design .section-accent { background: var(--purple); }
-.cat-data   .section-accent { background: var(--teal); }
-.cat-ai     .section-accent { background: var(--amber); }
-.cat-security .section-accent { background: var(--rose); }
-.cat-code   .section-accent { background: var(--orange); }
-.cat-interview .section-accent { background: var(--slate); }
-
-.cat-cloud   .card-tag { color: var(--blue);   background: var(--blue-bg);   border-color: rgba(91,156,246,0.2); }
-.cat-devops  .card-tag { color: var(--green);  background: var(--green-bg);  border-color: rgba(52,211,153,0.2); }
-.cat-design  .card-tag { color: var(--purple); background: var(--purple-bg); border-color: rgba(167,139,250,0.2); }
-.cat-data    .card-tag { color: var(--teal);   background: var(--teal-bg);   border-color: rgba(34,211,238,0.2); }
-.cat-ai      .card-tag { color: var(--amber);  background: var(--amber-bg);  border-color: rgba(251,191,36,0.2); }
-.cat-security .card-tag { color: var(--rose);  background: var(--rose-bg);   border-color: rgba(251,113,133,0.2); }
-.cat-code    .card-tag { color: var(--orange); background: var(--orange-bg); border-color: rgba(249,115,22,0.2); }
-.cat-interview .card-tag { color: var(--slate); background: var(--slate-bg); border-color: rgba(148,163,184,0.2); }
-
-/* filter dot colors */
-.dot-cloud    { background: var(--blue); }
-.dot-devops   { background: var(--green); }
-.dot-design   { background: var(--purple); }
-.dot-data     { background: var(--teal); }
-.dot-ai       { background: var(--amber); }
-.dot-security { background: var(--rose); }
-.dot-code     { background: var(--orange); }
-.dot-interview { background: var(--slate); }
-
-/* hidden states */
+/* hidden */
 .card.hidden { display: none; }
 
 /* ── NO RESULTS ── */
 #no-results {
   display: none;
   text-align: center;
-  padding: 4rem 0;
+  padding: 3rem 0;
   color: var(--muted);
   font-size: 0.85rem;
 }
-#no-results svg { display: block; margin: 0 auto 1rem; opacity: 0.3; }
+#no-results svg { display: block; margin: 0 auto 0.75rem; opacity: 0.3; }
 
 /* ── FOOTER ── */
-footer {
+.page-footer {
   text-align: center;
   color: var(--muted);
-  font-size: 0.72rem;
-  padding: 2rem;
+  font-size: 0.7rem;
+  padding: 1.5rem;
   border-top: 1px solid var(--border);
   font-family: 'JetBrains Mono', monospace;
-  letter-spacing: 0.03em;
+  background: var(--sidebar-bg);
 }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 640px) {
-  .topbar-count { display: none; }
-  .hero { padding: 3.5rem 1.25rem 3rem; }
-  .hero-stats { flex-wrap: wrap; }
-  .filters { padding: 0.75rem 1.25rem; }
-  .main { padding: 1.75rem 1.25rem 4rem; }
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .hero-stats { display: none; }
+  .content { padding: 1rem; }
+}
+@media (max-width: 480px) {
   .grid { grid-template-columns: 1fr; }
+  .nav-count { display: none; }
 }
 
 /* ── FADE IN ── */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-.section {
-  animation: fadeUp 0.35s ease both;
-}
-.section:nth-child(2) { animation-delay: 0.04s; }
-.section:nth-child(3) { animation-delay: 0.08s; }
+.section { animation: fadeUp 0.3s ease both; }
+.section:nth-child(1) { animation-delay: 0.03s; }
+.section:nth-child(2) { animation-delay: 0.06s; }
+.section:nth-child(3) { animation-delay: 0.09s; }
 .section:nth-child(4) { animation-delay: 0.12s; }
-.section:nth-child(5) { animation-delay: 0.16s; }
-.section:nth-child(6) { animation-delay: 0.20s; }
-.section:nth-child(7) { animation-delay: 0.24s; }
-.section:nth-child(8) { animation-delay: 0.28s; }
+.section:nth-child(5) { animation-delay: 0.15s; }
+.section:nth-child(6) { animation-delay: 0.18s; }
+.section:nth-child(7) { animation-delay: 0.21s; }
+.section:nth-child(8) { animation-delay: 0.24s; }
 </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<header class="topbar">
-  <div class="topbar-left">
-    <div class="topbar-eyebrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      Knowledge Base
-    </div>
-    <div class="topbar-brand">Tech <span>Interview</span> Reference</div>
-  </div>
-  <div class="topbar-search">
+<!-- TOP NAV -->
+<header class="topnav">
+  <a class="nav-brand" href="#">Interview <span>KB</span></a>
+  <div class="nav-search">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     <input id="search" type="text" placeholder="Search guides..." autocomplete="off" />
-    <span class="search-shortcut">/</span>
+    <span class="nav-search-key">/</span>
   </div>
-  <div style="display:flex;align-items:center;gap:0.6rem;flex-shrink:0;">
-    <div class="topbar-right">
-      <div class="topbar-stat">
-        <span class="topbar-stat-num" id="stat-guides">41</span>
-        <span class="topbar-stat-label">guides</span>
-      </div>
-      <div class="topbar-stat">
-        <span class="topbar-stat-num">8</span>
-        <span class="topbar-stat-label">categories</span>
-      </div>
-    </div>
-    <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode" aria-label="Toggle theme">
+  <div class="nav-right">
+    <span class="nav-count" id="nav-count"></span>
+    <button class="theme-btn" id="theme-btn" title="Toggle theme">
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
     </button>
   </div>
 </header>
 
-<!-- FILTER PILLS -->
-<nav class="filters" id="filters">
-  <button class="filter-pill active" data-filter="all">All</button>
-  <button class="filter-pill" data-filter="cat-cloud">   <span class="filter-dot dot-cloud"></span>   Cloud &amp; AWS</button>
-  <button class="filter-pill" data-filter="cat-devops">  <span class="filter-dot dot-devops"></span>  DevOps</button>
-  <button class="filter-pill" data-filter="cat-design">  <span class="filter-dot dot-design"></span>  System Design</button>
-  <button class="filter-pill" data-filter="cat-data">    <span class="filter-dot dot-data"></span>    Data Engineering</button>
-  <button class="filter-pill" data-filter="cat-ai">      <span class="filter-dot dot-ai"></span>      AI &amp; RAG</button>
-  <button class="filter-pill" data-filter="cat-security"><span class="filter-dot dot-security"></span>Security</button>
-  <button class="filter-pill" data-filter="cat-code">    <span class="filter-dot dot-code"></span>    Programming</button>
-  <button class="filter-pill" data-filter="cat-interview"><span class="filter-dot dot-interview"></span>Interview Prep</button>
-</nav>
+<div class="layout">
 
-<!-- CONTENT -->
-<main class="main">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-label">Categories</div>
+    <button class="sidebar-item active" data-filter="all">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      All Guides
+      <span class="sidebar-badge" id="all-badge"></span>
+    </button>
+    <div class="sidebar-divider"></div>
+    <button class="sidebar-item" data-filter="cat-cloud">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+      Cloud &amp; AWS
+      <span class="sidebar-badge">6</span>
+    </button>
+    <button class="sidebar-item" data-filter="cat-devops">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      DevOps
+      <span class="sidebar-badge">4</span>
+    </button>
+    <button class="sidebar-item" data-filter="cat-design">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      System Design
+      <span class="sidebar-badge">8</span>
+    </button>
+    <button class="sidebar-item" data-filter="cat-data">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      Data Engineering
+      <span class="sidebar-badge">3</span>
+    </button>
+    <button class="sidebar-item" data-filter="cat-ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+      AI &amp; RAG
+      <span class="sidebar-badge">2</span>
+    </button>
+    <button class="sidebar-item" data-filter="cat-security">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Security
+      <span class="sidebar-badge">3</span>
+    </button>
+    <button class="sidebar-item" data-filter="cat-code">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      Programming
+      <span class="sidebar-badge">10</span>
+    </button>
+    <button class="sidebar-item" data-filter="cat-interview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Interview Prep
+      <span class="sidebar-badge">3</span>
+    </button>
+  </aside>
 
-  <!-- CLOUD / AWS -->
-  <div class="section cat-cloud" data-section data-cat="cat-cloud">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">Cloud &amp; AWS</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
-    </div>
-    <div class="grid">
-      <a class="card" href="aws-bedrock-chatbot-guide.html">
-        <div class="card-top">
-          <div class="card-title">AWS Bedrock Chatbot Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Building production chatbots on Amazon Bedrock with foundation models</div>
-        <div class="card-footer"><span class="card-tag">Bedrock</span></div>
-      </a>
-      <a class="card" href="bedrock stepbystep guide.html">
-        <div class="card-top">
-          <div class="card-title">Bedrock Step-by-Step Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Hands-on walkthrough for deploying Bedrock applications end-to-end</div>
-        <div class="card-footer"><span class="card-tag">Bedrock</span></div>
-      </a>
-      <a class="card" href="aws-networking-study-guide.html">
-        <div class="card-top">
-          <div class="card-title">AWS Networking Study Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">VPC, subnets, routing, security groups, Transit Gateway deep-dive</div>
-        <div class="card-footer"><span class="card-tag">Networking</span></div>
-      </a>
-      <a class="card" href="cloudwatch-alarms-reference.html">
-        <div class="card-top">
-          <div class="card-title">CloudWatch Alarms Reference</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Metrics, alarms, dashboards, and observability patterns on AWS</div>
-        <div class="card-footer"><span class="card-tag">Observability</span></div>
-      </a>
-      <a class="card" href="aws architect wall poster.html">
-        <div class="card-top">
-          <div class="card-title">AWS Architect Wall Poster</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Visual overview of AWS services and architecture patterns at a glance</div>
-        <div class="card-footer"><span class="card-tag">Reference</span></div>
-      </a>
-      <a class="card" href="solution-architect-sizing-guide.html">
-        <div class="card-top">
-          <div class="card-title">Solution Architect Sizing Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Capacity planning and right-sizing strategies for cloud workloads</div>
-        <div class="card-footer"><span class="card-tag">Architecture</span></div>
-      </a>
-    </div>
-  </div>
+  <!-- MAIN CONTENT -->
+  <main class="content">
 
-  <!-- DEVOPS -->
-  <div class="section cat-devops" data-section data-cat="cat-devops">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">DevOps &amp; Infrastructure</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
+    <!-- HERO STRIP -->
+    <div class="hero-strip">
+      <div>
+        <h1>Browse tech interview guides</h1>
+        <p>Self-contained reference pages — open any guide directly, no setup needed</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="stat-total"></span>
+          <span class="hero-stat-label">Guides</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num">8</span>
+          <span class="hero-stat-label">Topics</span>
+        </div>
+      </div>
     </div>
-    <div class="grid">
-      <a class="card" href="kubernetes-guide.html">
-        <div class="card-top">
-          <div class="card-title">Kubernetes Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Pods, deployments, services, ingress, and cluster operations</div>
-        <div class="card-footer"><span class="card-tag">K8s</span></div>
-      </a>
-      <a class="card" href="eks-devops-prep.html">
-        <div class="card-top">
-          <div class="card-title">EKS DevOps Prep</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Amazon EKS architecture, managed node groups, and CI/CD pipelines</div>
-        <div class="card-footer"><span class="card-tag">EKS</span></div>
-      </a>
-      <a class="card" href="terraform-prod-security-checklist.html">
-        <div class="card-top">
-          <div class="card-title">Terraform Prod Security Checklist</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">IaC security best practices and production-readiness gates</div>
-        <div class="card-footer"><span class="card-tag">Terraform</span></div>
-      </a>
-      <a class="card" href="senior-devops-cloud-automation-interview-prep.html">
-        <div class="card-top">
-          <div class="card-title">Senior DevOps Interview Prep</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Cloud automation, CI/CD, and SRE-focused interview questions</div>
-        <div class="card-footer"><span class="card-tag">Interview</span></div>
-      </a>
-    </div>
-  </div>
 
-  <!-- SYSTEM DESIGN -->
-  <div class="section cat-design" data-section data-cat="cat-design">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">System Design</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
+    <!-- CLOUD / AWS -->
+    <div class="section cat-cloud" data-section data-cat="cat-cloud">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg></div>
+        <span class="section-title">Cloud &amp; AWS</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="aws-bedrock-chatbot-guide.html">
+          <div class="card-top"><div class="card-title">AWS Bedrock Chatbot Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Building production chatbots on Amazon Bedrock with foundation models</div>
+          <div class="card-footer"><span class="card-tag">Bedrock</span></div>
+        </a>
+        <a class="card" href="bedrock stepbystep guide.html">
+          <div class="card-top"><div class="card-title">Bedrock Step-by-Step Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Hands-on walkthrough for deploying Bedrock applications end-to-end</div>
+          <div class="card-footer"><span class="card-tag">Bedrock</span></div>
+        </a>
+        <a class="card" href="aws-networking-study-guide.html">
+          <div class="card-top"><div class="card-title">AWS Networking Study Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">VPC, subnets, routing, security groups, Transit Gateway deep-dive</div>
+          <div class="card-footer"><span class="card-tag">Networking</span></div>
+        </a>
+        <a class="card" href="cloudwatch-alarms-reference.html">
+          <div class="card-top"><div class="card-title">CloudWatch Alarms Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Metrics, alarms, dashboards, and observability patterns on AWS</div>
+          <div class="card-footer"><span class="card-tag">Observability</span></div>
+        </a>
+        <a class="card" href="aws architect wall poster.html">
+          <div class="card-top"><div class="card-title">AWS Architect Wall Poster</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Visual overview of AWS services and architecture patterns at a glance</div>
+          <div class="card-footer"><span class="card-tag">Reference</span></div>
+        </a>
+        <a class="card" href="solution-architect-sizing-guide.html">
+          <div class="card-top"><div class="card-title">Solution Architect Sizing Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Capacity planning and right-sizing strategies for cloud workloads</div>
+          <div class="card-footer"><span class="card-tag">Architecture</span></div>
+        </a>
+      </div>
     </div>
-    <div class="grid">
-      <a class="card" href="system-designs.html">
-        <div class="card-top">
-          <div class="card-title">System Design Reference</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Common system design patterns and architectural trade-offs</div>
-        <div class="card-footer"><span class="card-tag">Reference</span></div>
-      </a>
-      <a class="card" href="supply_chain_system_design.html">
-        <div class="card-top">
-          <div class="card-title">Supply Chain System Design</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Distributed systems for logistics, inventory, and fulfillment at scale</div>
-        <div class="card-footer"><span class="card-tag">Supply Chain</span></div>
-      </a>
-      <a class="card" href="supply_chain_patterns.html">
-        <div class="card-top">
-          <div class="card-title">Supply Chain Patterns</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Reusable design patterns specific to supply chain software systems</div>
-        <div class="card-footer"><span class="card-tag">Patterns</span></div>
-      </a>
-      <a class="card" href="supply-chain-saga-pattern.html">
-        <div class="card-top">
-          <div class="card-title">Supply Chain Saga Pattern</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Distributed transactions using the Saga choreography pattern</div>
-        <div class="card-footer"><span class="card-tag">Saga</span></div>
-      </a>
-      <a class="card" href="training-platform-architecture.html">
-        <div class="card-top">
-          <div class="card-title">Training Platform Architecture</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Scalable architecture for an LMS and e-learning platform</div>
-        <div class="card-footer"><span class="card-tag">Platform</span></div>
-      </a>
-      <a class="card" href="enterprise-integration-planning-guide.html">
-        <div class="card-top">
-          <div class="card-title">Enterprise Integration Planning</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Planning and governance for large-scale enterprise integrations</div>
-        <div class="card-footer"><span class="card-tag">Enterprise</span></div>
-      </a>
-      <a class="card" href="integration-patterns.html">
-        <div class="card-top">
-          <div class="card-title">Integration Patterns</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">EIP patterns: messaging, routing, transformation, and endpoints</div>
-        <div class="card-footer"><span class="card-tag">EIP</span></div>
-      </a>
-      <a class="card" href="nike-togaf-integration-architecture.html">
-        <div class="card-top">
-          <div class="card-title">TOGAF Integration Architecture</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Enterprise architecture using the TOGAF ADM framework</div>
-        <div class="card-footer"><span class="card-tag">TOGAF</span></div>
-      </a>
-    </div>
-  </div>
 
-  <!-- DATA ENGINEERING -->
-  <div class="section cat-data" data-section data-cat="cat-data">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">Data Engineering</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
+    <!-- DEVOPS -->
+    <div class="section cat-devops" data-section data-cat="cat-devops">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg></div>
+        <span class="section-title">DevOps &amp; Infrastructure</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="kubernetes-guide.html">
+          <div class="card-top"><div class="card-title">Kubernetes Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Pods, deployments, services, ingress, and cluster operations</div>
+          <div class="card-footer"><span class="card-tag">K8s</span></div>
+        </a>
+        <a class="card" href="eks-devops-prep.html">
+          <div class="card-top"><div class="card-title">EKS DevOps Prep</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Amazon EKS architecture, managed node groups, and CI/CD pipelines</div>
+          <div class="card-footer"><span class="card-tag">EKS</span></div>
+        </a>
+        <a class="card" href="terraform-prod-security-checklist.html">
+          <div class="card-top"><div class="card-title">Terraform Prod Security Checklist</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">IaC security best practices and production-readiness gates</div>
+          <div class="card-footer"><span class="card-tag">Terraform</span></div>
+        </a>
+        <a class="card" href="senior-devops-cloud-automation-interview-prep.html">
+          <div class="card-top"><div class="card-title">Senior DevOps Interview Prep</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Cloud automation, CI/CD, and SRE-focused interview questions</div>
+          <div class="card-footer"><span class="card-tag">Interview</span></div>
+        </a>
+      </div>
     </div>
-    <div class="grid">
-      <a class="card" href="snowflake-architecture.html">
-        <div class="card-top">
-          <div class="card-title">Snowflake Architecture</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Virtual warehouses, storage layers, and query optimization strategies</div>
-        <div class="card-footer"><span class="card-tag">Snowflake</span></div>
-      </a>
-      <a class="card" href="pyspark-emr-guide.html">
-        <div class="card-top">
-          <div class="card-title">PySpark &amp; EMR Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Distributed data processing with PySpark on Amazon EMR</div>
-        <div class="card-footer"><span class="card-tag">PySpark</span></div>
-      </a>
-      <a class="card" href="retail_data_architect_study_guide.html">
-        <div class="card-top">
-          <div class="card-title">Retail Data Architect Study Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Data architecture patterns for retail and e-commerce domains</div>
-        <div class="card-footer"><span class="card-tag">Retail</span></div>
-      </a>
-    </div>
-  </div>
 
-  <!-- AI / RAG -->
-  <div class="section cat-ai" data-section data-cat="cat-ai">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">AI &amp; RAG</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
+    <!-- SYSTEM DESIGN -->
+    <div class="section cat-design" data-section data-cat="cat-design">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg></div>
+        <span class="section-title">System Design</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="system-designs.html">
+          <div class="card-top"><div class="card-title">System Design Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Common system design patterns and architectural trade-offs</div>
+          <div class="card-footer"><span class="card-tag">Reference</span></div>
+        </a>
+        <a class="card" href="supply_chain_system_design.html">
+          <div class="card-top"><div class="card-title">Supply Chain System Design</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Distributed systems for logistics, inventory, and fulfillment at scale</div>
+          <div class="card-footer"><span class="card-tag">Supply Chain</span></div>
+        </a>
+        <a class="card" href="supply_chain_patterns.html">
+          <div class="card-top"><div class="card-title">Supply Chain Patterns</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Reusable design patterns specific to supply chain software systems</div>
+          <div class="card-footer"><span class="card-tag">Patterns</span></div>
+        </a>
+        <a class="card" href="supply-chain-saga-pattern.html">
+          <div class="card-top"><div class="card-title">Supply Chain Saga Pattern</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Distributed transactions using the Saga choreography pattern</div>
+          <div class="card-footer"><span class="card-tag">Saga</span></div>
+        </a>
+        <a class="card" href="training-platform-architecture.html">
+          <div class="card-top"><div class="card-title">Training Platform Architecture</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Scalable architecture for an LMS and e-learning platform</div>
+          <div class="card-footer"><span class="card-tag">Platform</span></div>
+        </a>
+        <a class="card" href="enterprise-integration-planning-guide.html">
+          <div class="card-top"><div class="card-title">Enterprise Integration Planning</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Planning and governance for large-scale enterprise integrations</div>
+          <div class="card-footer"><span class="card-tag">Enterprise</span></div>
+        </a>
+        <a class="card" href="integration-patterns.html">
+          <div class="card-top"><div class="card-title">Integration Patterns</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">EIP patterns: messaging, routing, transformation, and endpoints</div>
+          <div class="card-footer"><span class="card-tag">EIP</span></div>
+        </a>
+        <a class="card" href="nike-togaf-integration-architecture.html">
+          <div class="card-top"><div class="card-title">TOGAF Integration Architecture</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Enterprise architecture using the TOGAF ADM framework</div>
+          <div class="card-footer"><span class="card-tag">TOGAF</span></div>
+        </a>
+      </div>
     </div>
-    <div class="grid">
-      <a class="card" href="rag-production-questions.html">
-        <div class="card-top">
-          <div class="card-title">RAG Production Questions</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Interview questions for RAG systems running in production environments</div>
-        <div class="card-footer"><span class="card-tag">RAG</span></div>
-      </a>
-      <a class="card" href="nike_rag_interview_reference.html">
-        <div class="card-top">
-          <div class="card-title">RAG Interview Reference</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">RAG system design, vector stores, chunking, and retrieval patterns</div>
-        <div class="card-footer"><span class="card-tag">RAG</span></div>
-      </a>
-    </div>
-  </div>
 
-  <!-- SECURITY -->
-  <div class="section cat-security" data-section data-cat="cat-security">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">Security</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
+    <!-- DATA ENGINEERING -->
+    <div class="section cat-data" data-section data-cat="cat-data">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+        <span class="section-title">Data Engineering</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="snowflake-architecture.html">
+          <div class="card-top"><div class="card-title">Snowflake Architecture</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Virtual warehouses, storage layers, and query optimization strategies</div>
+          <div class="card-footer"><span class="card-tag">Snowflake</span></div>
+        </a>
+        <a class="card" href="pyspark-emr-guide.html">
+          <div class="card-top"><div class="card-title">PySpark &amp; EMR Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Distributed data processing with PySpark on Amazon EMR</div>
+          <div class="card-footer"><span class="card-tag">PySpark</span></div>
+        </a>
+        <a class="card" href="retail_data_architect_study_guide.html">
+          <div class="card-top"><div class="card-title">Retail Data Architect Study Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Data architecture patterns for retail and e-commerce domains</div>
+          <div class="card-footer"><span class="card-tag">Retail</span></div>
+        </a>
+      </div>
     </div>
-    <div class="grid">
-      <a class="card" href="cspm-fundamentals.html">
-        <div class="card-top">
-          <div class="card-title">CSPM Fundamentals</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Cloud Security Posture Management concepts, tools, and frameworks</div>
-        <div class="card-footer"><span class="card-tag">CSPM</span></div>
-      </a>
-      <a class="card" href="cspm-trellix-integration.html">
-        <div class="card-top">
-          <div class="card-title">CSPM + Trellix Integration</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Integrating CSPM with Trellix for unified security visibility</div>
-        <div class="card-footer"><span class="card-tag">Trellix</span></div>
-      </a>
-      <a class="card" href="mitre-attck-reference.html">
-        <div class="card-top">
-          <div class="card-title">MITRE ATT&amp;CK Reference</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Tactics, techniques, and procedures from the ATT&amp;CK framework</div>
-        <div class="card-footer"><span class="card-tag">ATT&amp;CK</span></div>
-      </a>
-    </div>
-  </div>
 
-  <!-- PROGRAMMING -->
-  <div class="section cat-code" data-section data-cat="cat-code">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">Programming</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
+    <!-- AI / RAG -->
+    <div class="section cat-ai" data-section data-cat="cat-ai">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg></div>
+        <span class="section-title">AI &amp; RAG</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="rag-production-questions.html">
+          <div class="card-top"><div class="card-title">RAG Production Questions</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Interview questions for RAG systems running in production environments</div>
+          <div class="card-footer"><span class="card-tag">RAG</span></div>
+        </a>
+        <a class="card" href="nike_rag_interview_reference.html">
+          <div class="card-top"><div class="card-title">RAG Interview Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">RAG system design, vector stores, chunking, and retrieval patterns</div>
+          <div class="card-footer"><span class="card-tag">RAG</span></div>
+        </a>
+      </div>
     </div>
-    <div class="grid">
-      <a class="card" href="coding-questions.html">
-        <div class="card-top">
-          <div class="card-title">Coding Questions</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">DSA and problem-solving interview questions with annotated solutions</div>
-        <div class="card-footer"><span class="card-tag">DSA</span></div>
-      </a>
-      <a class="card" href="js-cheatsheet.html">
-        <div class="card-top">
-          <div class="card-title">JavaScript Cheatsheet</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">ES6+, async/await, closures, prototypes, and DOM APIs</div>
-        <div class="card-footer"><span class="card-tag">JavaScript</span></div>
-      </a>
-      <a class="card" href="python_interview_qa.html">
-        <div class="card-top">
-          <div class="card-title">Python Interview Q&amp;A</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Python fundamentals, OOP, decorators, generators, and concurrency</div>
-        <div class="card-footer"><span class="card-tag">Python</span></div>
-      </a>
-      <a class="card" href="python_top20_libraries.html">
-        <div class="card-top">
-          <div class="card-title">Top 20 Python Libraries</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Essential libraries for data science, web, automation, and testing</div>
-        <div class="card-footer"><span class="card-tag">Python</span></div>
-      </a>
-      <a class="card" href="ts-library-guide.html">
-        <div class="card-top">
-          <div class="card-title">TypeScript Library Guide</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Key TypeScript patterns, utility types, and popular libraries</div>
-        <div class="card-footer"><span class="card-tag">TypeScript</span></div>
-      </a>
-      <a class="card" href="npm-restful-api-reference.html">
-        <div class="card-top">
-          <div class="card-title">RESTful API Reference</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">REST design, HTTP methods, status codes, and Node.js patterns</div>
-        <div class="card-footer"><span class="card-tag">REST</span></div>
-      </a>
-      <a class="card" href="http-headers-reference.html">
-        <div class="card-top">
-          <div class="card-title">HTTP Headers Reference</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Complete reference for request/response headers and CORS</div>
-        <div class="card-footer"><span class="card-tag">HTTP</span></div>
-      </a>
-      <a class="card" href="rest-api-headers-cheatsheet.html">
-        <div class="card-top">
-          <div class="card-title">REST API Headers Cheatsheet</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Quick-reference for common API header patterns and authentication</div>
-        <div class="card-footer"><span class="card-tag">HTTP</span></div>
-      </a>
-      <a class="card" href="backend_techlead_study_plan.html">
-        <div class="card-top">
-          <div class="card-title">Backend Tech Lead Study Plan</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Structured study plan for backend engineering leadership roles</div>
-        <div class="card-footer"><span class="card-tag">Study Plan</span></div>
-      </a>
-      <a class="card" href="top5_per_section.html">
-        <div class="card-top">
-          <div class="card-title">Top 5 Per Section</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Top 5 must-know topics curated across every interview domain</div>
-        <div class="card-footer"><span class="card-tag">Reference</span></div>
-      </a>
+
+    <!-- SECURITY -->
+    <div class="section cat-security" data-section data-cat="cat-security">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <span class="section-title">Security</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="cspm-fundamentals.html">
+          <div class="card-top"><div class="card-title">CSPM Fundamentals</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Cloud Security Posture Management concepts, tools, and frameworks</div>
+          <div class="card-footer"><span class="card-tag">CSPM</span></div>
+        </a>
+        <a class="card" href="cspm-trellix-integration.html">
+          <div class="card-top"><div class="card-title">CSPM + Trellix Integration</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Integrating CSPM with Trellix for unified security visibility</div>
+          <div class="card-footer"><span class="card-tag">Trellix</span></div>
+        </a>
+        <a class="card" href="mitre-attck-reference.html">
+          <div class="card-top"><div class="card-title">MITRE ATT&amp;CK Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Tactics, techniques, and procedures from the ATT&amp;CK framework</div>
+          <div class="card-footer"><span class="card-tag">ATT&amp;CK</span></div>
+        </a>
+      </div>
     </div>
-  </div>
 
-  <!-- INTERVIEW PREP -->
-  <div class="section cat-interview" data-section data-cat="cat-interview">
-    <div class="section-header">
-      <div class="section-accent"></div>
-      <span class="section-title">Interview Prep</span>
-      <div class="section-divider"></div>
-      <span class="section-count" data-count></span>
+    <!-- PROGRAMMING -->
+    <div class="section cat-code" data-section data-cat="cat-code">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <span class="section-title">Programming</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="coding-questions.html">
+          <div class="card-top"><div class="card-title">Coding Questions</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">DSA and problem-solving interview questions with annotated solutions</div>
+          <div class="card-footer"><span class="card-tag">DSA</span></div>
+        </a>
+        <a class="card" href="js-cheatsheet.html">
+          <div class="card-top"><div class="card-title">JavaScript Cheatsheet</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">ES6+, async/await, closures, prototypes, and DOM APIs</div>
+          <div class="card-footer"><span class="card-tag">JavaScript</span></div>
+        </a>
+        <a class="card" href="python_interview_qa.html">
+          <div class="card-top"><div class="card-title">Python Interview Q&amp;A</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Python fundamentals, OOP, decorators, generators, and concurrency</div>
+          <div class="card-footer"><span class="card-tag">Python</span></div>
+        </a>
+        <a class="card" href="python_top20_libraries.html">
+          <div class="card-top"><div class="card-title">Top 20 Python Libraries</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Essential libraries for data science, web, automation, and testing</div>
+          <div class="card-footer"><span class="card-tag">Python</span></div>
+        </a>
+        <a class="card" href="ts-library-guide.html">
+          <div class="card-top"><div class="card-title">TypeScript Library Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Key TypeScript patterns, utility types, and popular libraries</div>
+          <div class="card-footer"><span class="card-tag">TypeScript</span></div>
+        </a>
+        <a class="card" href="npm-restful-api-reference.html">
+          <div class="card-top"><div class="card-title">RESTful API Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">REST design, HTTP methods, status codes, and Node.js patterns</div>
+          <div class="card-footer"><span class="card-tag">REST</span></div>
+        </a>
+        <a class="card" href="http-headers-reference.html">
+          <div class="card-top"><div class="card-title">HTTP Headers Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Complete reference for request/response headers and CORS</div>
+          <div class="card-footer"><span class="card-tag">HTTP</span></div>
+        </a>
+        <a class="card" href="rest-api-headers-cheatsheet.html">
+          <div class="card-top"><div class="card-title">REST API Headers Cheatsheet</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Quick-reference for common API header patterns and authentication</div>
+          <div class="card-footer"><span class="card-tag">HTTP</span></div>
+        </a>
+        <a class="card" href="backend_techlead_study_plan.html">
+          <div class="card-top"><div class="card-title">Backend Tech Lead Study Plan</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Structured study plan for backend engineering leadership roles</div>
+          <div class="card-footer"><span class="card-tag">Study Plan</span></div>
+        </a>
+        <a class="card" href="top5_per_section.html">
+          <div class="card-top"><div class="card-title">Top 5 Per Section</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Top 5 must-know topics curated across every interview domain</div>
+          <div class="card-footer"><span class="card-tag">Reference</span></div>
+        </a>
+      </div>
     </div>
-    <div class="grid">
-      <a class="card" href="nordstrom_em_interview_prep.html">
-        <div class="card-top">
-          <div class="card-title">Engineering Manager Prep</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">EM interview prep: people management, delivery, and leadership questions</div>
-        <div class="card-footer"><span class="card-tag">EM</span></div>
-      </a>
-      <a class="card" href="columbia_interview_prep.html">
-        <div class="card-top">
-          <div class="card-title">Tech Lead Interview Prep</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Technical leadership guide covering architecture and execution</div>
-        <div class="card-footer"><span class="card-tag">Tech Lead</span></div>
-      </a>
-      <a class="card" href="blue-yonder-interview-prep.html">
-        <div class="card-top">
-          <div class="card-title">Supply Chain + Node.js Prep</div>
-          <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>
-        </div>
-        <div class="card-desc">Supply chain domain knowledge combined with Node.js backend prep</div>
-        <div class="card-footer"><span class="card-tag">Supply Chain</span></div>
-      </a>
+
+    <!-- INTERVIEW PREP -->
+    <div class="section cat-interview" data-section data-cat="cat-interview">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        <span class="section-title">Interview Prep</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="nordstrom_em_interview_prep.html">
+          <div class="card-top"><div class="card-title">Engineering Manager Prep</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">EM interview prep: people management, delivery, and leadership questions</div>
+          <div class="card-footer"><span class="card-tag">EM</span></div>
+        </a>
+        <a class="card" href="columbia_interview_prep.html">
+          <div class="card-top"><div class="card-title">Tech Lead Interview Prep</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Technical leadership guide covering architecture and execution</div>
+          <div class="card-footer"><span class="card-tag">Tech Lead</span></div>
+        </a>
+        <a class="card" href="blue-yonder-interview-prep.html">
+          <div class="card-top"><div class="card-title">Supply Chain + Node.js Prep</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Supply chain domain knowledge combined with Node.js backend prep</div>
+          <div class="card-footer"><span class="card-tag">Supply Chain</span></div>
+        </a>
+      </div>
     </div>
-  </div>
 
-  <div id="no-results">
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    No guides match your search.
-  </div>
+    <div id="no-results">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      No guides match your search.
+    </div>
 
-</main>
+  </main>
+</div>
 
-<footer>Tech Interview Knowledge Base &nbsp;·&nbsp; <span id="footer-count"></span> guides across 8 categories</footer>
+<footer class="page-footer">
+  Tech Interview Knowledge Base &nbsp;·&nbsp; <span id="footer-count"></span> guides &nbsp;·&nbsp; 8 categories
+</footer>
 
 <script>
-  // Theme — apply before paint to avoid flash
-  (function() {
-    const saved = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (saved === 'light' || (!saved && !prefersDark)) {
-      document.documentElement.classList.add('light');
-    }
-  })();
-</script>
-<script>
-  // Count guides and update stats
+  // Count cards
   const allCards = document.querySelectorAll('.card');
-  const totalCount = allCards.length;
-  document.getElementById('stat-guides').textContent = totalCount;
-  document.getElementById('footer-count').textContent = totalCount;
+  const total = allCards.length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('nav-count').textContent = total + ' guides';
+  document.getElementById('footer-count').textContent = total;
+  document.getElementById('all-badge').textContent = total;
 
   // Section counts
-  document.querySelectorAll('[data-section]').forEach(section => {
-    const count = section.querySelectorAll('.card').length;
-    section.querySelector('[data-count]').textContent = count;
+  document.querySelectorAll('[data-section]').forEach(s => {
+    const n = s.querySelectorAll('.card').length;
+    s.querySelector('[data-count]').textContent = n;
   });
 
-  // Filter pills
-  const pills = document.querySelectorAll('.filter-pill');
-  pills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      pills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      const filter = pill.dataset.filter;
-      document.querySelectorAll('[data-section]').forEach(section => {
-        if (filter === 'all' || section.dataset.cat === filter) {
-          section.classList.remove('all-hidden');
-        } else {
-          section.classList.add('all-hidden');
-        }
+  // Sidebar filter
+  const sidebarItems = document.querySelectorAll('.sidebar-item');
+  sidebarItems.forEach(item => {
+    item.addEventListener('click', () => {
+      sidebarItems.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const filter = item.dataset.filter;
+      document.querySelectorAll('[data-section]').forEach(s => {
+        s.classList.toggle('all-hidden', filter !== 'all' && s.dataset.cat !== filter);
       });
-      // clear search when filtering
       document.getElementById('search').value = '';
-      document.getElementById('no-results').style.display = 'none';
       allCards.forEach(c => c.classList.remove('hidden'));
+      document.getElementById('no-results').style.display = 'none';
     });
   });
 
   // Search
   const input = document.getElementById('search');
-  const noResults = document.getElementById('no-results');
-
   input.addEventListener('input', () => {
     const q = input.value.toLowerCase().trim();
-
-    // reset category filter when searching
     if (q) {
-      pills.forEach(p => p.classList.remove('active'));
+      sidebarItems.forEach(i => i.classList.remove('active'));
       document.querySelectorAll('[data-section]').forEach(s => s.classList.remove('all-hidden'));
     }
-
-    let anyVisible = false;
-    document.querySelectorAll('[data-section]').forEach(section => {
-      let sectionVisible = false;
-      section.querySelectorAll('.card').forEach(card => {
-        const match = !q || card.textContent.toLowerCase().includes(q);
-        card.classList.toggle('hidden', !match);
-        if (match) sectionVisible = true;
+    let any = false;
+    document.querySelectorAll('[data-section]').forEach(s => {
+      let visible = false;
+      s.querySelectorAll('.card').forEach(c => {
+        const match = !q || c.textContent.toLowerCase().includes(q);
+        c.classList.toggle('hidden', !match);
+        if (match) visible = true;
       });
-      section.classList.toggle('all-hidden', q ? !sectionVisible : false);
-      if (sectionVisible) anyVisible = true;
+      if (q) s.classList.toggle('all-hidden', !visible);
+      if (visible) any = true;
     });
+    document.getElementById('no-results').style.display = (q && !any) ? 'block' : 'none';
+  });
 
-    noResults.style.display = (q && !anyVisible) ? 'block' : 'none';
+  // Keyboard shortcut
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== input) { e.preventDefault(); input.focus(); }
+    if (e.key === 'Escape') input.blur();
   });
 
   // Theme toggle
-  document.getElementById('theme-toggle').addEventListener('click', () => {
-    const isLight = document.documentElement.classList.toggle('light');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  });
-
-  // Keyboard shortcut: / focuses search
-  document.addEventListener('keydown', e => {
-    if (e.key === '/' && document.activeElement !== input) {
-      e.preventDefault();
-      input.focus();
-    }
-    if (e.key === 'Escape') input.blur();
+  document.getElementById('theme-btn').addEventListener('click', () => {
+    const dark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
   });
 </script>
 </body>
