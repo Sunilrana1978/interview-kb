@@ -559,6 +559,10 @@ html.dark .card-title { color: #5b9cf6; }
           <span class="hero-stat-num">8</span>
           <span class="hero-stat-label">Topics</span>
         </div>
+        <div class="hero-stat">
+          <span class="hero-stat-num" id="visitor-count">—</span>
+          <span class="hero-stat-label">Visitors</span>
+        </div>
       </div>
     </div>
 
@@ -923,5 +927,20 @@ html.dark .card-title { color: #5b9cf6; }
   });
 </script>
 <script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<script>
+  (function pollVisitors() {
+    if (window.goatcounter && window.goatcounter.visit_count) {
+      window.goatcounter.visit_count({
+        path: function() { return 'https://sunilrana1978.github.io/interview-kb/'; },
+        callback: function(count) {
+          var el = document.getElementById('visitor-count');
+          if (el) el.textContent = count;
+        }
+      });
+    } else {
+      setTimeout(pollVisitors, 300);
+    }
+  })();
+</script>
 </body>
 </html>
