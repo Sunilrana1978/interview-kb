@@ -928,11 +928,13 @@ html.dark .card-title { color: #5b9cf6; }
 </script>
 <script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
-  fetch('https://interview-kb.goatcounter.com/counter//interview-kb/index.html.json')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
+  fetch('https://interview-kb.goatcounter.com/counter/%2Finterview-kb%2Findex.html.html')
+    .then(function(r) { return r.text(); })
+    .then(function(html) {
       var el = document.getElementById('visitor-count');
-      if (el && d.count) el.textContent = d.count;
+      if (!el) return;
+      var m = html.match(/>(\d[\d,]*)</);
+      if (m) el.textContent = m[1];
     })
     .catch(function() {});
 </script>
