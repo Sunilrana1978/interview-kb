@@ -4,7 +4,7 @@ A curated collection of self-contained HTML study guides covering cloud architec
 
 ## Live Site
 
-> Hosted on GitHub Pages: `https://<your-username>.github.io/interview-kb/`
+> Hosted on GitHub Pages: https://sunilrana1978.github.io/interview-kb/
 
 ## Features
 
