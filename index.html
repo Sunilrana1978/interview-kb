@@ -928,17 +928,13 @@ html.dark .card-title { color: #5b9cf6; }
 </script>
 <script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 <script>
-  (function pollVisitors() {
+  (function poll() {
     if (window.goatcounter && window.goatcounter.visit_count) {
-      window.goatcounter.visit_count({
-        path: function() { return 'https://sunilrana1978.github.io/interview-kb/'; },
-        callback: function(count) {
-          var el = document.getElementById('visitor-count');
-          if (el) el.textContent = count;
-        }
-      });
+      var el = document.getElementById('visitor-count');
+      if (el) el.textContent = '';
+      window.goatcounter.visit_count({append: 'visitor-count'});
     } else {
-      setTimeout(pollVisitors, 300);
+      setTimeout(poll, 300);
     }
   })();
 </script>
