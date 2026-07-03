@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Supply Chain · Saga Pattern</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:       #05080f;
+    --bg1:      #080e1c;
+    --bg2:      #0b1424;
+    --border:   #112035;
+    --border2:  #1a3050;
+    --text:     #c5d8ea;
+    --muted:    #3a5a78;
+    --muted2:   #1e3550;
+    --order:    #00c8ff;
+    --inv:      #00e896;
+    --pay:      #ffb300;
+    --ship:     #ff6060;
+    --saga:     #b87cff;
+    --kafka:    #ff8c42;
+    --orch:     #40e0d0;
+    --danger:   #ff4444;
+    --success:  #00e896;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(5,8,15,0.92);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 56px;
+  }
+  .nav-brand { font-family:'Syne',sans-serif; font-weight:800; font-size:15px; color:var(--order); letter-spacing:1px; }
+  .nav-brand span { color: var(--text); font-weight:400; }
+  .nav-links { display:flex; gap:4px; }
+  .nav-links a {
+    color: var(--muted); font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+    text-decoration:none; padding:6px 12px; border-radius:4px;
+    transition: color .2s, background .2s;
+  }
+  .nav-links a:hover { color:var(--order); background:rgba(0,200,255,.06); }
+
+  /* ── SECTIONS ── */
+  section { padding: 64px 32px; max-width: 1300px; margin: 0 auto; }
+  .section-label {
+    font-size:9px; letter-spacing:3px; color:var(--muted); text-transform:uppercase;
+    margin-bottom:8px; display:flex; align-items:center; gap:8px;
+  }
+  .section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+  h2 { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; color:#fff; margin-bottom:6px; }
+  .subtitle { color:var(--muted); font-size:11px; margin-bottom:40px; }
+  .full-width { max-width: 100%; padding-left:32px; padding-right:32px; }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 420px;
+    display: flex; flex-direction:column; justify-content:center;
+    padding: 80px 32px 48px;
+    max-width: 1300px; margin: 0 auto;
+    position:relative;
+  }
+  .hero-tag {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:9px; letter-spacing:3px; color:var(--order); text-transform:uppercase;
+    border:1px solid rgba(0,200,255,.3); border-radius:20px; padding:4px 14px;
+    margin-bottom:24px; width:fit-content;
+  }
+  .hero-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--order); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+  h1 { font-family:'Syne',sans-serif; font-size:clamp(32px,5vw,58px); font-weight:800; line-height:1.1; color:#fff; margin-bottom:16px; }
+  h1 em { color:var(--order); font-style:normal; }
+  .hero-desc { color:var(--muted); font-size:12px; max-width:600px; line-height:1.8; margin-bottom:32px; }
+  .hero-pills { display:flex; flex-wrap:wrap; gap:8px; }
+  .pill {
+    font-size:9px; letter-spacing:1px; text-transform:uppercase; padding:5px 12px;
+    border-radius:3px; border:1px solid; font-weight:600;
+  }
+  .pill-blue  { color:var(--order); border-color:rgba(0,200,255,.3); background:rgba(0,200,255,.06); }
+  .pill-green { color:var(--inv);   border-color:rgba(0,232,150,.3); background:rgba(0,232,150,.06); }
+  .pill-amber { color:var(--pay);   border-color:rgba(255,179,0,.3);  background:rgba(255,179,0,.06); }
+  .pill-red   { color:var(--ship);  border-color:rgba(255,96,96,.3);  background:rgba(255,96,96,.06); }
+  .pill-purple{ color:var(--saga);  border-color:rgba(184,124,255,.3);background:rgba(184,124,255,.06); }
+
+  .grid-bg {
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: linear-gradient(rgba(0,200,255,.025) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0,200,255,.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg1); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden;
+  }
+  .card-head {
+    padding: 14px 18px; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:10px;
+    background: var(--bg2);
+  }
+  .card-head .dot { width:8px; height:8px; border-radius:50%; }
+  .card-head h3 { font-family:'Syne',sans-serif; font-size:13px; font-weight:700; color:#fff; }
+  .card-body { padding:18px; }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-canvas {
+    width:100%; background:var(--bg1); border:1px solid var(--border);
+    border-radius:10px; overflow:hidden; position:relative;
+  }
+  .arch-canvas svg { width:100%; display:block; }
+
+  /* ── DB SCHEMA GRID ── */
+  .schema-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+  .db-table {
+    background:var(--bg1); border:1px solid var(--border);
+    border-radius:8px; overflow:hidden;
+    transition: border-color .3s, box-shadow .3s;
+  }
+  .db-table:hover { border-color:var(--border2); box-shadow:0 0 20px rgba(0,200,255,.06); }
+  .db-table-head {
+    padding:9px 14px; font-size:10px; font-weight:700; letter-spacing:1px;
+    border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px;
+  }
+  .db-table-row { display:flex; justify-content:space-between; padding:4px 14px; font-size:9px; }
+  .db-table-row .col-name { color:var(--text); display:flex;align-items:center;gap:5px; }
+  .db-table-row .col-type { color:var(--muted); }
+  .badge { font-size:8px; padding:1px 5px; border-radius:2px; font-weight:700; }
+  .badge-pk { background:rgba(255,215,0,.15); color:#ffd700; }
+  .badge-fk { background:rgba(135,206,235,.12); color:#87ceeb; }
+  .badge-idx{ background:rgba(0,200,255,.1); color:var(--order); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow-wrap { position:relative; }
+  .flow-canvas { width:100%; display:block; }
+
+  /* ── KAFKA TOPICS TABLE ── */
+  .topic-table { width:100%; border-collapse:collapse; }
+  .topic-table th {
+    text-align:left; font-size:9px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--muted); border-bottom:1px solid var(--border); padding:8px 14px;
+  }
+  .topic-table td { padding:10px 14px; font-size:10px; border-bottom:1px solid var(--muted2); }
+  .topic-table tr:last-child td { border-bottom:none; }
+  .topic-table tr:hover td { background:rgba(255,255,255,.02); }
+  .topic-name { color:var(--kafka); font-weight:600; }
+  .event-type { color:var(--text); }
+  .direction { font-size:8px; padding:2px 8px; border-radius:3px; font-weight:700; border:1px solid; }
+  .dir-pub  { color:var(--order); border-color:rgba(0,200,255,.3); }
+  .dir-sub  { color:var(--inv);   border-color:rgba(0,232,150,.3); }
+  .dir-comp { color:var(--danger);border-color:rgba(255,68,68,.3); }
+
+  /* ── SIMULATION ── */
+  .sim-layout { display:grid; grid-template-columns:240px 1fr 300px; gap:0; min-height:600px; background:var(--bg1); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .sim-panel { border-right:1px solid var(--border); overflow-y:auto; }
+  .sim-panel:last-child { border-right:none; border-left:1px solid var(--border); }
+  .sim-panel-head { padding:10px 14px; border-bottom:1px solid var(--border); font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; background:var(--bg2); position:sticky; top:0; z-index:5; }
+
+  .schema-mini { margin:10px; }
+  .schema-mini-table { background:var(--bg); border:1px solid var(--muted2); border-radius:6px; margin-bottom:8px; overflow:hidden; transition:border-color .2s,box-shadow .2s; }
+  .schema-mini-table.active { border-color:var(--order); box-shadow:0 0 12px rgba(0,200,255,.2); }
+  .schema-mini-head { padding:6px 10px; font-size:9px; font-weight:700; letter-spacing:1px; border-bottom:1px solid var(--muted2); display:flex;align-items:center;gap:6px; }
+  .schema-mini-row { padding:3px 10px; font-size:8.5px; display:flex;justify-content:space-between; }
+  .schema-mini-row .n { color:var(--text); }
+  .schema-mini-row .t { color:var(--muted); }
+
+  .sim-center { display:flex; flex-direction:column; }
+  .sim-controls { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center; background:var(--bg2); }
+  .btn {
+    padding:6px 16px; font-size:9px; font-family:'JetBrains Mono',monospace;
+    letter-spacing:1px; border-radius:4px; cursor:pointer; font-weight:700;
+    transition:all .2s; border:1px solid; text-transform:uppercase;
+  }
+  .btn-play  { color:var(--order); border-color:rgba(0,200,255,.4); background:rgba(0,200,255,.08); }
+  .btn-play:hover { background:rgba(0,200,255,.16); }
+  .btn-play:disabled { color:var(--muted); border-color:var(--border); background:transparent; cursor:default; }
+  .btn-reset { color:var(--muted); border-color:var(--border); background:transparent; }
+  .btn-reset:hover { color:var(--text); border-color:var(--border2); }
+  .btn-happy { color:var(--order); border-color:rgba(0,200,255,.3); background:rgba(0,200,255,.06); }
+  .btn-happy.active { background:rgba(0,200,255,.18); border-color:var(--order); }
+  .btn-comp  { color:var(--danger); border-color:rgba(255,68,68,.3); background:rgba(255,68,68,.06); }
+  .btn-comp.active  { background:rgba(255,68,68,.18); border-color:var(--danger); }
+  .sim-status { font-size:9px; color:var(--muted); margin-left:8px; }
+
+  .steps-list { padding:16px; flex:1; }
+  .step-row { display:flex; gap:12px; align-items:flex-start; margin-bottom:2px; cursor:pointer; }
+  .step-line { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
+  .step-dot {
+    width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:10px; font-weight:700; border:2px solid; transition:all .25s; flex-shrink:0;
+  }
+  .step-connector { width:1px; height:36px; background:var(--border); transition:background .25s; }
+  .step-card {
+    flex:1; padding:10px 14px; border-radius:6px; border:1px solid var(--border);
+    background:var(--bg); transition:all .2s; margin-top:-16px;
+  }
+  .step-card:hover { border-color:var(--border2); }
+  .step-card.active { border-color:inherit; }
+  .step-card-title { font-size:11px; font-weight:700; margin-bottom:3px; }
+  .step-card-sub { font-size:9px; color:var(--muted); }
+  .step-card-badge { font-size:8px; padding:1px 7px; border-radius:3px; border:1px solid; font-weight:700; }
+
+  .saga-states { margin:10px 16px; padding:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; }
+  .saga-states-label { font-size:8px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+  .saga-states-row { display:flex; gap:6px; flex-wrap:wrap; }
+  .saga-state-pill {
+    font-size:8px; padding:3px 10px; border-radius:3px; border:1px solid;
+    transition:all .2s; color:var(--muted); border-color:var(--border);
+  }
+  .saga-state-pill.active { }
+
+  /* right panel */
+  .event-detail { padding:12px; display:flex; flex-direction:column; gap:10px; }
+  .detail-block { background:var(--bg); border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+  .detail-block-head { padding:7px 12px; font-size:9px; letter-spacing:2px; color:var(--muted); text-transform:uppercase; border-bottom:1px solid var(--border); background:var(--bg2); }
+  .detail-block-body { padding:10px 12px; }
+  pre.json-view {
+    font-size:9px; line-height:1.7; color:var(--text); white-space:pre-wrap;
+    word-break:break-all; font-family:'JetBrains Mono',monospace;
+  }
+  .json-key   { color:var(--order); }
+  .json-str   { color:var(--inv); }
+  .json-num   { color:var(--pay); }
+  .json-bool  { color:var(--saga); }
+
+  .db-op-line { font-size:9.5px; line-height:2; }
+  .kw   { color:var(--pay); font-weight:700; }
+  .tbl  { color:var(--text); }
+  .val  { color:var(--inv); }
+  .cmt  { color:var(--muted); }
+
+  .empty-state { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--muted2); gap:10px; padding:40px; text-align:center; }
+  .empty-state .icon { font-size:36px; opacity:.3; }
+  .empty-state p { font-size:10px; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top:1px solid var(--border); padding:24px 32px;
+    display:flex; justify-content:space-between; align-items:center;
+    color:var(--muted); font-size:9px; letter-spacing:1px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+  @media (max-width:900px) {
+    .sim-layout { grid-template-columns:1fr; }
+    .sim-panel:first-child, .sim-panel:last-child { display:none; }
+    .schema-grid { grid-template-columns:1fr 1fr; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">⛓ Supply Chain <span>· Saga Pattern</span></div>
+  <div class="nav-links">
+    <a href="#architecture">Architecture</a>
+    <a href="#schema">Schema</a>
+    <a href="#flow">Flow</a>
+    <a href="#kafka">Kafka</a>
+    <a href="#simulation">Simulation</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="hero-tag">Distributed Systems Design</div>
+  <h1>Saga Pattern for<br/><em>Supply Chain</em></h1>
+  <p class="hero-desc">
+    Orchestration-based saga implementation covering distributed transactions across
+    Order, Inventory, Payment and Shipping services — with Kafka event bus, PostgreSQL
+    per-service databases, and full compensation (rollback) flows.
+  </p>
+  <div class="hero-pills">
+    <span class="pill pill-blue">Orchestration Saga</span>
+    <span class="pill pill-green">PostgreSQL × 4 DBs</span>
+    <span class="pill pill-amber">Apache Kafka</span>
+    <span class="pill pill-red">Compensation Flows</span>
+    <span class="pill pill-purple">Idempotent Events</span>
+  </div>
+</div>
+
+<!-- ── SECTION 1: ARCHITECTURE ── -->
+<section id="architecture">
+  <div class="section-label">01 &nbsp; Architecture Overview</div>
+  <h2>System Architecture</h2>
+  <p class="subtitle">Orchestration-based saga with a dedicated orchestrator service and per-service isolated databases</p>
+
+  <div class="arch-canvas">
+    <svg viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow2">
+          <feGaussianBlur stdDeviation="5" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#00c8ff"/>
+        </marker>
+        <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#00e896"/>
+        </marker>
+        <marker id="arrow-amber" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#ffb300"/>
+        </marker>
+        <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#ff6060"/>
+        </marker>
+        <marker id="arrow-teal" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#40e0d0"/>
+        </marker>
+        <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L0,6 L8,3 z" fill="#ff8c42"/>
+        </marker>
+      </defs>
+
+      <!-- BG -->
+      <rect width="1100" height="620" fill="#080e1c"/>
+
+      <!-- Kafka Bus - center strip -->
+      <rect x="0" y="270" width="1100" height="80" fill="rgba(255,140,66,.04)" stroke="rgba(255,140,66,.2)" stroke-width="1"/>
+      <text x="550" y="305" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="11" font-weight="700" letter-spacing="3">APACHE KAFKA EVENT BUS</text>
+      <!-- Kafka topics -->
+      <rect x="100" y="285" width="130" height="22" rx="3" fill="rgba(255,140,66,.12)" stroke="rgba(255,140,66,.3)" stroke-width="1"/>
+      <text x="165" y="301" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="8">order.created / confirmed</text>
+      <rect x="260" y="285" width="130" height="22" rx="3" fill="rgba(255,140,66,.12)" stroke="rgba(255,140,66,.3)" stroke-width="1"/>
+      <text x="325" y="301" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="8">inventory.reserve / release</text>
+      <rect x="420" y="285" width="130" height="22" rx="3" fill="rgba(255,140,66,.12)" stroke="rgba(255,140,66,.3)" stroke-width="1"/>
+      <text x="485" y="301" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="8">payment.process / failed</text>
+      <rect x="580" y="285" width="130" height="22" rx="3" fill="rgba(255,140,66,.12)" stroke="rgba(255,140,66,.3)" stroke-width="1"/>
+      <text x="645" y="301" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="8">shipment.schedule / return</text>
+      <rect x="740" y="285" width="130" height="22" rx="3" fill="rgba(255,140,66,.12)" stroke="rgba(255,140,66,.3)" stroke-width="1"/>
+      <text x="805" y="301" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="8">saga.events / saga.dead-letter</text>
+
+      <!-- Kafka partitions indicator -->
+      <text x="550" y="342" text-anchor="middle" fill="rgba(255,140,66,.4)" font-family="JetBrains Mono" font-size="9">partition-by: order_id  ·  replication: 3  ·  retention: 7d</text>
+
+      <!-- ORCHESTRATOR (top-center) -->
+      <rect x="420" y="60" width="260" height="120" rx="8" fill="rgba(64,224,208,.07)" stroke="#40e0d0" stroke-width="1.5" filter="url(#glow)"/>
+      <text x="550" y="88" text-anchor="middle" fill="#40e0d0" font-family="Syne,sans-serif" font-size="13" font-weight="700">SAGA ORCHESTRATOR</text>
+      <text x="550" y="106" text-anchor="middle" fill="rgba(64,224,208,.6)" font-family="JetBrains Mono" font-size="9">saga-orchestrator-service</text>
+      <rect x="438" y="118" width="80" height="18" rx="3" fill="rgba(64,224,208,.1)" stroke="rgba(64,224,208,.3)" stroke-width="1"/>
+      <text x="478" y="131" text-anchor="middle" fill="#40e0d0" font-family="JetBrains Mono" font-size="8">State Machine</text>
+      <rect x="530" y="118" width="80" height="18" rx="3" fill="rgba(64,224,208,.1)" stroke="rgba(64,224,208,.3)" stroke-width="1"/>
+      <text x="570" y="131" text-anchor="middle" fill="#40e0d0" font-family="JetBrains Mono" font-size="8">Undo Log</text>
+      <rect x="438" y="142" width="172" height="18" rx="3" fill="rgba(64,224,208,.1)" stroke="rgba(64,224,208,.3)" stroke-width="1"/>
+      <text x="524" y="155" text-anchor="middle" fill="#40e0d0" font-family="JetBrains Mono" font-size="8">PostgreSQL: saga_orchestration_log</text>
+
+      <!-- Orchestrator → Kafka -->
+      <line x1="550" y1="180" x2="550" y2="270" stroke="#40e0d0" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-teal)"/>
+      <text x="560" y="230" fill="rgba(64,224,208,.6)" font-family="JetBrains Mono" font-size="8">publish commands</text>
+      <!-- Kafka → Orchestrator -->
+      <line x1="530" y1="270" x2="530" y2="180" stroke="#ff8c42" stroke-width="1.5" stroke-dasharray="6,3" marker-end="url(#arrow-orange)"/>
+      <text x="490" y="230" fill="rgba(255,140,66,.6)" font-family="JetBrains Mono" font-size="8" text-anchor="middle">reply events</text>
+
+      <!-- CLIENT -->
+      <rect x="30" y="60" width="140" height="60" rx="8" fill="rgba(0,200,255,.06)" stroke="#00c8ff" stroke-width="1"/>
+      <text x="100" y="88" text-anchor="middle" fill="#00c8ff" font-family="Syne,sans-serif" font-size="11" font-weight="700">CLIENT / API</text>
+      <text x="100" y="106" text-anchor="middle" fill="rgba(0,200,255,.5)" font-family="JetBrains Mono" font-size="8">REST Gateway</text>
+      <!-- Client → Orchestrator -->
+      <path d="M170,90 L420,120" stroke="#00c8ff" stroke-width="1.5" fill="none" marker-end="url(#arrow-blue)"/>
+      <text x="295" y="98" fill="rgba(0,200,255,.6)" font-family="JetBrains Mono" font-size="8" transform="rotate(-8,295,98)">PlaceOrder()</text>
+
+      <!-- SERVICES row (bottom) -->
+      <!-- Order Service -->
+      <rect x="40" y="420" width="180" height="130" rx="8" fill="rgba(0,200,255,.05)" stroke="#00c8ff" stroke-width="1.5"/>
+      <text x="130" y="448" text-anchor="middle" fill="#00c8ff" font-family="Syne,sans-serif" font-size="12" font-weight="700">ORDER SERVICE</text>
+      <rect x="58" y="460" width="144" height="16" rx="3" fill="rgba(0,200,255,.08)" stroke="rgba(0,200,255,.2)" stroke-width="1"/>
+      <text x="130" y="472" text-anchor="middle" fill="rgba(0,200,255,.7)" font-family="JetBrains Mono" font-size="8">PostgreSQL: orders</text>
+      <text x="130" y="497" text-anchor="middle" fill="rgba(0,200,255,.4)" font-family="JetBrains Mono" font-size="8">status: PENDING|CONFIRMED</text>
+      <text x="130" y="513" text-anchor="middle" fill="rgba(0,200,255,.4)" font-family="JetBrains Mono" font-size="8">CANCELLED|COMPLETED</text>
+      <rect x="58" y="528" width="144" height="14" rx="3" fill="rgba(0,200,255,.06)" stroke="rgba(0,200,255,.15)" stroke-width="1"/>
+      <text x="130" y="539" text-anchor="middle" fill="rgba(0,200,255,.5)" font-family="JetBrains Mono" font-size="7.5">saga_id (correlation key)</text>
+
+      <!-- Inventory Service -->
+      <rect x="280" y="420" width="180" height="130" rx="8" fill="rgba(0,232,150,.05)" stroke="#00e896" stroke-width="1.5"/>
+      <text x="370" y="448" text-anchor="middle" fill="#00e896" font-family="Syne,sans-serif" font-size="12" font-weight="700">INVENTORY SVC</text>
+      <rect x="298" y="460" width="144" height="16" rx="3" fill="rgba(0,232,150,.08)" stroke="rgba(0,232,150,.2)" stroke-width="1"/>
+      <text x="370" y="472" text-anchor="middle" fill="rgba(0,232,150,.7)" font-family="JetBrains Mono" font-size="8">PostgreSQL: inventory_reserv.</text>
+      <text x="370" y="497" text-anchor="middle" fill="rgba(0,232,150,.4)" font-family="JetBrains Mono" font-size="8">status: RESERVED|RELEASED</text>
+      <text x="370" y="513" text-anchor="middle" fill="rgba(0,232,150,.4)" font-family="JetBrains Mono" font-size="8">CONFIRMED</text>
+      <rect x="298" y="528" width="144" height="14" rx="3" fill="rgba(0,232,150,.06)" stroke="rgba(0,232,150,.15)" stroke-width="1"/>
+      <text x="370" y="539" text-anchor="middle" fill="rgba(0,232,150,.5)" font-family="JetBrains Mono" font-size="7.5">Idempotent: check saga_id first</text>
+
+      <!-- Payment Service -->
+      <rect x="520" y="420" width="180" height="130" rx="8" fill="rgba(255,179,0,.05)" stroke="#ffb300" stroke-width="1.5"/>
+      <text x="610" y="448" text-anchor="middle" fill="#ffb300" font-family="Syne,sans-serif" font-size="12" font-weight="700">PAYMENT SERVICE</text>
+      <rect x="538" y="460" width="144" height="16" rx="3" fill="rgba(255,179,0,.08)" stroke="rgba(255,179,0,.2)" stroke-width="1"/>
+      <text x="610" y="472" text-anchor="middle" fill="rgba(255,179,0,.7)" font-family="JetBrains Mono" font-size="8">PostgreSQL: payment_txns</text>
+      <text x="610" y="497" text-anchor="middle" fill="rgba(255,179,0,.4)" font-family="JetBrains Mono" font-size="8">status: AUTHORIZED|CAPTURED</text>
+      <text x="610" y="513" text-anchor="middle" fill="rgba(255,179,0,.4)" font-family="JetBrains Mono" font-size="8">REFUNDED|FAILED</text>
+      <rect x="538" y="528" width="144" height="14" rx="3" fill="rgba(255,179,0,.06)" stroke="rgba(255,179,0,.15)" stroke-width="1"/>
+      <text x="610" y="539" text-anchor="middle" fill="rgba(255,179,0,.5)" font-family="JetBrains Mono" font-size="7.5">Compensate: REFUND txn</text>
+
+      <!-- Shipping Service -->
+      <rect x="760" y="420" width="180" height="130" rx="8" fill="rgba(255,96,96,.05)" stroke="#ff6060" stroke-width="1.5"/>
+      <text x="850" y="448" text-anchor="middle" fill="#ff6060" font-family="Syne,sans-serif" font-size="12" font-weight="700">SHIPPING SERVICE</text>
+      <rect x="778" y="460" width="144" height="16" rx="3" fill="rgba(255,96,96,.08)" stroke="rgba(255,96,96,.2)" stroke-width="1"/>
+      <text x="850" y="472" text-anchor="middle" fill="rgba(255,96,96,.7)" font-family="JetBrains Mono" font-size="8">PostgreSQL: shipments</text>
+      <text x="850" y="497" text-anchor="middle" fill="rgba(255,96,96,.4)" font-family="JetBrains Mono" font-size="8">status: SCHEDULED|DISPATCHED</text>
+      <text x="850" y="513" text-anchor="middle" fill="rgba(255,96,96,.4)" font-family="JetBrains Mono" font-size="8">DELIVERED|RETURNED</text>
+      <rect x="778" y="528" width="144" height="14" rx="3" fill="rgba(255,96,96,.06)" stroke="rgba(255,96,96,.15)" stroke-width="1"/>
+      <text x="850" y="539" text-anchor="middle" fill="rgba(255,96,96,.5)" font-family="JetBrains Mono" font-size="7.5">Compensate: schedule RETURN</text>
+
+      <!-- Services → Kafka (publish events) -->
+      <line x1="130" y1="420" x2="200" y2="350" stroke="#00c8ff" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-blue)"/>
+      <line x1="370" y1="420" x2="370" y2="350" stroke="#00e896" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-green)"/>
+      <line x1="610" y1="420" x2="540" y2="350" stroke="#ffb300" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-amber)"/>
+      <line x1="850" y1="420" x2="740" y2="350" stroke="#ff6060" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-red)"/>
+
+      <!-- Kafka → Services (consume commands) -->
+      <line x1="165" y1="350" x2="150" y2="420" stroke="#ff8c42" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-orange)"/>
+      <line x1="340" y1="350" x2="350" y2="420" stroke="#ff8c42" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-orange)"/>
+      <line x1="560" y1="350" x2="590" y2="420" stroke="#ff8c42" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-orange)"/>
+      <line x1="720" y1="350" x2="830" y2="420" stroke="#ff8c42" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrow-orange)"/>
+
+      <!-- Legend -->
+      <rect x="30" y="568" width="500" height="38" rx="4" fill="rgba(255,255,255,.02)" stroke="rgba(255,255,255,.06)" stroke-width="1"/>
+      <line x1="50" y1="583" x2="80" y2="583" stroke="#40e0d0" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="86" y="587" fill="rgba(64,224,208,.7)" font-family="JetBrains Mono" font-size="8">Orchestrator publishes command</text>
+      <line x1="220" y1="583" x2="250" y2="583" stroke="#ff8c42" stroke-width="1.5" stroke-dasharray="5,3"/>
+      <text x="256" y="587" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="8">Service replies with event</text>
+      <line x1="50" y1="598" x2="80" y2="598" stroke="#00c8ff" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="86" y="602" fill="rgba(0,200,255,.7)" font-family="JetBrains Mono" font-size="8">Service publishes domain event</text>
+      <text x="390" y="583" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="8">saga_id = correlation key across all DBs</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ── SECTION 2: DB SCHEMA ── -->
+<section id="schema">
+  <div class="section-label">02 &nbsp; Database Design</div>
+  <h2>Per-Service Schema</h2>
+  <p class="subtitle">Each service owns its own PostgreSQL database. The <code style="color:var(--saga)">saga_id</code> UUID is the correlation key across all services.</p>
+
+  <div class="schema-grid">
+
+    <!-- orders -->
+    <div class="db-table">
+      <div class="db-table-head" style="background:rgba(0,200,255,.07); color:var(--order); border-bottom-color:rgba(0,200,255,.2)">
+        📦 <span>orders</span> <span style="color:var(--muted);font-size:8px;margin-left:auto">order-db</span>
+      </div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-pk">PK</span> order_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-fk">FK</span> customer_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-idx">IDX</span> saga_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name">status</span><span class="col-type">ENUM</span></div>
+      <div class="db-table-row"><span class="col-name">total_amount</span><span class="col-type">DECIMAL(10,2)</span></div>
+      <div class="db-table-row"><span class="col-name">items</span><span class="col-type">JSONB</span></div>
+      <div class="db-table-row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+      <div class="db-table-row" style="margin-bottom:6px"><span class="col-name">updated_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+      <div style="padding:6px 14px 10px;font-size:8px;color:var(--muted)">
+        status: PENDING → CONFIRMED | CANCELLED | COMPLETED
+      </div>
+    </div>
+
+    <!-- inventory -->
+    <div class="db-table">
+      <div class="db-table-head" style="background:rgba(0,232,150,.07); color:var(--inv); border-bottom-color:rgba(0,232,150,.2)">
+        🏭 <span>inventory_reservations</span> <span style="color:var(--muted);font-size:8px;margin-left:auto">inv-db</span>
+      </div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-pk">PK</span> reservation_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-fk">FK</span> order_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-idx">IDX</span> saga_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name">product_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name">quantity</span><span class="col-type">INTEGER</span></div>
+      <div class="db-table-row"><span class="col-name">warehouse_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name">status</span><span class="col-type">ENUM</span></div>
+      <div class="db-table-row" style="margin-bottom:6px"><span class="col-name">reserved_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+      <div style="padding:6px 14px 10px;font-size:8px;color:var(--muted)">
+        status: RESERVED → CONFIRMED | RELEASED (compensation)
+      </div>
+    </div>
+
+    <!-- payment -->
+    <div class="db-table">
+      <div class="db-table-head" style="background:rgba(255,179,0,.07); color:var(--pay); border-bottom-color:rgba(255,179,0,.2)">
+        💳 <span>payment_transactions</span> <span style="color:var(--muted);font-size:8px;margin-left:auto">pay-db</span>
+      </div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-pk">PK</span> transaction_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-fk">FK</span> order_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-idx">IDX</span> saga_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name">amount</span><span class="col-type">DECIMAL(10,2)</span></div>
+      <div class="db-table-row"><span class="col-name">currency</span><span class="col-type">CHAR(3)</span></div>
+      <div class="db-table-row"><span class="col-name">status</span><span class="col-type">ENUM</span></div>
+      <div class="db-table-row"><span class="col-name">gateway_ref</span><span class="col-type">VARCHAR(255)</span></div>
+      <div class="db-table-row" style="margin-bottom:6px"><span class="col-name">processed_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+      <div style="padding:6px 14px 10px;font-size:8px;color:var(--muted)">
+        status: AUTHORIZED → CAPTURED | REFUNDED (compensation) | FAILED
+      </div>
+    </div>
+
+    <!-- shipments -->
+    <div class="db-table">
+      <div class="db-table-head" style="background:rgba(255,96,96,.07); color:var(--ship); border-bottom-color:rgba(255,96,96,.2)">
+        🚚 <span>shipments</span> <span style="color:var(--muted);font-size:8px;margin-left:auto">ship-db</span>
+      </div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-pk">PK</span> shipment_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-fk">FK</span> order_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name"><span class="badge badge-idx">IDX</span> saga_id</span><span class="col-type">UUID</span></div>
+      <div class="db-table-row"><span class="col-name">carrier</span><span class="col-type">VARCHAR(100)</span></div>
+      <div class="db-table-row"><span class="col-name">tracking_number</span><span class="col-type">VARCHAR(255)</span></div>
+      <div class="db-table-row"><span class="col-name">status</span><span class="col-type">ENUM</span></div>
+      <div class="db-table-row"><span class="col-name">destination</span><span class="col-type">JSONB</span></div>
+      <div class="db-table-row" style="margin-bottom:6px"><span class="col-name">scheduled_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+      <div style="padding:6px 14px 10px;font-size:8px;color:var(--muted)">
+        status: SCHEDULED → DISPATCHED → DELIVERED | RETURNED (compensation)
+      </div>
+    </div>
+
+    <!-- saga log -->
+    <div class="db-table" style="grid-column:span 2; border-color:rgba(184,124,255,.3)">
+      <div class="db-table-head" style="background:rgba(184,124,255,.07); color:var(--saga); border-bottom-color:rgba(184,124,255,.2)">
+        📋 <span>saga_orchestration_log</span> <span style="color:var(--muted);font-size:8px;margin-left:auto">orchestrator-db  ·  central saga state</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+        <div>
+          <div class="db-table-row"><span class="col-name"><span class="badge badge-pk">PK</span> log_id</span><span class="col-type">UUID</span></div>
+          <div class="db-table-row"><span class="col-name"><span class="badge badge-idx">IDX</span> saga_id</span><span class="col-type">UUID  — correlation key</span></div>
+          <div class="db-table-row"><span class="col-name">saga_type</span><span class="col-type">VARCHAR(100)</span></div>
+          <div class="db-table-row"><span class="col-name">current_step</span><span class="col-type">VARCHAR(100)</span></div>
+        </div>
+        <div>
+          <div class="db-table-row"><span class="col-name">status</span><span class="col-type">ENUM(IN_PROGRESS, COMPLETED, COMPENSATING, FAILED)</span></div>
+          <div class="db-table-row"><span class="col-name">payload</span><span class="col-type">JSONB  — original request</span></div>
+          <div class="db-table-row"><span class="col-name">compensations</span><span class="col-type">JSONB  — undo log stack</span></div>
+          <div class="db-table-row"><span class="col-name">created_at / updated_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+        </div>
+      </div>
+      <div style="padding:8px 14px 10px;font-size:8px;color:rgba(184,124,255,.6);border-top:1px solid rgba(184,124,255,.15);margin-top:4px">
+        ⚑  The <strong style="color:var(--saga)">compensations</strong> JSONB column acts as an undo-log stack.
+        Each completed step appends its inverse operation so the orchestrator can roll back in reverse order on failure.
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── SECTION 3: FLOW DIAGRAM ── -->
+<section id="flow">
+  <div class="section-label">03 &nbsp; Transaction Flow</div>
+  <h2>Saga Flow Diagrams</h2>
+  <p class="subtitle">Happy path (left) and compensation/rollback path (right). Time flows top-to-bottom.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+
+    <!-- Happy Path -->
+    <div class="card">
+      <div class="card-head">
+        <div class="dot" style="background:var(--success)"></div>
+        <h3>Happy Path — Order Fulfilment</h3>
+      </div>
+      <div class="card-body" style="padding:0">
+        <svg viewBox="0 0 480 660" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+          <defs>
+            <marker id="ah" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#00c8ff"/></marker>
+            <marker id="ag" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#00e896"/></marker>
+            <marker id="ay" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ffb300"/></marker>
+            <marker id="ar" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ff6060"/></marker>
+            <marker id="at" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#40e0d0"/></marker>
+            <marker id="ao" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ff8c42"/></marker>
+          </defs>
+          <rect width="480" height="660" fill="#0b1424"/>
+
+          <!-- Swimlane headers -->
+          <rect x="10" y="10" width="80" height="640" rx="4" fill="rgba(64,224,208,.04)" stroke="rgba(64,224,208,.15)" stroke-width="1"/>
+          <text x="50" y="36" text-anchor="middle" fill="#40e0d0" font-family="JetBrains Mono" font-size="8" font-weight="700">ORCH</text>
+
+          <rect x="100" y="10" width="80" height="640" rx="4" fill="rgba(0,200,255,.04)" stroke="rgba(0,200,255,.15)" stroke-width="1"/>
+          <text x="140" y="36" text-anchor="middle" fill="#00c8ff" font-family="JetBrains Mono" font-size="8" font-weight="700">ORDER</text>
+
+          <rect x="190" y="10" width="80" height="640" rx="4" fill="rgba(0,232,150,.04)" stroke="rgba(0,232,150,.15)" stroke-width="1"/>
+          <text x="230" y="36" text-anchor="middle" fill="#00e896" font-family="JetBrains Mono" font-size="8" font-weight="700">INVENT</text>
+
+          <rect x="280" y="10" width="80" height="640" rx="4" fill="rgba(255,179,0,.04)" stroke="rgba(255,179,0,.15)" stroke-width="1"/>
+          <text x="320" y="36" text-anchor="middle" fill="#ffb300" font-family="JetBrains Mono" font-size="8" font-weight="700">PAYMENT</text>
+
+          <rect x="370" y="10" width="100" height="640" rx="4" fill="rgba(255,96,96,.04)" stroke="rgba(255,96,96,.15)" stroke-width="1"/>
+          <text x="420" y="36" text-anchor="middle" fill="#ff6060" font-family="JetBrains Mono" font-size="8" font-weight="700">SHIPPING</text>
+
+          <!-- lifelines -->
+          <line x1="50" y1="50" x2="50" y2="640" stroke="rgba(64,224,208,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="140" y1="50" x2="140" y2="640" stroke="rgba(0,200,255,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="230" y1="50" x2="230" y2="640" stroke="rgba(0,232,150,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="320" y1="50" x2="320" y2="640" stroke="rgba(255,179,0,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="420" y1="50" x2="420" y2="640" stroke="rgba(255,96,96,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+
+          <!-- Step 1: Client → Order -->
+          <rect x="110" y="60" width="60" height="20" rx="3" fill="rgba(0,200,255,.15)" stroke="#00c8ff" stroke-width="1"/>
+          <text x="140" y="74" text-anchor="middle" fill="#00c8ff" font-family="JetBrains Mono" font-size="7.5">PlaceOrder</text>
+          <line x1="50" y1="70" x2="110" y2="70" stroke="#00c8ff" stroke-width="1.5" marker-end="url(#ah)"/>
+          <text x="80" y="66" text-anchor="middle" fill="rgba(0,200,255,.6)" font-family="JetBrains Mono" font-size="7">1. cmd</text>
+
+          <!-- Order → Orchestrator -->
+          <line x1="140" y1="80" x2="140" y2="110" stroke="rgba(0,200,255,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="140" y1="110" x2="60" y2="110" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#ao)"/>
+          <text x="100" y="106" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">order.created</text>
+
+          <!-- Orch → Inventory -->
+          <rect x="200" y="130" width="60" height="20" rx="3" fill="rgba(0,232,150,.15)" stroke="#00e896" stroke-width="1"/>
+          <text x="230" y="144" text-anchor="middle" fill="#00e896" font-family="JetBrains Mono" font-size="7.5">Reserve</text>
+          <line x1="50" y1="140" x2="200" y2="140" stroke="#40e0d0" stroke-width="1.5" marker-end="url(#ag)"/>
+          <text x="125" y="136" text-anchor="middle" fill="rgba(64,224,208,.6)" font-family="JetBrains Mono" font-size="7">2. inventory.reserve</text>
+
+          <!-- Inventory → Orch -->
+          <line x1="230" y1="150" x2="230" y2="190" stroke="rgba(0,232,150,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="230" y1="190" x2="60" y2="190" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#ao)"/>
+          <text x="145" y="186" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">inventory.reserved ✓</text>
+
+          <!-- Orch → Payment -->
+          <rect x="290" y="210" width="60" height="20" rx="3" fill="rgba(255,179,0,.15)" stroke="#ffb300" stroke-width="1"/>
+          <text x="320" y="224" text-anchor="middle" fill="#ffb300" font-family="JetBrains Mono" font-size="7.5">Authorize</text>
+          <line x1="50" y1="220" x2="290" y2="220" stroke="#40e0d0" stroke-width="1.5" marker-end="url(#ay)"/>
+          <text x="170" y="216" text-anchor="middle" fill="rgba(64,224,208,.6)" font-family="JetBrains Mono" font-size="7">3. payment.process</text>
+
+          <!-- Payment → Orch -->
+          <line x1="320" y1="230" x2="320" y2="270" stroke="rgba(255,179,0,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="320" y1="270" x2="60" y2="270" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#ao)"/>
+          <text x="190" y="266" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">payment.authorized ✓</text>
+
+          <!-- Orch → Shipping -->
+          <rect x="385" y="290" width="70" height="20" rx="3" fill="rgba(255,96,96,.15)" stroke="#ff6060" stroke-width="1"/>
+          <text x="420" y="304" text-anchor="middle" fill="#ff6060" font-family="JetBrains Mono" font-size="7.5">Schedule</text>
+          <line x1="50" y1="300" x2="385" y2="300" stroke="#40e0d0" stroke-width="1.5" marker-end="url(#ar)"/>
+          <text x="218" y="296" text-anchor="middle" fill="rgba(64,224,208,.6)" font-family="JetBrains Mono" font-size="7">4. shipment.schedule</text>
+
+          <!-- Shipping → Orch -->
+          <line x1="420" y1="310" x2="420" y2="350" stroke="rgba(255,96,96,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="420" y1="350" x2="60" y2="350" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#ao)"/>
+          <text x="240" y="346" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">shipment.scheduled ✓</text>
+
+          <!-- Orch → Order: Confirm -->
+          <rect x="110" y="370" width="60" height="20" rx="3" fill="rgba(0,232,150,.2)" stroke="#00e896" stroke-width="1.5"/>
+          <text x="140" y="384" text-anchor="middle" fill="#00e896" font-family="JetBrains Mono" font-size="7.5">CONFIRMED</text>
+          <line x1="50" y1="380" x2="110" y2="380" stroke="#40e0d0" stroke-width="1.5" marker-end="url(#ag)"/>
+          <text x="80" y="376" text-anchor="middle" fill="rgba(64,224,208,.6)" font-family="JetBrains Mono" font-size="7">5. order.confirmed</text>
+
+          <!-- SAGA COMPLETE -->
+          <rect x="20" y="430" width="440" height="28" rx="4" fill="rgba(0,232,150,.08)" stroke="rgba(0,232,150,.3)" stroke-width="1"/>
+          <text x="240" y="449" text-anchor="middle" fill="#00e896" font-family="JetBrains Mono" font-size="9" font-weight="700">✓  SAGA COMPLETED  —  saga_log.status = COMPLETED</text>
+
+          <!-- Saga log updates on left -->
+          <rect x="15" y="480" width="130" height="130" rx="5" fill="rgba(184,124,255,.06)" stroke="rgba(184,124,255,.2)" stroke-width="1"/>
+          <text x="80" y="498" text-anchor="middle" fill="var(--saga)" font-family="JetBrains Mono" font-size="8" font-weight="700">saga_log updates</text>
+          <text x="22" y="515" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">1. INSERT IN_PROGRESS</text>
+          <text x="22" y="530" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">2. step=INV_RESERVED</text>
+          <text x="22" y="545" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">3. step=PAY_AUTHORIZED</text>
+          <text x="22" y="560" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">4. step=SHIP_SCHEDULED</text>
+          <text x="22" y="575" fill="#00e896" font-family="JetBrains Mono" font-size="7.5" font-weight="700">5. status=COMPLETED</text>
+          <text x="22" y="595" fill="rgba(184,124,255,.4)" font-family="JetBrains Mono" font-size="7">All local DB txns committed</text>
+          <text x="22" y="607" fill="rgba(184,124,255,.4)" font-family="JetBrains Mono" font-size="7">independently &amp; idempotently</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Compensation Path -->
+    <div class="card">
+      <div class="card-head">
+        <div class="dot" style="background:var(--danger)"></div>
+        <h3>Compensation — Payment Failure Rollback</h3>
+      </div>
+      <div class="card-body" style="padding:0">
+        <svg viewBox="0 0 480 660" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block">
+          <defs>
+            <marker id="bh" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#00c8ff"/></marker>
+            <marker id="bg" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#00e896"/></marker>
+            <marker id="bd" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ff4444"/></marker>
+            <marker id="bt" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#40e0d0"/></marker>
+            <marker id="bo" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#ff8c42"/></marker>
+          </defs>
+          <rect width="480" height="660" fill="#0b1424"/>
+
+          <!-- Swimlanes -->
+          <rect x="10" y="10" width="80" height="640" rx="4" fill="rgba(64,224,208,.04)" stroke="rgba(64,224,208,.15)" stroke-width="1"/>
+          <text x="50" y="36" text-anchor="middle" fill="#40e0d0" font-family="JetBrains Mono" font-size="8" font-weight="700">ORCH</text>
+          <rect x="100" y="10" width="80" height="640" rx="4" fill="rgba(0,200,255,.04)" stroke="rgba(0,200,255,.15)" stroke-width="1"/>
+          <text x="140" y="36" text-anchor="middle" fill="#00c8ff" font-family="JetBrains Mono" font-size="8" font-weight="700">ORDER</text>
+          <rect x="190" y="10" width="80" height="640" rx="4" fill="rgba(0,232,150,.04)" stroke="rgba(0,232,150,.15)" stroke-width="1"/>
+          <text x="230" y="36" text-anchor="middle" fill="#00e896" font-family="JetBrains Mono" font-size="8" font-weight="700">INVENT</text>
+          <rect x="280" y="10" width="80" height="640" rx="4" fill="rgba(255,68,68,.04)" stroke="rgba(255,68,68,.15)" stroke-width="1"/>
+          <text x="320" y="36" text-anchor="middle" fill="#ff4444" font-family="JetBrains Mono" font-size="8" font-weight="700">PAYMENT</text>
+          <rect x="370" y="10" width="100" height="640" rx="4" fill="rgba(255,96,96,.02)" stroke="rgba(255,96,96,.08)" stroke-width="1"/>
+          <text x="420" y="36" text-anchor="middle" fill="rgba(255,96,96,.3)" font-family="JetBrains Mono" font-size="8">SHIPPING</text>
+
+          <!-- lifelines -->
+          <line x1="50" y1="50" x2="50" y2="640" stroke="rgba(64,224,208,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="140" y1="50" x2="140" y2="640" stroke="rgba(0,200,255,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="230" y1="50" x2="230" y2="640" stroke="rgba(0,232,150,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="320" y1="50" x2="320" y2="640" stroke="rgba(255,68,68,.2)" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="420" y1="50" x2="420" y2="640" stroke="rgba(255,96,96,.08)" stroke-width="1" stroke-dasharray="4,4"/>
+
+          <!-- Step 1: Order Created (same as happy) -->
+          <rect x="110" y="60" width="60" height="20" rx="3" fill="rgba(0,200,255,.15)" stroke="#00c8ff" stroke-width="1"/>
+          <text x="140" y="74" text-anchor="middle" fill="#00c8ff" font-family="JetBrains Mono" font-size="7.5">PlaceOrder</text>
+          <line x1="50" y1="70" x2="110" y2="70" stroke="#00c8ff" stroke-width="1.5" marker-end="url(#bh)"/>
+          <line x1="140" y1="80" x2="140" y2="110" stroke="rgba(0,200,255,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="140" y1="110" x2="60" y2="110" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#bo)"/>
+          <text x="100" y="106" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">order.created</text>
+
+          <!-- Step 2: Reserve Inventory (OK) -->
+          <rect x="200" y="130" width="60" height="20" rx="3" fill="rgba(0,232,150,.15)" stroke="#00e896" stroke-width="1"/>
+          <text x="230" y="144" text-anchor="middle" fill="#00e896" font-family="JetBrains Mono" font-size="7.5">Reserve ✓</text>
+          <line x1="50" y1="140" x2="200" y2="140" stroke="#40e0d0" stroke-width="1.5" marker-end="url(#bg)"/>
+          <line x1="230" y1="150" x2="230" y2="190" stroke="rgba(0,232,150,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="230" y1="190" x2="60" y2="190" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#bo)"/>
+          <text x="145" y="186" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">inventory.reserved ✓</text>
+
+          <!-- Step 3: Payment FAILS -->
+          <rect x="290" y="210" width="60" height="20" rx="3" fill="rgba(255,68,68,.2)" stroke="#ff4444" stroke-width="1.5"/>
+          <text x="320" y="224" text-anchor="middle" fill="#ff4444" font-family="JetBrains Mono" font-size="7.5">⚠ FAILED</text>
+          <line x1="50" y1="220" x2="290" y2="220" stroke="#40e0d0" stroke-width="1.5" marker-end="url(#bd)"/>
+          <text x="170" y="216" text-anchor="middle" fill="rgba(64,224,208,.6)" font-family="JetBrains Mono" font-size="7">3. payment.process</text>
+
+          <!-- Payment.failed → Orch -->
+          <line x1="320" y1="230" x2="320" y2="270" stroke="rgba(255,68,68,.4)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="320" y1="270" x2="60" y2="270" stroke="#ff4444" stroke-width="1.8" marker-end="url(#bd)"/>
+          <text x="190" y="266" text-anchor="middle" fill="rgba(255,68,68,.9)" font-family="JetBrains Mono" font-size="7" font-weight="700">payment.failed ✗</text>
+
+          <!-- Divider: compensation begins -->
+          <line x1="10" y1="295" x2="470" y2="295" stroke="rgba(255,68,68,.3)" stroke-width="1" stroke-dasharray="6,4"/>
+          <text x="240" y="310" text-anchor="middle" fill="rgba(255,68,68,.7)" font-family="JetBrains Mono" font-size="8" font-weight="700">↩  COMPENSATION BEGINS  (reverse order)</text>
+
+          <!-- Compensation 1: Release Inventory -->
+          <rect x="200" y="325" width="60" height="20" rx="3" fill="rgba(255,68,68,.12)" stroke="#ff4444" stroke-width="1"/>
+          <text x="230" y="339" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="7.5">↩ Release</text>
+          <line x1="50" y1="335" x2="200" y2="335" stroke="#ff4444" stroke-width="1.5" stroke-dasharray="5,2" marker-end="url(#bd)"/>
+          <text x="125" y="331" text-anchor="middle" fill="rgba(255,68,68,.7)" font-family="JetBrains Mono" font-size="7">C1. inventory.release</text>
+
+          <line x1="230" y1="345" x2="230" y2="385" stroke="rgba(255,68,68,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="230" y1="385" x2="60" y2="385" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#bo)"/>
+          <text x="145" y="381" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">inventory.released ↩</text>
+
+          <!-- Compensation 2: Cancel Order -->
+          <rect x="110" y="405" width="60" height="20" rx="3" fill="rgba(255,68,68,.12)" stroke="#ff4444" stroke-width="1"/>
+          <text x="140" y="419" text-anchor="middle" fill="#ff8c42" font-family="JetBrains Mono" font-size="7.5">↩ Cancel</text>
+          <line x1="50" y1="415" x2="110" y2="415" stroke="#ff4444" stroke-width="1.5" stroke-dasharray="5,2" marker-end="url(#bd)"/>
+          <text x="80" y="411" text-anchor="middle" fill="rgba(255,68,68,.7)" font-family="JetBrains Mono" font-size="7">C2. order.cancel</text>
+
+          <line x1="140" y1="425" x2="140" y2="455" stroke="rgba(255,68,68,.3)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="140" y1="455" x2="60" y2="455" stroke="#ff8c42" stroke-width="1.5" marker-end="url(#bo)"/>
+          <text x="100" y="451" text-anchor="middle" fill="rgba(255,140,66,.7)" font-family="JetBrains Mono" font-size="7">order.cancelled ↩</text>
+
+          <!-- SAGA FAILED -->
+          <rect x="20" y="475" width="440" height="28" rx="4" fill="rgba(255,68,68,.08)" stroke="rgba(255,68,68,.3)" stroke-width="1"/>
+          <text x="240" y="494" text-anchor="middle" fill="#ff4444" font-family="JetBrains Mono" font-size="9" font-weight="700">✗  SAGA FAILED  —  saga_log.status = FAILED</text>
+
+          <!-- Notes -->
+          <rect x="15" y="518" width="440" height="120" rx="5" fill="rgba(184,124,255,.06)" stroke="rgba(184,124,255,.2)" stroke-width="1"/>
+          <text x="240" y="536" text-anchor="middle" fill="var(--saga)" font-family="JetBrains Mono" font-size="8" font-weight="700">Compensation guarantees</text>
+          <text x="22" y="554" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">→  Each compensation txn is idempotent (check saga_id)</text>
+          <text x="22" y="570" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">→  Reverse-order execution from undo-log stack</text>
+          <text x="22" y="586" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">→  Dead-letter queue for permanently failed compensations</text>
+          <text x="22" y="602" fill="rgba(184,124,255,.7)" font-family="JetBrains Mono" font-size="7.5">→  Shipping was never called → no compensation needed</text>
+          <text x="22" y="622" fill="rgba(255,140,66,.5)" font-family="JetBrains Mono" font-size="7.5">saga_log.compensations = ["RELEASE_INVENTORY","CANCEL_ORDER"]</text>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── SECTION 4: KAFKA TOPICS ── -->
+<section id="kafka">
+  <div class="section-label">04 &nbsp; Kafka Event Catalog</div>
+  <h2>Topics &amp; Events</h2>
+  <p class="subtitle">All events carry <code style="color:var(--saga)">saga_id</code> and <code style="color:var(--order)">order_id</code> as mandatory headers. Partitioned by <code>order_id</code> to guarantee ordering per order.</p>
+
+  <div class="card">
+    <div class="card-body" style="padding:0">
+      <table class="topic-table">
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Event Type</th>
+            <th>Publisher</th>
+            <th>Consumer</th>
+            <th>Type</th>
+            <th>Key Payload Fields</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="topic-name">order.commands</span></td>
+            <td><span class="event-type">ORDER_CREATE_REQUESTED</span></td>
+            <td style="color:var(--muted)">API Gateway</td>
+            <td style="color:var(--order)">Order Service</td>
+            <td><span class="direction dir-pub">COMMAND</span></td>
+            <td style="color:var(--muted);font-size:9px">customer_id, items[], total_amount</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">order.events</span></td>
+            <td><span class="event-type">ORDER_CREATED</span></td>
+            <td style="color:var(--order)">Order Service</td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td><span class="direction dir-sub">EVENT</span></td>
+            <td style="color:var(--muted);font-size:9px">order_id, saga_id, status=PENDING</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">inventory.commands</span></td>
+            <td><span class="event-type">INVENTORY_RESERVE_REQUESTED</span></td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td style="color:var(--inv)">Inventory Svc</td>
+            <td><span class="direction dir-pub">COMMAND</span></td>
+            <td style="color:var(--muted);font-size:9px">order_id, saga_id, items[], warehouse_id</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">inventory.events</span></td>
+            <td><span class="event-type">INVENTORY_RESERVED</span></td>
+            <td style="color:var(--inv)">Inventory Svc</td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td><span class="direction dir-sub">EVENT</span></td>
+            <td style="color:var(--muted);font-size:9px">reservation_id, saga_id, status=RESERVED</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">payment.commands</span></td>
+            <td><span class="event-type">PAYMENT_PROCESS_REQUESTED</span></td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td style="color:var(--pay)">Payment Svc</td>
+            <td><span class="direction dir-pub">COMMAND</span></td>
+            <td style="color:var(--muted);font-size:9px">order_id, saga_id, amount, currency, payment_method</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">payment.events</span></td>
+            <td><span class="event-type">PAYMENT_AUTHORIZED</span></td>
+            <td style="color:var(--pay)">Payment Svc</td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td><span class="direction dir-sub">EVENT</span></td>
+            <td style="color:var(--muted);font-size:9px">transaction_id, saga_id, gateway_ref, status=AUTHORIZED</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">payment.events</span></td>
+            <td><span class="event-type">PAYMENT_FAILED</span></td>
+            <td style="color:var(--pay)">Payment Svc</td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td><span class="direction dir-comp">FAILURE</span></td>
+            <td style="color:var(--muted);font-size:9px">saga_id, reason, error_code → triggers compensation</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">shipment.commands</span></td>
+            <td><span class="event-type">SHIPMENT_SCHEDULE_REQUESTED</span></td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td style="color:var(--ship)">Shipping Svc</td>
+            <td><span class="direction dir-pub">COMMAND</span></td>
+            <td style="color:var(--muted);font-size:9px">order_id, saga_id, destination, items[], carrier</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">shipment.events</span></td>
+            <td><span class="event-type">SHIPMENT_SCHEDULED</span></td>
+            <td style="color:var(--ship)">Shipping Svc</td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td><span class="direction dir-sub">EVENT</span></td>
+            <td style="color:var(--muted);font-size:9px">shipment_id, saga_id, tracking_number, status=SCHEDULED</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">inventory.commands</span></td>
+            <td><span class="event-type">INVENTORY_RELEASE_REQUESTED</span></td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td style="color:var(--inv)">Inventory Svc</td>
+            <td><span class="direction dir-comp">COMPENSATE</span></td>
+            <td style="color:var(--muted);font-size:9px">saga_id, reservation_id → SET status=RELEASED</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">order.commands</span></td>
+            <td><span class="event-type">ORDER_CANCEL_REQUESTED</span></td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td style="color:var(--order)">Order Service</td>
+            <td><span class="direction dir-comp">COMPENSATE</span></td>
+            <td style="color:var(--muted);font-size:9px">saga_id, order_id, reason → SET status=CANCELLED</td>
+          </tr>
+          <tr>
+            <td><span class="topic-name">saga.dead-letter</span></td>
+            <td><span class="event-type">COMPENSATION_FAILED</span></td>
+            <td style="color:var(--orch)">Orchestrator</td>
+            <td style="color:var(--muted)">Ops / Alerting</td>
+            <td><span class="direction dir-comp">DLQ</span></td>
+            <td style="color:var(--muted);font-size:9px">saga_id, failed_step, retry_count, original_payload</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Kafka config note -->
+  <div style="margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+    <div class="card">
+      <div class="card-head"><div class="dot" style="background:var(--kafka)"></div><h3>Topic Config</h3></div>
+      <div class="card-body" style="font-size:9px;line-height:2;color:var(--muted)">
+        <span style="color:var(--text)">partitions:</span> 12 (by order_id hash)<br/>
+        <span style="color:var(--text)">replication:</span> 3<br/>
+        <span style="color:var(--text)">retention:</span> 7 days<br/>
+        <span style="color:var(--text)">delivery:</span> at-least-once<br/>
+        <span style="color:var(--text)">acks:</span> all (strongest guarantee)
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="dot" style="background:var(--saga)"></div><h3>Idempotency</h3></div>
+      <div class="card-body" style="font-size:9px;line-height:2;color:var(--muted)">
+        Each consumer checks <span style="color:var(--saga)">saga_id</span> in its own DB before processing. Duplicate messages → no-op. Uses INSERT … ON CONFLICT DO NOTHING with saga_id as unique index. Safe for Kafka retries.
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head"><div class="dot" style="background:var(--danger)"></div><h3>Dead Letter Queue</h3></div>
+      <div class="card-body" style="font-size:9px;line-height:2;color:var(--muted)">
+        Failed compensations after 3 retries go to <span style="color:var(--danger)">saga.dead-letter</span>. Ops team is alerted. Manual intervention or automated saga recovery process reconciles state.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECTION 5: SIMULATION ── -->
+<section id="simulation">
+  <div class="section-label">05 &nbsp; Interactive Simulation</div>
+  <h2>Step-by-Step Simulator</h2>
+  <p class="subtitle">Simulate the happy path or compensation flow. Inspect each Kafka event and database operation.</p>
+
+  <div class="sim-layout">
+
+    <!-- Left: Schema Mini -->
+    <div class="sim-panel">
+      <div class="sim-panel-head">Database Schema</div>
+      <div class="schema-mini" id="schema-mini"></div>
+    </div>
+
+    <!-- Center: Steps -->
+    <div class="sim-center sim-panel" style="border-right:none">
+      <div class="sim-controls">
+        <button class="btn btn-happy active" id="btn-happy" onclick="setMode('happy')">▣ Happy Path</button>
+        <button class="btn btn-comp" id="btn-comp" onclick="setMode('compensation')">⚠ Compensation</button>
+        <button class="btn btn-play" id="btn-play" onclick="handlePlay()">▶ Simulate</button>
+        <button class="btn btn-reset" onclick="handleReset()">↺ Reset</button>
+        <span class="sim-status" id="sim-status">Select a mode and simulate or click a step</span>
+      </div>
+      <div class="steps-list" id="steps-list"></div>
+      <div class="saga-states">
+        <div class="saga-states-label">Saga State Machine</div>
+        <div class="saga-states-row" id="saga-states-row">
+          <div class="saga-state-pill" id="state-IN_PROGRESS">IN_PROGRESS</div>
+          <div class="saga-state-pill" id="state-COMPLETED">COMPLETED</div>
+          <div class="saga-state-pill" id="state-COMPENSATING">COMPENSATING</div>
+          <div class="saga-state-pill" id="state-FAILED">FAILED</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Event Detail -->
+    <div class="sim-panel" id="event-panel">
+      <div class="sim-panel-head">Kafka Event · Detail</div>
+      <div id="event-detail-content">
+        <div class="empty-state">
+          <div class="icon">⛓</div>
+          <p>Select a step to inspect the Kafka event and database operation</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div>Supply Chain · Saga Pattern &nbsp;·&nbsp; Orchestration-based Distributed Transactions</div>
+  <div>PostgreSQL · Apache Kafka · Microservices</div>
+</footer>
+
+<script>
+const SCHEMAS = [
+  { key:'orders', icon:'📦', table:'orders', color:'#00c8ff', cols:[
+    {n:'order_id',t:'UUID',pk:true},{n:'saga_id',t:'UUID',idx:true},{n:'customer_id',t:'UUID',fk:true},
+    {n:'status',t:'ENUM'},{n:'total_amount',t:'DECIMAL'},{n:'items',t:'JSONB'},{n:'created_at',t:'TIMESTAMPTZ'}
+  ]},
+  { key:'inventory', icon:'🏭', table:'inventory_reservations', color:'#00e896', cols:[
+    {n:'reservation_id',t:'UUID',pk:true},{n:'saga_id',t:'UUID',idx:true},{n:'order_id',t:'UUID',fk:true},
+    {n:'product_id',t:'UUID'},{n:'quantity',t:'INTEGER'},{n:'status',t:'ENUM'},{n:'reserved_at',t:'TIMESTAMPTZ'}
+  ]},
+  { key:'payment', icon:'💳', table:'payment_transactions', color:'#ffb300', cols:[
+    {n:'transaction_id',t:'UUID',pk:true},{n:'saga_id',t:'UUID',idx:true},{n:'order_id',t:'UUID',fk:true},
+    {n:'amount',t:'DECIMAL'},{n:'currency',t:'CHAR(3)'},{n:'status',t:'ENUM'},{n:'gateway_ref',t:'VARCHAR'}
+  ]},
+  { key:'shipping', icon:'🚚', table:'shipments', color:'#ff6060', cols:[
+    {n:'shipment_id',t:'UUID',pk:true},{n:'saga_id',t:'UUID',idx:true},{n:'order_id',t:'UUID',fk:true},
+    {n:'carrier',t:'VARCHAR'},{n:'tracking_number',t:'VARCHAR'},{n:'status',t:'ENUM'},{n:'scheduled_at',t:'TIMESTAMPTZ'}
+  ]},
+  { key:'saga_log', icon:'📋', table:'saga_orchestration_log', color:'#b87cff', cols:[
+    {n:'log_id',t:'UUID',pk:true},{n:'saga_id',t:'UUID',idx:true},{n:'saga_type',t:'VARCHAR'},
+    {n:'current_step',t:'VARCHAR'},{n:'status',t:'ENUM'},{n:'payload',t:'JSONB'},{n:'compensations',t:'JSONB'}
+  ]},
+];
+
+const HAPPY = [
+  { id:0, step:'Order Created', service:'Order Service', serviceKey:'orders', topic:'order.events', partition:0,
+    payload:{event_type:'ORDER_CREATED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',customer_id:'cust-9981',
+      items:[{product_id:'prod-abc',qty:3,price:59.99}],total_amount:179.97,timestamp:'2026-05-20T09:00:00Z'},
+    dbOp:{table:'orders',action:'INSERT',status:'PENDING'}, sagaOp:{step:'ORDER_CREATED',status:'IN_PROGRESS'},
+    color:'#00c8ff', isComp:false },
+  { id:1, step:'Reserve Inventory', service:'Inventory Service', serviceKey:'inventory', topic:'inventory.events', partition:1,
+    payload:{event_type:'INVENTORY_RESERVED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',
+      reservation_id:'res-0099',items:[{product_id:'prod-abc',qty:3}],timestamp:'2026-05-20T09:00:01Z'},
+    dbOp:{table:'inventory_reservations',action:'INSERT',status:'RESERVED'}, sagaOp:{step:'INVENTORY_RESERVED',status:'IN_PROGRESS'},
+    color:'#00e896', isComp:false },
+  { id:2, step:'Payment Authorized', service:'Payment Service', serviceKey:'payment', topic:'payment.events', partition:2,
+    payload:{event_type:'PAYMENT_AUTHORIZED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',
+      transaction_id:'txn-7712',amount:179.97,currency:'USD',gateway_ref:'stripe_ch_abc123',timestamp:'2026-05-20T09:00:02Z'},
+    dbOp:{table:'payment_transactions',action:'INSERT',status:'AUTHORIZED'}, sagaOp:{step:'PAYMENT_AUTHORIZED',status:'IN_PROGRESS'},
+    color:'#ffb300', isComp:false },
+  { id:3, step:'Shipment Scheduled', service:'Shipping Service', serviceKey:'shipping', topic:'shipment.events', partition:3,
+    payload:{event_type:'SHIPMENT_SCHEDULED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',
+      shipment_id:'shp-0055',carrier:'FedEx',tracking_number:'FX-928374650',timestamp:'2026-05-20T09:00:03Z'},
+    dbOp:{table:'shipments',action:'INSERT',status:'SCHEDULED'}, sagaOp:{step:'SHIPMENT_SCHEDULED',status:'IN_PROGRESS'},
+    color:'#ff6060', isComp:false },
+  { id:4, step:'Order Confirmed', service:'Order Service', serviceKey:'orders', topic:'order.events', partition:0,
+    payload:{event_type:'ORDER_CONFIRMED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',
+      confirmation:'CONF-20260520-0042',estimated_delivery:'2026-05-23',timestamp:'2026-05-20T09:00:04Z'},
+    dbOp:{table:'orders',action:'UPDATE',status:'CONFIRMED'}, sagaOp:{step:'COMPLETED',status:'COMPLETED'},
+    color:'#00e896', isComp:false },
+];
+
+const COMP = [
+  ...HAPPY.slice(0,2),
+  { id:'c0', step:'Payment Failed', service:'Payment Service', serviceKey:'payment', topic:'payment.events', partition:2,
+    payload:{event_type:'PAYMENT_FAILED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',
+      reason:'INSUFFICIENT_FUNDS',error_code:'E4001',timestamp:'2026-05-20T09:00:02Z'},
+    dbOp:{table:'payment_transactions',action:'INSERT',status:'FAILED'}, sagaOp:{step:'PAYMENT_FAILED',status:'COMPENSATING'},
+    color:'#ff4444', isComp:true },
+  { id:'c1', step:'↩ Release Inventory', service:'Inventory Service', serviceKey:'inventory', topic:'inventory.commands', partition:1,
+    payload:{event_type:'INVENTORY_RELEASE_REQUESTED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',
+      compensation_for:'INVENTORY_RESERVED',reservation_id:'res-0099',timestamp:'2026-05-20T09:00:03Z'},
+    dbOp:{table:'inventory_reservations',action:'UPDATE',status:'RELEASED'}, sagaOp:{step:'INVENTORY_RELEASED',status:'COMPENSATING'},
+    color:'#ff8c42', isComp:true },
+  { id:'c2', step:'↩ Cancel Order', service:'Order Service', serviceKey:'orders', topic:'order.commands', partition:0,
+    payload:{event_type:'ORDER_CANCEL_REQUESTED',saga_id:'saga-8f3a2c1d',order_id:'ord-0042',
+      reason:'PAYMENT_FAILED',compensation_for:'ORDER_CREATED',timestamp:'2026-05-20T09:00:04Z'},
+    dbOp:{table:'orders',action:'UPDATE',status:'CANCELLED'}, sagaOp:{step:'SAGA_FAILED',status:'FAILED'},
+    color:'#ff4444', isComp:true },
+];
+
+let mode = 'happy';
+let activeStep = null;
+let playing = false;
+let playTimer = null;
+let playIdx = -1;
+
+function steps() { return mode === 'happy' ? HAPPY : COMP; }
+
+function setMode(m) {
+  mode = m;
+  handleReset();
+  document.getElementById('btn-happy').classList.toggle('active', m==='happy');
+  document.getElementById('btn-comp').classList.toggle('active', m==='compensation');
+  renderSteps();
+}
+
+function renderSchemaMini() {
+  const active = activeStep !== null ? steps()[activeStep]?.serviceKey : null;
+  const el = document.getElementById('schema-mini');
+  el.innerHTML = SCHEMAS.map(s => `
+    <div class="schema-mini-table ${active === s.key || active !== null && s.key === 'saga_log' ? 'active' : ''}" style="${active===s.key||s.key==='saga_log'&&active!==null?`border-color:${s.color};box-shadow:0 0 12px ${s.color}22`:''}">
+      <div class="schema-mini-head" style="color:${s.color};background:${s.color}11;border-bottom-color:${s.color}33">
+        ${s.icon} ${s.table}
+      </div>
+      ${s.cols.map(c=>`<div class="schema-mini-row">
+        <span class="n" style="color:${c.pk?'#ffd700':c.fk?'#87ceeb':c.idx?s.color:'#c5d8ea'}">
+          ${c.pk?'<span style="font-size:7px;color:#ffd700">PK</span> ':c.fk?'<span style="font-size:7px;color:#87ceeb">FK</span> ':c.idx?'<span style="font-size:7px;color:'+s.color+'">IDX</span> ':''}${c.n}
+        </span>
+        <span class="t">${c.t}</span>
+      </div>`).join('')}
+    </div>
+  `).join('');
+}
+
+function renderSteps() {
+  const ss = steps();
+  const el = document.getElementById('steps-list');
+  el.innerHTML = ss.map((s, idx) => {
+    const isActive = activeStep === idx;
+    const isPast = activeStep !== null && idx < activeStep;
+    return `
+      <div class="step-row" onclick="selectStep(${idx})">
+        <div class="step-line">
+          <div class="step-dot" style="
+            background:${isActive?s.color:isPast?s.color+'33':'transparent'};
+            border-color:${isActive?s.color:isPast?s.color+'55':'#1a3050'};
+            color:${isActive?'#000':s.color};
+            box-shadow:${isActive?`0 0 14px ${s.color}66`:''};
+          ">${s.isComp?'↩':idx+1}</div>
+          ${idx<ss.length-1?`<div class="step-connector" style="background:${isPast?s.color+'44':'#112035'}"></div>`:''}
+        </div>
+        <div class="step-card ${isActive?'active':''}" style="border-color:${isActive?s.color:isPast?s.color+'22':'#112035'};box-shadow:${isActive?`0 0 16px ${s.color}18`:''}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div class="step-card-title" style="color:${isActive?s.color:'#c5d8ea'}">${s.isComp?'<span style="color:#ff4444">⚠</span> ':''}${s.step}</div>
+              <div class="step-card-sub">${s.service}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <span class="step-card-badge" style="color:${s.color};border-color:${s.color}44">${s.dbOp.action} → ${s.dbOp.status}</span>
+              ${s.isComp?'<span class="step-card-badge" style="color:#ff4444;border-color:#ff444444">UNDO</span>':''}
+            </div>
+          </div>
+          ${isActive?`<div style="margin-top:6px;font-size:8.5px;color:#3a5a78">→ kafka: <span style="color:${s.color}">${s.topic}</span> · db: <span style="color:#c5d8ea">${s.dbOp.table}</span> · saga: <span style="color:#b87cff">${s.sagaOp.status}</span></div>`:''}
+        </div>
+      </div>
+    `;
+  }).join('');
+  renderSagaState();
+  renderEventDetail();
+  renderSchemaMini();
+}
+
+function renderSagaState() {
+  const s = activeStep !== null ? steps()[activeStep] : null;
+  const current = s?.sagaOp?.status;
+  const colors = {IN_PROGRESS:'#00c8ff',COMPLETED:'#00e896',COMPENSATING:'#ffb300',FAILED:'#ff4444'};
+  ['IN_PROGRESS','COMPLETED','COMPENSATING','FAILED'].forEach(st => {
+    const el = document.getElementById('state-'+st);
+    if(!el) return;
+    const isActive = current === st;
+    el.style.color = isActive ? colors[st] : '#3a5a78';
+    el.style.borderColor = isActive ? colors[st]+'66' : '#112035';
+    el.style.background = isActive ? colors[st]+'15' : 'transparent';
+    el.style.boxShadow = isActive ? `0 0 8px ${colors[st]}44` : 'none';
+  });
+}
+
+function syntaxJSON(obj) {
+  return JSON.stringify(obj, null, 2)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"(\w+)":/g, '<span class="json-key">"$1"</span>:')
+    .replace(/: "([^"]+)"/g, ': <span class="json-str">"$1"</span>')
+    .replace(/: (\d+\.?\d*)/g, ': <span class="json-num">$1</span>')
+    .replace(/: (true|false)/g, ': <span class="json-bool">$1</span>');
+}
+
+function renderEventDetail() {
+  const container = document.getElementById('event-detail-content');
+  if (activeStep === null) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">⛓</div><p>Select a step to inspect the Kafka event and database operation</p></div>`;
+    return;
+  }
+  const s = steps()[activeStep];
+  const stateColors = {COMPLETED:'#00e896',COMPENSATING:'#ffb300',FAILED:'#ff4444',IN_PROGRESS:'#00c8ff'};
+  const sc = stateColors[s.sagaOp.status] || '#00c8ff';
+  container.innerHTML = `
+    <div class="event-detail">
+      <div class="detail-block" style="border-color:${s.color}44">
+        <div class="detail-block-head" style="border-bottom-color:${s.color}22;background:${s.color}0a">KAFKA TOPIC</div>
+        <div class="detail-block-body">
+          <div style="font-size:13px;font-weight:700;color:${s.color};margin-bottom:4px">${s.topic}</div>
+          <div style="font-size:9px;color:#3a5a78">partition: ${s.partition} &nbsp;·&nbsp; key: ${s.payload.order_id}</div>
+          ${s.isComp?'<div style="margin-top:6px;font-size:8px;padding:2px 8px;border:1px solid #ff444455;border-radius:3px;color:#ff4444;width:fit-content">COMPENSATION EVENT</div>':''}
+        </div>
+      </div>
+
+      <div class="detail-block">
+        <div class="detail-block-head">MESSAGE PAYLOAD</div>
+        <div class="detail-block-body" style="background:#030810;border-radius:0 0 6px 6px">
+          <pre class="json-view">${syntaxJSON(s.payload)}</pre>
+        </div>
+      </div>
+
+      <div class="detail-block">
+        <div class="detail-block-head">DATABASE OPERATION</div>
+        <div class="detail-block-body">
+          <div class="db-op-line">
+            <span class="kw">${s.dbOp.action}</span> <span class="kw">INTO</span> <span class="tbl">${s.dbOp.table}</span>
+          </div>
+          ${s.dbOp.action !== 'INSERT' ? `<div class="db-op-line"><span class="kw">SET</span> status = <span class="val">'${s.dbOp.status}'</span></div>
+          <div class="db-op-line"><span class="kw">WHERE</span> saga_id = <span class="val">'${s.payload.saga_id}'</span></div>` : ''}
+          <div class="db-op-line"><span class="cmt">-- saga_id: <span style="color:#b87cff">${s.payload.saga_id}</span></span></div>
+          <div class="db-op-line"><span class="cmt">-- idempotent: ON CONFLICT DO NOTHING</span></div>
+        </div>
+      </div>
+
+      <div class="detail-block" style="border-color:rgba(184,124,255,.3)">
+        <div class="detail-block-head" style="border-bottom-color:rgba(184,124,255,.15);background:rgba(184,124,255,.06)">SAGA ORCHESTRATION LOG</div>
+        <div class="detail-block-body">
+          <div class="db-op-line"><span style="color:#b87cff">saga_id:</span> <span class="val">${s.payload.saga_id}</span></div>
+          <div class="db-op-line"><span style="color:#b87cff">current_step:</span> <span style="color:#ffb300">${s.sagaOp.step}</span></div>
+          <div class="db-op-line"><span style="color:#b87cff">status:</span> <span style="color:${sc};font-weight:700">${s.sagaOp.status}</span></div>
+          <div class="db-op-line"><span style="color:#b87cff">action:</span> <span class="kw">UPDATE</span> saga_orchestration_log</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function selectStep(idx) {
+  activeStep = idx;
+  renderSteps();
+  document.getElementById('sim-status').textContent = `Step ${idx+1} / ${steps().length} selected`;
+}
+
+function handlePlay() {
+  if (playing) return;
+  activeStep = 0;
+  playIdx = 0;
+  playing = true;
+  document.getElementById('btn-play').disabled = true;
+  renderSteps();
+  playTimer = setInterval(() => {
+    playIdx++;
+    if (playIdx >= steps().length) {
+      playing = false;
+      clearInterval(playTimer);
+      document.getElementById('btn-play').disabled = false;
+      document.getElementById('sim-status').textContent = 'Simulation complete';
+      return;
+    }
+    activeStep = playIdx;
+    document.getElementById('sim-status').textContent = `Step ${playIdx+1} / ${steps().length} — running…`;
+    renderSteps();
+  }, 1400);
+}
+
+function handleReset() {
+  playing = false;
+  clearInterval(playTimer);
+  playIdx = -1;
+  activeStep = null;
+  document.getElementById('btn-play').disabled = false;
+  document.getElementById('sim-status').textContent = 'Select a mode and simulate or click a step';
+  renderSteps();
+}
+
+// Init
+renderSchemaMini();
+renderSteps();
+</script>
+</body>
+</html>

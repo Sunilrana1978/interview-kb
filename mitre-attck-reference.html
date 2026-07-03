@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MITRE ATT&CK — Complete Reference Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&family=Sora:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #0d0f12;
+    --surface: #141820;
+    --surface2: #1c2230;
+    --surface3: #232c3e;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --text-secondary: #8b92a8;
+    --text-muted: #4e566b;
+    --accent: #4f8cff;
+    --accent-dim: rgba(79,140,255,0.12);
+    --accent-border: rgba(79,140,255,0.3);
+    --teal: #2dd4bf;
+    --teal-dim: rgba(45,212,191,0.1);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.1);
+    --red: #f87171;
+    --red-dim: rgba(248,113,113,0.1);
+    --purple: #a78bfa;
+    --purple-dim: rgba(167,139,250,0.1);
+    --green: #4ade80;
+    --green-dim: rgba(74,222,128,0.1);
+    --coral: #fb923c;
+    --coral-dim: rgba(251,146,60,0.1);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --display: 'Sora', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ─── Layout ─── */
+  .layout { display: flex; min-height: 100vh; }
+
+  nav {
+    width: 240px;
+    min-width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 1.5rem 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  .nav-logo {
+    padding: 0 1.25rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+
+  .nav-logo .wordmark {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .nav-logo .subtitle {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.75rem 1.25rem 0.3rem;
+  }
+
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 1.25rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    border-left: 2px solid transparent;
+    transition: all 0.15s;
+  }
+
+  nav a:hover, nav a.active {
+    color: var(--text);
+    background: var(--accent-dim);
+    border-left-color: var(--accent);
+  }
+
+  nav a .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: 0.5; flex-shrink: 0;
+  }
+
+  main {
+    flex: 1;
+    max-width: 900px;
+    padding: 2.5rem 3rem;
+    overflow-x: hidden;
+  }
+
+  /* ─── Typography ─── */
+  h1 {
+    font-family: var(--display);
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  h2 {
+    font-family: var(--display);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 2.5rem 0 0.75rem;
+    color: var(--text);
+    scroll-margin-top: 1rem;
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--text);
+  }
+
+  p { color: var(--text-secondary); margin-bottom: 0.75rem; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--surface3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--teal);
+  }
+
+  /* ─── Hero ─── */
+  .hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2rem;
+    margin-bottom: 0;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin-top: 0.75rem;
+    line-height: 1.65;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .stat { }
+  .stat-num {
+    font-family: var(--display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ─── Section wrapper ─── */
+  section { padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+
+  /* ─── Callout boxes ─── */
+  .callout {
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+    border: 1px solid;
+    font-size: 13px;
+  }
+  .callout-blue { background: var(--accent-dim); border-color: var(--accent-border); }
+  .callout-blue p { color: var(--text-secondary); }
+  .callout-title { font-weight: 600; color: var(--text); margin-bottom: 4px; font-size: 13px; }
+
+  /* ─── Hierarchy diagram ─── */
+  .hierarchy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 1.5rem 0;
+  }
+
+  .h-layer {
+    width: 100%;
+    max-width: 600px;
+    border-radius: 8px;
+    padding: 14px 20px;
+    position: relative;
+  }
+
+  .h-arrow {
+    width: 2px;
+    height: 14px;
+    background: var(--border-strong);
+    margin: 0 auto;
+    position: relative;
+  }
+  .h-arrow::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: -3px;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid var(--border-strong);
+  }
+
+  .h-tactics { background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); }
+  .h-techniques { background: rgba(79,140,255,0.1); border: 1px solid rgba(79,140,255,0.3); }
+  .h-sub { background: rgba(45,212,191,0.1); border: 1px solid rgba(45,212,191,0.3); }
+  .h-procedures { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); }
+
+  .h-layer-title { font-weight: 600; font-size: 14px; }
+  .h-tactics .h-layer-title { color: var(--purple); }
+  .h-techniques .h-layer-title { color: var(--accent); }
+  .h-sub .h-layer-title { color: var(--teal); }
+  .h-procedures .h-layer-title { color: var(--amber); }
+
+  .h-layer-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .h-layer-example { font-family: var(--mono); font-size: 11px; margin-top: 6px; }
+  .h-tactics .h-layer-example { color: rgba(167,139,250,0.7); }
+  .h-techniques .h-layer-example { color: rgba(79,140,255,0.7); }
+  .h-sub .h-layer-example { color: rgba(45,212,191,0.7); }
+  .h-procedures .h-layer-example { color: rgba(245,158,11,0.7); }
+
+  /* ─── Tactics grid ─── */
+  .tactics-phase {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tactics-phase::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .tactics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .tactic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    transition: border-color 0.15s, background 0.15s;
+    cursor: default;
+  }
+
+  .tactic-card:hover {
+    border-color: var(--border-strong);
+    background: var(--surface2);
+  }
+
+  .tactic-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .tactic-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .tactic-q {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .tactic-examples {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+
+  .tag-purple { background: var(--purple-dim); color: var(--purple); border-color: rgba(167,139,250,0.2); }
+  .tag-blue { background: var(--accent-dim); color: var(--accent); border-color: rgba(79,140,255,0.2); }
+  .tag-teal { background: var(--teal-dim); color: var(--teal); border-color: rgba(45,212,191,0.2); }
+  .tag-amber { background: var(--amber-dim); color: var(--amber); border-color: rgba(245,158,11,0.2); }
+  .tag-red { background: var(--red-dim); color: var(--red); border-color: rgba(248,113,113,0.2); }
+  .tag-green { background: var(--green-dim); color: var(--green); border-color: rgba(74,222,128,0.2); }
+  .tag-coral { background: var(--coral-dim); color: var(--coral); border-color: rgba(251,146,60,0.2); }
+  .tag-gray { background: rgba(139,146,168,0.1); color: var(--text-muted); border-color: rgba(139,146,168,0.2); }
+
+  /* ─── Technique breakdown ─── */
+  .tech-breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1rem 0;
+  }
+
+  .tech-breakdown-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+  }
+
+  .tech-breakdown-id {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    background: var(--accent-dim);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .tech-breakdown-name { font-weight: 600; font-size: 14px; color: var(--text); }
+
+  .tech-breakdown-body { padding: 16px 18px; }
+
+  .tech-breakdown-body p { color: var(--text-secondary); font-size: 13px; margin-bottom: 10px; }
+
+  .subtechs { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+
+  .subtech {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 8px 10px;
+    background: var(--surface3);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .subtech-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--teal);
+    min-width: 80px;
+    padding-top: 1px;
+  }
+
+  .subtech-name { font-size: 12px; font-weight: 500; color: var(--text); }
+  .subtech-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ─── Attack chain ─── */
+  .attack-chain {
+    position: relative;
+    margin: 1.5rem 0;
+  }
+
+  .chain-step {
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 0;
+    position: relative;
+  }
+
+  .chain-connector {
+    width: 2px;
+    height: 12px;
+    background: var(--border-strong);
+    margin-left: 22px;
+    position: relative;
+  }
+
+  .chain-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .chain-content { flex: 1; }
+  .chain-tactic { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 3px; }
+  .chain-tech { font-size: 14px; font-weight: 600; color: var(--text); }
+  .chain-id { font-family: var(--mono); font-size: 11px; margin-top: 2px; }
+  .chain-detail { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* chain colors */
+  .chain-step.recon { border-color: rgba(139,146,168,0.3); background: rgba(139,146,168,0.04); }
+  .chain-step.recon .chain-num { background: rgba(139,146,168,0.15); color: var(--text-secondary); }
+  .chain-step.recon .chain-tactic { color: var(--text-muted); }
+  .chain-step.recon .chain-id { color: var(--text-muted); }
+
+  .chain-step.access { border-color: rgba(251,146,60,0.3); background: rgba(251,146,60,0.04); }
+  .chain-step.access .chain-num { background: rgba(251,146,60,0.15); color: var(--coral); }
+  .chain-step.access .chain-tactic { color: var(--coral); }
+  .chain-step.access .chain-id { color: rgba(251,146,60,0.6); }
+
+  .chain-step.exec { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.04); }
+  .chain-step.exec .chain-num { background: rgba(245,158,11,0.15); color: var(--amber); }
+  .chain-step.exec .chain-tactic { color: var(--amber); }
+  .chain-step.exec .chain-id { color: rgba(245,158,11,0.6); }
+
+  .chain-step.persist { border-color: rgba(167,139,250,0.3); background: rgba(167,139,250,0.04); }
+  .chain-step.persist .chain-num { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .chain-step.persist .chain-tactic { color: var(--purple); }
+  .chain-step.persist .chain-id { color: rgba(167,139,250,0.6); }
+
+  .chain-step.cred { border-color: rgba(79,140,255,0.3); background: rgba(79,140,255,0.04); }
+  .chain-step.cred .chain-num { background: rgba(79,140,255,0.15); color: var(--accent); }
+  .chain-step.cred .chain-tactic { color: var(--accent); }
+  .chain-step.cred .chain-id { color: rgba(79,140,255,0.6); }
+
+  .chain-step.lateral { border-color: rgba(45,212,191,0.3); background: rgba(45,212,191,0.04); }
+  .chain-step.lateral .chain-num { background: rgba(45,212,191,0.15); color: var(--teal); }
+  .chain-step.lateral .chain-tactic { color: var(--teal); }
+  .chain-step.lateral .chain-id { color: rgba(45,212,191,0.6); }
+
+  .chain-step.impact { border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.04); }
+  .chain-step.impact .chain-num { background: rgba(248,113,113,0.15); color: var(--red); }
+  .chain-step.impact .chain-tactic { color: var(--red); }
+  .chain-step.impact .chain-id { color: rgba(248,113,113,0.6); }
+
+  /* ─── Coverage table ─── */
+  .coverage-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 1rem 0;
+  }
+
+  .coverage-table th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .coverage-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+  }
+
+  .coverage-table tr:last-child td { border-bottom: none; }
+  .coverage-table tr:hover td { background: var(--surface); }
+
+  .coverage-table td:first-child { color: var(--text); font-weight: 500; font-size: 13px; }
+
+  .coverage-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+
+  .dot-high { background: var(--green); }
+  .dot-med { background: var(--amber); }
+  .dot-low { background: var(--red); }
+
+  /* ─── ID format reference ─── */
+  .id-anatomy {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0;
+    font-family: var(--mono);
+  }
+
+  .id-display {
+    font-size: 2rem;
+    letter-spacing: 0.05em;
+    color: var(--text);
+    display: flex;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+
+  .id-part { position: relative; padding-bottom: 1.5rem; }
+  .id-part-t { color: var(--purple); }
+  .id-part-num { color: var(--accent); }
+  .id-part-dot { color: var(--text-muted); }
+  .id-part-sub { color: var(--teal); }
+
+  .id-labels {
+    display: flex;
+    gap: 0;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .id-label { }
+  .id-label-t { color: var(--purple); min-width: 1ch; }
+  .id-label-num { color: var(--accent); min-width: 4ch; }
+  .id-label-dot { color: var(--text-muted); min-width: 1ch; }
+  .id-label-sub { color: var(--teal); min-width: 3ch; }
+
+  /* ─── Matrix visualization ─── */
+  .matrix-note {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .matrix-icon {
+    width: 32px; height: 32px;
+    background: var(--accent-dim);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* ─── Use cases ─── */
+  .use-cases { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+
+  @media (max-width: 680px) {
+    .use-cases { grid-template-columns: 1fr; }
+    nav { display: none; }
+    main { padding: 1.5rem; }
+    h1 { font-size: 1.8rem; }
+  }
+
+  .use-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .use-card-icon {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .use-card-title { font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .use-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.55; }
+
+  /* ─── Threat groups table ─── */
+  .group-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin: 1rem 0;
+  }
+
+  .group-table th {
+    text-align: left;
+    padding: 7px 12px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .group-table td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
+    vertical-align: top;
+    line-height: 1.45;
+  }
+
+  .group-table tr:last-child td { border-bottom: none; }
+  .group-table tr:hover td { background: var(--surface); }
+
+  .group-name { color: var(--text) !important; font-weight: 600; font-size: 13px; }
+  .group-id { font-family: var(--mono); color: var(--text-muted) !important; font-size: 10px; }
+
+  /* ─── Trellix mapping section ─── */
+  .trellix-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 1rem 0;
+  }
+
+  .trellix-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    border-left: 3px solid;
+  }
+
+  .trellix-card.ens { border-left-color: var(--teal); }
+  .trellix-card.epo { border-left-color: var(--accent); }
+  .trellix-card.mtd { border-left-color: var(--purple); }
+  .trellix-card.helix { border-left-color: var(--amber); }
+
+  .trellix-product { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+  .trellix-card.ens .trellix-product { color: var(--teal); }
+  .trellix-card.epo .trellix-product { color: var(--accent); }
+  .trellix-card.mtd .trellix-product { color: var(--purple); }
+  .trellix-card.helix .trellix-product { color: var(--amber); }
+
+  .trellix-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .trellix-techs { display: flex; flex-direction: column; gap: 4px; }
+  .trellix-tech { display: flex; align-items: flex-start; gap: 6px; font-size: 11px; }
+  .trellix-tech-id { font-family: var(--mono); color: var(--text-muted); min-width: 80px; }
+  .trellix-tech-name { color: var(--text-secondary); }
+
+  /* ─── Cheatsheet ─── */
+  .cheatsheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 1rem 0; }
+  .cheatsheet-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .cheatsheet-term { font-weight: 600; color: var(--text); font-size: 13px; margin-bottom: 4px; }
+  .cheatsheet-def { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* ─── Divider ─── */
+  .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
+
+  /* ─── Footer ─── */
+  footer {
+    padding: 2rem 3rem;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ─── Print ─── */
+  @media print {
+    nav { display: none; }
+    main { max-width: 100%; padding: 1rem; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<div class="layout">
+
+<!-- ─── Navigation ─── -->
+<nav>
+  <div class="nav-logo">
+    <div class="wordmark">MITRE ATT&CK</div>
+    <div class="subtitle">Complete Reference Guide</div>
+  </div>
+
+  <div class="nav-section-label">Foundations</div>
+  <a href="#overview"><span class="dot"></span>Overview & acronym</a>
+  <a href="#hierarchy"><span class="dot"></span>Framework hierarchy</a>
+  <a href="#id-format"><span class="dot"></span>ID format</a>
+  <a href="#matrices"><span class="dot"></span>Matrices</a>
+
+  <div class="nav-section-label">Core Content</div>
+  <a href="#tactics"><span class="dot"></span>All 14 tactics</a>
+  <a href="#techniques"><span class="dot"></span>Technique deep-dive</a>
+  <a href="#attack-chain"><span class="dot"></span>Attack chain example</a>
+  <a href="#groups"><span class="dot"></span>Threat groups</a>
+
+  <div class="nav-section-label">Operations</div>
+  <a href="#use-cases"><span class="dot"></span>How SecOps uses it</a>
+  <a href="#coverage"><span class="dot"></span>Coverage mapping</a>
+  <a href="#trellix"><span class="dot"></span>Trellix + ATT&CK</a>
+
+  <div class="nav-section-label">Reference</div>
+  <a href="#cheatsheet"><span class="dot"></span>Quick cheatsheet</a>
+  <a href="#resources"><span class="dot"></span>Resources</a>
+</nav>
+
+<!-- ─── Main content ─── -->
+<main>
+
+<!-- Hero -->
+<div class="hero" id="overview">
+  <div class="hero-eyebrow">Security Reference</div>
+  <h1>MITRE ATT&amp;CK</h1>
+  <p class="hero-desc">
+    A globally accessible, curated knowledge base of real-world adversary behaviors, built and maintained by the MITRE Corporation. Used as a universal language across threat intelligence, detection engineering, red teaming, and security operations.
+  </p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">14</div><div class="stat-label">Tactics</div></div>
+    <div class="stat"><div class="stat-num">196</div><div class="stat-label">Techniques</div></div>
+    <div class="stat"><div class="stat-num">411</div><div class="stat-label">Sub-techniques</div></div>
+    <div class="stat"><div class="stat-num">135+</div><div class="stat-label">Threat groups</div></div>
+    <div class="stat"><div class="stat-num">2013</div><div class="stat-label">Year founded</div></div>
+  </div>
+</div>
+
+<!-- Acronym breakdown -->
+<section>
+  <h2>What the acronym means</h2>
+  <p>Each letter encodes a design principle of the framework itself.</p>
+
+  <div class="cheatsheet-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-top: 1rem;">
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term" style="color: var(--purple);">Adversarial</div>
+      <div class="cheatsheet-def">Describes real attacker behavior — not theoretical vulnerabilities. Every entry comes from actual observed intrusions.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term" style="color: var(--accent);">Tactics, Techniques</div>
+      <div class="cheatsheet-def">The two primary organizational layers. Tactics = why. Techniques = how. Structured hierarchically with sub-techniques below.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term" style="color: var(--teal);">Common Knowledge</div>
+      <div class="cheatsheet-def">A shared, standardized vocabulary so every team — red, blue, intel — can communicate without ambiguity about attacker behaviors.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-blue" style="margin-top: 1.25rem;">
+    <div class="callout-title">Why it matters vs. CVE / OWASP</div>
+    <p><strong style="color: var(--text);">CVE</strong> catalogs vulnerabilities in software. <strong style="color: var(--text);">OWASP</strong> focuses on web application weaknesses. <strong style="color: var(--text);">ATT&CK</strong> catalogs attacker <em>behaviors</em> — what adversaries actually do once they're in, regardless of which CVE they used to get there. It's behavior-centric, not vuln-centric.</p>
+  </div>
+</section>
+
+<!-- Hierarchy -->
+<section id="hierarchy">
+  <h2>Framework hierarchy</h2>
+  <p>ATT&CK has four levels of specificity. You always read top-down: Tactics contain Techniques, which have Sub-techniques, which are implemented as real-world Procedures by specific threat groups.</p>
+
+  <div class="hierarchy">
+    <div class="h-layer h-tactics">
+      <div class="h-layer-title">Tactics — the "why"</div>
+      <div class="h-layer-meta">14 high-level categories representing an attacker's immediate goal</div>
+      <div class="h-layer-example">e.g. TA0006 — Credential Access</div>
+    </div>
+    <div class="h-arrow"></div>
+    <div class="h-layer h-techniques">
+      <div class="h-layer-title">Techniques — the "how"</div>
+      <div class="h-layer-meta">196 specific methods an attacker uses to achieve a tactic</div>
+      <div class="h-layer-example">e.g. T1110 — Brute Force</div>
+    </div>
+    <div class="h-arrow"></div>
+    <div class="h-layer h-sub">
+      <div class="h-layer-title">Sub-techniques — specific variants</div>
+      <div class="h-layer-meta">411 more granular implementations of a parent technique</div>
+      <div class="h-layer-example">e.g. T1110.003 — Password Spraying</div>
+    </div>
+    <div class="h-arrow"></div>
+    <div class="h-layer h-procedures">
+      <div class="h-layer-title">Procedures — real-world usage</div>
+      <div class="h-layer-meta">Specific implementations by named threat actors or malware families</div>
+      <div class="h-layer-example">e.g. APT29 used Password Spraying against Office 365 in 2021</div>
+    </div>
+  </div>
+</section>
+
+<!-- ID Format -->
+<section id="id-format">
+  <h2>How ATT&CK IDs work</h2>
+  <p>Every tactic, technique, and sub-technique has a unique machine-readable ID. Understanding the format lets you instantly recognize what type of entry you're looking at.</p>
+
+  <div class="id-anatomy">
+    <div class="id-display">
+      <span class="id-part id-part-t">T</span><span class="id-part id-part-num">1110</span><span class="id-part id-part-dot">.</span><span class="id-part id-part-sub">003</span>
+    </div>
+    <div class="id-labels" style="margin-top: 0.35rem;">
+      <span style="color: var(--purple); margin-right: 1px;">T</span>&nbsp;=&nbsp;<span style="color: var(--purple); margin-right: 16px;">prefix (T=technique, TA=tactic, S=software, G=group)</span>
+      <span style="color: var(--accent);">1110</span>&nbsp;=&nbsp;<span style="color: var(--accent); margin-right: 16px;">technique number (4 digits)</span>
+      <span style="color: var(--text-muted); margin-right: 1px;">.</span><span style="color: var(--teal);">003</span>&nbsp;=&nbsp;<span style="color: var(--teal);">sub-technique (3 digits, optional)</span>
+    </div>
+  </div>
+
+  <div class="cheatsheet-grid" style="margin-top: 0.75rem;">
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term"><code>TA0001</code> — Tactic</div>
+      <div class="cheatsheet-def">Starts with <code>TA</code>. Represents a high-level attacker goal category.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term"><code>T1566</code> — Technique</div>
+      <div class="cheatsheet-def">Starts with <code>T</code> (no A). A specific method to achieve a tactic.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term"><code>T1566.001</code> — Sub-technique</div>
+      <div class="cheatsheet-def"><code>T####.###</code> with a dot. A variant of the parent technique.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term"><code>G0016</code> — Group</div>
+      <div class="cheatcheck-def" style="font-size:12px;color:var(--text-secondary);">Starts with <code>G</code>. A named threat actor or intrusion set (e.g. APT29 = G0016).</div>
+    </div>
+  </div>
+</section>
+
+<!-- Matrices -->
+<section id="matrices">
+  <h2>ATT&CK matrices</h2>
+  <p>ATT&CK is organized into domain-specific matrices. Each covers a different attack surface with its own tactic/technique set.</p>
+
+  <div class="cheatsheet-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-top: 0.75rem;">
+    <div class="cheatsheet-card" style="border-top: 2px solid var(--accent);">
+      <div class="cheatsheet-term" style="color: var(--accent);">Enterprise</div>
+      <div class="cheatsheet-def">The most commonly used matrix. Covers Windows, macOS, Linux, cloud (AWS/Azure/GCP), network, and containers. 14 tactics, 196 techniques.</div>
+    </div>
+    <div class="cheatsheet-card" style="border-top: 2px solid var(--teal);">
+      <div class="cheatsheet-term" style="color: var(--teal);">Mobile</div>
+      <div class="cheatsheet-def">Android and iOS attack techniques. Covers device access, network-based attacks, and app-layer techniques specific to mobile platforms.</div>
+    </div>
+    <div class="cheatsheet-card" style="border-top: 2px solid var(--amber);">
+      <div class="cheatsheet-term" style="color: var(--amber);">ICS</div>
+      <div class="cheatsheet-def">Industrial Control Systems — SCADA, PLCs, OT networks. Used by critical infrastructure security teams. Covers impair process control, inhibit response.</div>
+    </div>
+  </div>
+
+  <div class="matrix-note">
+    <div class="matrix-icon">🔗</div>
+    <div>The interactive ATT&CK Navigator (attack.mitre.org/matrices) lets you browse the full matrix, layer coverage maps, and export heatmaps for your tooling. Free and browser-based.</div>
+  </div>
+</section>
+
+<!-- All 14 Tactics -->
+<section id="tactics">
+  <h2>All 14 tactics (Enterprise Matrix)</h2>
+  <p>Tactics are ordered roughly by attack lifecycle phase, though adversaries rarely follow a linear path.</p>
+
+  <div class="tactics-phase">Pre-intrusion</div>
+  <div class="tactics-grid">
+    <div class="tactic-card">
+      <div class="tactic-id">TA0043</div>
+      <div class="tactic-name">Reconnaissance</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Gather info to plan an attack. Happens before any system is touched.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-gray">T1595 — Active scanning</span>
+        <span class="tag tag-gray">T1589 — Gather victim identity info</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0042</div>
+      <div class="tactic-name">Resource Development</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Build or acquire infrastructure, tools, accounts to support the attack.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-gray">T1583 — Acquire infrastructure</span>
+        <span class="tag tag-gray">T1588 — Obtain capabilities</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tactics-phase">Initial compromise</div>
+  <div class="tactics-grid">
+    <div class="tactic-card">
+      <div class="tactic-id">TA0001</div>
+      <div class="tactic-name">Initial Access</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Gain first foothold in the target network or system.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-coral">T1566 — Phishing</span>
+        <span class="tag tag-coral">T1190 — Exploit public-facing app</span>
+        <span class="tag tag-coral">T1078 — Valid accounts</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0002</div>
+      <div class="tactic-name">Execution</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Run malicious code on the target system.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-amber">T1059 — Command & scripting interpreter</span>
+        <span class="tag tag-amber">T1204 — User execution</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tactics-phase">Establish foothold</div>
+  <div class="tactics-grid">
+    <div class="tactic-card">
+      <div class="tactic-id">TA0003</div>
+      <div class="tactic-name">Persistence</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Maintain access across reboots, credential changes, and interruptions.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-purple">T1547 — Boot/logon autostart</span>
+        <span class="tag tag-purple">T1136 — Create account</span>
+        <span class="tag tag-purple">T1053 — Scheduled task/job</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0004</div>
+      <div class="tactic-name">Privilege Escalation</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Gain higher-level permissions — move from user to admin/SYSTEM/root.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-purple">T1548 — Abuse elevation control</span>
+        <span class="tag tag-purple">T1068 — Exploit for privilege escalation</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0005</div>
+      <div class="tactic-name">Defense Evasion</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Avoid detection by security tools. Often the largest technique category.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-red">T1562 — Impair defenses</span>
+        <span class="tag tag-red">T1027 — Obfuscated files/info</span>
+        <span class="tag tag-red">T1055 — Process injection</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tactics-phase">Explore & expand</div>
+  <div class="tactics-grid">
+    <div class="tactic-card">
+      <div class="tactic-id">TA0006</div>
+      <div class="tactic-name">Credential Access</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Steal account credentials — passwords, tokens, hashes, API keys.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-blue">T1110 — Brute Force</span>
+        <span class="tag tag-blue">T1003 — OS credential dumping</span>
+        <span class="tag tag-blue">T1555 — Credentials from password stores</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0007</div>
+      <div class="tactic-name">Discovery</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Learn about the environment — systems, users, network, security tools present.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-teal">T1082 — System info discovery</span>
+        <span class="tag tag-teal">T1046 — Network service discovery</span>
+        <span class="tag tag-teal">T1083 — File and directory discovery</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0008</div>
+      <div class="tactic-name">Lateral Movement</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Move from initial compromised host to other systems in the network.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-teal">T1021 — Remote services</span>
+        <span class="tag tag-teal">T1550 — Use alternate auth material</span>
+        <span class="tag tag-teal">T1534 — Internal spearphishing</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tactics-phase">Achieve objective</div>
+  <div class="tactics-grid">
+    <div class="tactic-card">
+      <div class="tactic-id">TA0009</div>
+      <div class="tactic-name">Collection</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Gather data of interest before exfiltration — files, email, keystrokes, screenshots.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-green">T1560 — Archive collected data</span>
+        <span class="tag tag-green">T1056 — Input capture (keylogger)</span>
+        <span class="tag tag-green">T1114 — Email collection</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0011</div>
+      <div class="tactic-name">Command and Control</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Communicate with and control compromised systems covertly (C2/C&C).</div>
+      <div class="tactic-examples">
+        <span class="tag tag-amber">T1071 — App layer protocol (HTTP/DNS)</span>
+        <span class="tag tag-amber">T1573 — Encrypted channel</span>
+        <span class="tag tag-amber">T1572 — Protocol tunneling</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0010</div>
+      <div class="tactic-name">Exfiltration</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Steal data out of the victim environment, often compressed and encrypted.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-red">T1048 — Exfiltration over alt protocol</span>
+        <span class="tag tag-red">T1567 — Exfiltration over web service</span>
+      </div>
+    </div>
+    <div class="tactic-card">
+      <div class="tactic-id">TA0040</div>
+      <div class="tactic-name">Impact</div>
+      <div class="tactic-q">What does the attacker want?</div>
+      <div style="font-size:12px;color:var(--text-secondary);">Disrupt availability, destroy data, encrypt for ransom, or manipulate systems.</div>
+      <div class="tactic-examples">
+        <span class="tag tag-red">T1486 — Data encrypted for impact</span>
+        <span class="tag tag-red">T1490 — Inhibit system recovery</span>
+        <span class="tag tag-red">T1485 — Data destruction</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Technique deep-dive -->
+<section id="techniques">
+  <h2>Technique deep-dive: Phishing (T1566)</h2>
+  <p>Phishing is one of the most commonly observed Initial Access techniques. Here's how the hierarchy looks fully expanded for a single technique.</p>
+
+  <div class="tech-breakdown">
+    <div class="tech-breakdown-header">
+      <span class="tech-breakdown-id">T1566</span>
+      <span class="tech-breakdown-name">Phishing</span>
+      <span class="tag tag-coral" style="margin-left:auto;">TA0001 Initial Access</span>
+    </div>
+    <div class="tech-breakdown-body">
+      <p>Adversaries send phishing messages to gain access to victim systems. Phishing may include malicious attachments, links to credential harvesting pages, or social engineering to manipulate users into executing attacker-controlled code.</p>
+      <h3 style="margin-top: 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em;">Sub-techniques</h3>
+      <div class="subtechs">
+        <div class="subtech">
+          <div class="subtech-id">T1566.001</div>
+          <div>
+            <div class="subtech-name">Spearphishing Attachment</div>
+            <div class="subtech-desc">Targeted email with malicious attachment (Office macros, PDF exploit, ISO file). Most common delivery for ransomware.</div>
+          </div>
+        </div>
+        <div class="subtech">
+          <div class="subtech-id">T1566.002</div>
+          <div>
+            <div class="subtech-name">Spearphishing Link</div>
+            <div class="subtech-desc">Link to attacker-controlled website — credential harvesting page, drive-by download, or OAuth phishing.</div>
+          </div>
+        </div>
+        <div class="subtech">
+          <div class="subtech-id">T1566.003</div>
+          <div>
+            <div class="subtech-name">Spearphishing via Service</div>
+            <div class="subtech-desc">Uses third-party services (Teams, LinkedIn, WhatsApp, Discord) rather than email to deliver the phishing message.</div>
+          </div>
+        </div>
+        <div class="subtech">
+          <div class="subtech-id">T1566.004</div>
+          <div>
+            <div class="subtech-name">Spearphishing Voice</div>
+            <div class="subtech-desc">Vishing — voice/phone call to socially engineer the target into an action or credential disclosure.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>A second example: Credential Dumping (T1003)</h3>
+  <div class="tech-breakdown">
+    <div class="tech-breakdown-header">
+      <span class="tech-breakdown-id">T1003</span>
+      <span class="tech-breakdown-name">OS Credential Dumping</span>
+      <span class="tag tag-blue" style="margin-left:auto;">TA0006 Credential Access</span>
+    </div>
+    <div class="tech-breakdown-body">
+      <p>Adversaries attempt to dump credentials to obtain account login and credential material. Credentials can be used to perform lateral movement and access restricted information.</p>
+      <div class="subtechs">
+        <div class="subtech">
+          <div class="subtech-id">T1003.001</div>
+          <div>
+            <div class="subtech-name">LSASS Memory</div>
+            <div class="subtech-desc">Dump the LSASS process to extract cached credentials. Tools: Mimikatz, ProcDump. Detected by Trellix ENS memory protection rules.</div>
+          </div>
+        </div>
+        <div class="subtech">
+          <div class="subtech-id">T1003.002</div>
+          <div>
+            <div class="subtech-name">Security Account Manager (SAM)</div>
+            <div class="subtech-desc">Extract Windows SAM database for local account hashes. Requires SYSTEM privileges.</div>
+          </div>
+        </div>
+        <div class="subtech">
+          <div class="subtech-id">T1003.003</div>
+          <div>
+            <div class="subtech-name">NTDS</div>
+            <div class="subtech-desc">Dump Active Directory database (ntds.dit). Gives attacker every domain credential. Often the end-goal of lateral movement.</div>
+          </div>
+        </div>
+        <div class="subtech">
+          <div class="subtech-id">T1003.006</div>
+          <div>
+            <div class="subtech-name">DCSync</div>
+            <div class="subtech-desc">Mimics AD replication to pull password hashes without touching disk on DC. Requires domain admin or equivalent rights.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Attack chain -->
+<section id="attack-chain">
+  <h2>Full attack chain: Ransomware intrusion</h2>
+  <p>A realistic end-to-end ransomware attack mapped to ATT&CK. This is what threat intelligence reports, IR summaries, and SOC playbooks look like in practice. Click any step to understand detection approaches.</p>
+
+  <div class="attack-chain">
+    <div class="chain-step recon">
+      <div class="chain-num">1</div>
+      <div class="chain-content">
+        <div class="chain-tactic">Reconnaissance</div>
+        <div class="chain-tech">OSINT on target employees</div>
+        <div class="chain-id">T1591 — Gather victim org info &nbsp;|&nbsp; T1589.002 — Email addresses</div>
+        <div class="chain-detail">Attacker scrapes LinkedIn, company website, and data breach databases to identify targets for phishing. No systems touched yet.</div>
+      </div>
+    </div>
+    <div class="chain-connector"></div>
+    <div class="chain-step access">
+      <div class="chain-num">2</div>
+      <div class="chain-content">
+        <div class="chain-tactic">Initial Access</div>
+        <div class="chain-tech">Spearphishing attachment (malicious Office macro)</div>
+        <div class="chain-id">T1566.001 — Spearphishing Attachment</div>
+        <div class="chain-detail">Targeted email sent to finance team with an "invoice.xlsm" attachment. User enables macros. Foothold established.</div>
+      </div>
+    </div>
+    <div class="chain-connector"></div>
+    <div class="chain-step exec">
+      <div class="chain-num">3</div>
+      <div class="chain-content">
+        <div class="chain-tactic">Execution</div>
+        <div class="chain-tech">PowerShell downloads payload</div>
+        <div class="chain-id">T1059.001 — PowerShell &nbsp;|&nbsp; T1204.002 — Malicious file</div>
+        <div class="chain-detail">Macro spawns PowerShell to download Cobalt Strike beacon from C2 server. Beacon runs in-memory.</div>
+      </div>
+    </div>
+    <div class="chain-connector"></div>
+    <div class="chain-step persist">
+      <div class="chain-num">4</div>
+      <div class="chain-content">
+        <div class="chain-tactic">Persistence</div>
+        <div class="chain-tech">Scheduled task + registry Run key</div>
+        <div class="chain-id">T1053.005 — Scheduled Task &nbsp;|&nbsp; T1547.001 — Registry Run Keys</div>
+        <div class="chain-detail">Attacker creates a scheduled task and adds Run key to ensure beacon survives reboots.</div>
+      </div>
+    </div>
+    <div class="chain-connector"></div>
+    <div class="chain-step cred">
+      <div class="chain-num">5</div>
+      <div class="chain-content">
+        <div class="chain-tactic">Credential Access</div>
+        <div class="chain-tech">Mimikatz LSASS dump → DCSync</div>
+        <div class="chain-id">T1003.001 — LSASS Memory &nbsp;|&nbsp; T1003.006 — DCSync</div>
+        <div class="chain-detail">Dumps credentials from LSASS. Escalates to domain admin, then runs DCSync to pull all domain password hashes.</div>
+      </div>
+    </div>
+    <div class="chain-connector"></div>
+    <div class="chain-step lateral">
+      <div class="chain-num">6</div>
+      <div class="chain-content">
+        <div class="chain-tactic">Lateral Movement</div>
+        <div class="chain-tech">Pass-the-Hash via PsExec</div>
+        <div class="chain-id">T1550.002 — Pass the Hash &nbsp;|&nbsp; T1021.002 — SMB/Windows Admin Shares</div>
+        <div class="chain-detail">Uses domain admin hash to authenticate via SMB and deploy beacon to file servers, backup servers, and Domain Controllers.</div>
+      </div>
+    </div>
+    <div class="chain-connector"></div>
+    <div class="chain-step impact">
+      <div class="chain-num">7</div>
+      <div class="chain-content">
+        <div class="chain-tactic">Impact</div>
+        <div class="chain-tech">Delete VSS + encrypt all drives</div>
+        <div class="chain-id">T1490 — Inhibit System Recovery &nbsp;|&nbsp; T1486 — Data Encrypted for Impact</div>
+        <div class="chain-detail">Deletes Volume Shadow Copies to prevent recovery. Deploys ransomware across all systems simultaneously. Drops ransom note.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Threat groups -->
+<section id="groups">
+  <h2>Named threat groups (APTs)</h2>
+  <p>ATT&CK tracks 135+ named threat actor groups and maps each to the specific techniques they've been observed using. This is the "Procedures" layer.</p>
+
+  <table class="group-table">
+    <thead>
+      <tr>
+        <th>Group</th>
+        <th>ID</th>
+        <th>Origin / Attribution</th>
+        <th>Known for</th>
+        <th>Key techniques</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="group-name">APT29 / Cozy Bear</td>
+        <td class="group-id">G0016</td>
+        <td>Russia (SVR)</td>
+        <td>SolarWinds, DNC breach, NOBELIUM</td>
+        <td><code>T1195</code> Supply chain compromise, <code>T1078</code> Valid accounts</td>
+      </tr>
+      <tr>
+        <td class="group-name">APT28 / Fancy Bear</td>
+        <td class="group-id">G0007</td>
+        <td>Russia (GRU)</td>
+        <td>Election interference, NATO targeting</td>
+        <td><code>T1566</code> Phishing, <code>T1071</code> C2 over HTTP</td>
+      </tr>
+      <tr>
+        <td class="group-name">Lazarus Group</td>
+        <td class="group-id">G0032</td>
+        <td>North Korea</td>
+        <td>WannaCry, financial theft, crypto theft</td>
+        <td><code>T1486</code> Ransomware, <code>T1059</code> PowerShell</td>
+      </tr>
+      <tr>
+        <td class="group-name">FIN7</td>
+        <td class="group-id">G0046</td>
+        <td>Eastern Europe (criminal)</td>
+        <td>POS malware, retail & hospitality targeting</td>
+        <td><code>T1566.001</code> Spearphishing, <code>T1055</code> Process injection</td>
+      </tr>
+      <tr>
+        <td class="group-name">Scattered Spider</td>
+        <td class="group-id">G1015</td>
+        <td>English-speaking (criminal)</td>
+        <td>MGM/Caesars breach, SIM swapping</td>
+        <td><code>T1621</code> MFA bypass, <code>T1078</code> Valid accounts, <code>T1534</code> Internal phishing</td>
+      </tr>
+      <tr>
+        <td class="group-name">BlackCat / ALPHV</td>
+        <td class="group-id">G1006</td>
+        <td>RaaS (ransomware-as-a-service)</td>
+        <td>Healthcare ransomware (Change Healthcare)</td>
+        <td><code>T1486</code> Encryption, <code>T1490</code> VSS deletion, <code>T1003</code> Cred dumping</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Use cases -->
+<section id="use-cases">
+  <h2>How SecOps teams use ATT&CK</h2>
+  <p>ATT&CK provides a common language across the SOC. Here are the four primary operational use cases.</p>
+
+  <div class="use-cases">
+    <div class="use-card">
+      <div class="use-card-icon">🔍</div>
+      <div class="use-card-title">Threat hunting</div>
+      <div class="use-card-desc">Define hypotheses based on specific ATT&CK techniques ("hypothesis: T1003.001 LSASS access on non-DC servers"). Build searches in your SIEM to proactively find attacker behavior before an alert fires.</div>
+    </div>
+    <div class="use-card">
+      <div class="use-card-icon">📊</div>
+      <div class="use-card-title">Coverage mapping / gap analysis</div>
+      <div class="use-card-desc">Map your existing tools to ATT&CK technique IDs. The ATT&CK Navigator shows a heatmap of what you can detect and what's blind. Prioritize investment toward high-risk, undetected techniques.</div>
+    </div>
+    <div class="use-card">
+      <div class="use-card-icon">⚔️</div>
+      <div class="use-card-title">Red teaming & purple teaming</div>
+      <div class="use-card-desc">Red teams execute specific ATT&CK techniques to test defenses. Purple teams compare what was executed vs. what the blue team detected — using ATT&CK IDs as the shared reference point to close gaps.</div>
+    </div>
+    <div class="use-card">
+      <div class="use-card-icon">🌐</div>
+      <div class="use-card-title">Threat intelligence</div>
+      <div class="use-card-desc">Vendor reports and ISACs tag IOCs and actor profiles with ATT&CK IDs. Lets you translate "APT29 is active" into "here are the specific T#### techniques they use — do we detect these?"</div>
+    </div>
+    <div class="use-card">
+      <div class="use-card-icon">📋</div>
+      <div class="use-card-title">Detection rule tagging</div>
+      <div class="use-card-desc">Tag every SIEM rule, EDR rule, and playbook with ATT&CK technique IDs. Makes coverage gaps visible and links detections to threat context. Sigma rule format natively supports ATT&CK tags.</div>
+    </div>
+    <div class="use-card">
+      <div class="use-card-icon">📝</div>
+      <div class="use-card-title">Incident reporting</div>
+      <div class="use-card-desc">Document incidents with ATT&CK IDs for each adversary action. Creates a structured, reproducible account that feeds back into coverage gaps and detection improvement.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Coverage mapping -->
+<section id="coverage">
+  <h2>Coverage mapping by tool type</h2>
+  <p>Different security tools cover different ATT&CK tactic areas. This table shows typical coverage alignment for a layered enterprise SecOps stack.</p>
+
+  <table class="coverage-table">
+    <thead>
+      <tr>
+        <th>Tool type</th>
+        <th>Primary ATT&CK coverage</th>
+        <th>Typical coverage level</th>
+        <th>Common gaps</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>EDR (e.g. Trellix ENS)</td>
+        <td>Execution, Persistence, Privilege Escalation, Defense Evasion, Credential Access</td>
+        <td><span class="coverage-dot dot-high"></span>High for endpoint techniques</td>
+        <td>Cloud, network-based techniques</td>
+      </tr>
+      <tr>
+        <td>SIEM (log aggregation)</td>
+        <td>Discovery, Lateral Movement, Collection, Exfiltration</td>
+        <td><span class="coverage-dot dot-med"></span>Medium — depends on log sources</td>
+        <td>Encrypted C2, in-memory attacks</td>
+      </tr>
+      <tr>
+        <td>Email gateway</td>
+        <td>Initial Access (T1566 Phishing)</td>
+        <td><span class="coverage-dot dot-high"></span>High for email vector</td>
+        <td>Spearphishing via non-email services</td>
+      </tr>
+      <tr>
+        <td>NDR / network detection</td>
+        <td>C2, Lateral Movement, Exfiltration</td>
+        <td><span class="coverage-dot dot-med"></span>Medium</td>
+        <td>Encrypted traffic, DNS tunneling</td>
+      </tr>
+      <tr>
+        <td>IAM / PAM</td>
+        <td>Credential Access, Privilege Escalation, Lateral Movement</td>
+        <td><span class="coverage-dot dot-med"></span>Medium for identity techniques</td>
+        <td>Pass-the-hash, token theft in-memory</td>
+      </tr>
+      <tr>
+        <td>Cloud CSPM / CWPP</td>
+        <td>Cloud-specific techniques (T1530, T1537, T1578)</td>
+        <td><span class="coverage-dot dot-low"></span>Low-medium for on-prem</td>
+        <td>On-prem lateral movement</td>
+      </tr>
+      <tr>
+        <td>Vulnerability scanner</td>
+        <td>Not ATT&CK-aligned (pre-intrusion, proactive)</td>
+        <td><span class="coverage-dot dot-low"></span>No behavioral coverage</td>
+        <td>All behavioral ATT&CK techniques</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-blue">
+    <div class="callout-title">Using ATT&CK Navigator for coverage heatmaps</div>
+    <p>The free ATT&CK Navigator (attack.mitre.org/matrices/enterprise) lets you load detection coverage from tools like Trellix, Splunk, or Microsoft Sentinel as JSON layers. Each cell is colored by coverage depth, giving a visual gap analysis across the entire matrix. Many vendors publish pre-built Navigator layers for their tools.</p>
+  </div>
+</section>
+
+<!-- Trellix mapping -->
+<section id="trellix">
+  <h2>Trellix product mapping to ATT&CK</h2>
+  <p>Trellix (formerly McAfee Enterprise + FireEye) products align to specific ATT&CK technique coverage areas. Understanding this mapping helps you build detection rules, assess gaps, and communicate coverage to leadership.</p>
+
+  <div class="trellix-grid">
+    <div class="trellix-card ens">
+      <div class="trellix-product">Trellix ENS</div>
+      <div class="trellix-name">Endpoint Security (Endpoint Protection Platform)</div>
+      <div class="trellix-techs">
+        <div class="trellix-tech"><span class="trellix-tech-id">T1059</span><span class="trellix-tech-name">Blocks malicious scripts (PowerShell, WScript)</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1003.001</span><span class="trellix-tech-name">LSASS process protection rules</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1547</span><span class="trellix-tech-name">Registry/autostart persistence detection</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1055</span><span class="trellix-tech-name">Process injection detection (AMP)</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1562.001</span><span class="trellix-tech-name">Detects AV tampering/disable attempts</span></div>
+      </div>
+    </div>
+    <div class="trellix-card epo">
+      <div class="trellix-product">Trellix ePO</div>
+      <div class="trellix-name">ePolicy Orchestrator (Management Platform)</div>
+      <div class="trellix-techs">
+        <div class="trellix-tech"><span class="trellix-tech-id">TA0005</span><span class="trellix-tech-name">Centrally enforces policy to reduce defense evasion</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1562</span><span class="trellix-tech-name">Alerts when agent goes offline (tamper indicator)</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">Coverage</span><span class="trellix-tech-name">Generates ATT&CK-tagged events for SIEM forwarding</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">Reporting</span><span class="trellix-tech-name">Dashboard for compliance across endpoint estate</span></div>
+      </div>
+    </div>
+    <div class="trellix-card mtd">
+      <div class="trellix-product">Trellix MTD</div>
+      <div class="trellix-name">Mobile Threat Defense</div>
+      <div class="trellix-techs">
+        <div class="trellix-tech"><span class="trellix-tech-id">T1437</span><span class="trellix-tech-name">Mobile C2 over standard app protocol</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1417</span><span class="trellix-tech-name">Input capture on mobile (keylogger)</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1406</span><span class="trellix-tech-name">Obfuscated files on device</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">Network</span><span class="trellix-tech-name">Rogue WiFi / MitM detection</span></div>
+      </div>
+    </div>
+    <div class="trellix-card helix">
+      <div class="trellix-product">Trellix Helix / XDR</div>
+      <div class="trellix-name">SIEM & Detection Platform</div>
+      <div class="trellix-techs">
+        <div class="trellix-tech"><span class="trellix-tech-id">TA0008</span><span class="trellix-tech-name">Lateral movement correlation across endpoints</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">TA0010</span><span class="trellix-tech-name">Exfiltration anomaly detection</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">T1071</span><span class="trellix-tech-name">C2 over HTTP/DNS detection rules</span></div>
+        <div class="trellix-tech"><span class="trellix-tech-id">ATT&CK</span><span class="trellix-tech-name">Rules natively tagged with technique IDs in Helix</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-blue" style="margin-top: 1rem;">
+    <div class="callout-title">Key SecOps workflow: ENS → ePO → SIEM</div>
+    <p>ENS detects a technique (e.g. LSASS access) and generates an event tagged with <code>T1003.001</code>. ePO aggregates endpoint events and forwards them to a SIEM. SIEM correlates the ATT&CK-tagged events across your environment to identify attack chains spanning multiple techniques. The ATT&CK ID is the thread connecting detection → alert → investigation → playbook.</p>
+  </div>
+</section>
+
+<!-- Quick cheatsheet -->
+<section id="cheatsheet">
+  <h2>Quick reference cheatsheet</h2>
+
+  <div class="cheatsheet-grid">
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">Tactic vs Technique</div>
+      <div class="cheatsheet-def">Tactic = goal (why). Technique = method (how). "Credential Access" is a tactic. "Brute Force" is a technique under it.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">Sub-technique</div>
+      <div class="cheatsheet-def">A specific variant of a technique. T1110 (Brute Force) has 4 sub-techniques: T1110.001–.004 (Password guessing, Cracking, Spraying, Stuffing).</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">Procedure</div>
+      <div class="cheatsheet-def">Real-world usage by a specific actor. "APT29 used password spraying against Office 365" is a procedure linked to T1110.003.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">ATT&CK Navigator</div>
+      <div class="cheatsheet-def">Free browser tool at attack.mitre.org. Browse the full matrix, build coverage heatmaps, compare threat actor profiles.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">Defense Evasion</div>
+      <div class="cheatsheet-def">The largest tactic by technique count (~40). Attackers spend significant effort avoiding detection — disabling AV, obfuscating code, tampering with logs.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">Living off the Land (LotL)</div>
+      <div class="cheatsheet-def">Using built-in OS tools (PowerShell, WMI, certutil, mshta) as attack tools. Hard to detect because legitimate tools are used maliciously. Maps to T1218 sub-techniques.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">Sigma rules</div>
+      <div class="cheatsheet-def">Open standard for SIEM detection rules. Each Sigma rule includes ATT&CK technique tags. Enables sharing detection logic across different SIEM platforms.</div>
+    </div>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">MITRE Engenuity / CTID</div>
+      <div class="cheatsheet-def">MITRE's arm that runs independent evaluations of security products against ATT&CK scenarios. Published evaluations show which techniques vendors detect.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <h3>Key technique IDs to memorize</h3>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 0.75rem;">
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1566</code> <span style="color:var(--text-secondary);">Phishing (all variants)</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1059</code> <span style="color:var(--text-secondary);">Command & scripting</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1003</code> <span style="color:var(--text-secondary);">Credential dumping</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1110</code> <span style="color:var(--text-secondary);">Brute force</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1078</code> <span style="color:var(--text-secondary);">Valid accounts</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1055</code> <span style="color:var(--text-secondary);">Process injection</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1486</code> <span style="color:var(--text-secondary);">Data encrypted (ransom)</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1490</code> <span style="color:var(--text-secondary);">Inhibit system recovery</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1562</code> <span style="color:var(--text-secondary);">Impair defenses</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1021</code> <span style="color:var(--text-secondary);">Remote services (RDP/SMB)</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1071</code> <span style="color:var(--text-secondary);">App layer C2 (HTTP/DNS)</span>
+    </div>
+    <div style="padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-size: 12px;">
+      <code>T1218</code> <span style="color:var(--text-secondary);">Living off the land (LotL)</span>
+    </div>
+  </div>
+</section>
+
+<!-- Resources -->
+<section id="resources">
+  <h2>Key resources</h2>
+  <div class="cheatsheet-grid">
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-term">ATT&CK Matrix</div>
+      <div class="cheatsheet-def"><a href="https://attack.mitre.org" style="color: var(--accent);">attack.mitre.org</a> — Main site. Browse the full matrix, se

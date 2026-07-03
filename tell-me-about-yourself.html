@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sunil — Tell Me About Yourself</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1b1f2a;
+    --border: #252a38;
+    --text: #c8ccd8;
+    --muted: #565c72;
+    --bright: #eef0f7;
+    --blue: #4ea8de;
+    --blue-dim: #1a3347;
+    --green: #3ecf8e;
+    --green-dim: #0f3325;
+    --purple: #b08aff;
+    --purple-dim: #2a1f47;
+    --orange: #fb923c;
+    --orange-dim: #3a1a0f;
+    --yellow: #f9a825;
+    --yellow-dim: #3a2800;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 4rem;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: linear-gradient(135deg, #0d0f14 0%, #1a1f2e 50%, #0f1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem 2.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(78,168,222,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--blue);
+    background: var(--blue-dim);
+    border: 1px solid var(--blue);
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 1.25rem;
+  }
+  .hero-name {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    color: var(--bright);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  .hero-name span { color: var(--blue); }
+  .hero-role {
+    font-size: 1rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+  .hero-tags {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+  .tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+  }
+  .tag-blue   { background: var(--blue-dim);   color: var(--blue);   }
+  .tag-green  { background: var(--green-dim);  color: var(--green);  }
+  .tag-purple { background: var(--purple-dim); color: var(--purple); }
+  .tag-orange { background: var(--orange-dim); color: var(--orange); }
+  .tag-yellow { background: var(--yellow-dim); color: var(--yellow); }
+
+  /* ── CONTROLS ── */
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,20,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 2rem;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-play   { background: var(--green-dim);  color: var(--green);  border-color: var(--green);  }
+  .btn-pause  { background: var(--yellow-dim); color: var(--yellow); border-color: var(--yellow); display: none; }
+  .btn-copy   { background: var(--blue-dim);   color: var(--blue);   border-color: var(--blue);   }
+  .btn-dl     { background: var(--purple-dim); color: var(--purple); border-color: var(--purple); }
+  .btn-reset  { background: var(--orange-dim); color: var(--orange); border-color: var(--orange); }
+  .btn:hover  { filter: brightness(1.2); transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0.5rem 2rem 0;
+  }
+  .progress-bar-bg {
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--green);
+    border-radius: 3px;
+    transition: width 0.3s;
+  }
+  .progress-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── MAIN CONTENT ── */
+  main { max-width: 860px; margin: 0 auto; padding: 2rem; }
+
+  /* ── SECTION CARDS ── */
+  .section-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    padding-left: 2px;
+  }
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    background: var(--blue-dim);
+    color: var(--blue);
+    border: 1px solid var(--blue);
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--bright);
+  }
+  .card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-left: auto;
+  }
+  .card-body {
+    padding: 1.25rem;
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+  .card-body p { margin-bottom: 1rem; }
+  .card-body p:last-child { margin-bottom: 0; }
+
+  /* ── HIGHLIGHT SPANS ── */
+  .hl-blue   { color: var(--blue);   font-weight: 600; }
+  .hl-green  { color: var(--green);  font-weight: 600; }
+  .hl-purple { color: var(--purple); font-weight: 600; }
+  .hl-orange { color: var(--orange); font-weight: 600; }
+  .hl-yellow { color: var(--yellow); font-weight: 600; }
+
+  /* ── FULL SCRIPT CARD ── */
+  .script-card {
+    background: var(--bg2);
+    border: 1px solid var(--blue);
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  .script-header {
+    background: var(--blue-dim);
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--blue);
+  }
+  .script-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--blue);
+    letter-spacing: 0.05em;
+  }
+  .script-duration {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--blue);
+    background: rgba(78,168,222,0.1);
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(78,168,222,0.3);
+  }
+  .script-body {
+    padding: 1.5rem;
+    font-size: 15px;
+    line-height: 2;
+    color: var(--bright);
+    white-space: pre-wrap;
+    font-family: 'Syne', sans-serif;
+    cursor: text;
+    user-select: text;
+  }
+  .script-body .highlight-word {
+    background: rgba(78,168,222,0.2);
+    color: var(--blue);
+    border-radius: 3px;
+    padding: 0 2px;
+    transition: background 0.3s;
+  }
+
+  /* ── TIPS CARD ── */
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 10px;
+    padding: 1.25rem;
+  }
+  .tip-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .tip-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .tip-text {
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .tip-text strong { color: var(--bright); display: block; margin-bottom: 2px; }
+
+  /* ── PRACTICE BOX ── */
+  .practice-box {
+    padding: 1.25rem;
+  }
+  .practice-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .practice-textarea {
+    width: 100%;
+    min-height: 140px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--bright);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 0.9rem 1rem;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .practice-textarea:focus { border-color: var(--blue); }
+  .practice-textarea::placeholder { color: var(--muted); }
+  .practice-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .btn-save-note {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--green);
+    background: var(--green-dim);
+    color: var(--green);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-save-note:hover { filter: brightness(1.2); }
+  .btn-clear-note {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-clear-note:hover { color: var(--bright); border-color: var(--muted); }
+  .saved-msg {
+    font-size: 11px;
+    color: var(--green);
+    margin-top: 6px;
+    display: none;
+  }
+  .saved-notes-display {
+    margin-top: 1rem;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.9rem 1rem;
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-wrap;
+    display: none;
+  }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--green-dim);
+    color: var(--green);
+    border: 1px solid var(--green);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 30px;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 11px;
+    border-top: 1px solid var(--border);
+    max-width: 860px;
+    margin: 0 auto;
+    letter-spacing: 0.05em;
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-label">Interview Prep · Cloud Architect & Engineering Manager</div>
+  <div class="hero-name">Sunil <span>Kumar</span></div>
+  <div class="hero-role">19 Years · AWS · System Design · Team Leadership</div>
+  <div class="hero-tags">
+    <span class="tag tag-blue">Cloud Architect</span>
+    <span class="tag tag-green">Engineering Manager</span>
+    <span class="tag tag-purple">AWS Expert</span>
+    <span class="tag tag-orange">Nike · Banking · Retail · Gov</span>
+    <span class="tag tag-yellow">Team of 16</span>
+  </div>
+</div>
+
+<!-- STICKY CONTROLS -->
+<div class="controls">
+  <button class="btn btn-play" id="btnPlay" onclick="startSpeech()">▶ Listen</button>
+  <button class="btn btn-pause" id="btnPause" onclick="stopSpeech()">⏸ Stop</button>
+  <button class="btn btn-copy" onclick="copyScript()">⎘ Copy</button>
+  <button class="btn btn-dl" onclick="downloadFile()">↓ Download</button>
+  <button class="btn btn-reset" onclick="resetAll()">↺ Reset</button>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-wrap">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">Ready to practice</div>
+</div>
+
+<main>
+
+  <!-- FULL SCRIPT -->
+  <div class="section-title">Full Interview Script</div>
+  <div class="script-card">
+    <div class="script-header">
+      <div class="script-title">▸ Tell Me About Yourself</div>
+      <div class="script-duration">~2 min · 5 paragraphs</div>
+    </div>
+    <div class="script-body" id="scriptBody">My name is Sunil Kumar, and I bring <strong>nineteen years of IT experience</strong> across government, retail, banking, and most recently the sports technology domain at Nike. Throughout my career, I've evolved from hands-on technical roles into leadership, which has given me a unique perspective on both architecture and team dynamics.
+
+In my most recent role, I led a <strong>team of sixteen engineers</strong> and was accountable for critical system design and implementation in a high-stakes environment. I designed and implemented solutions using the AWS stack, with deep expertise in compute, networking, and storage services. This taught me how to balance architectural excellence with delivery timelines and team capability.
+
+What I'm most proud of is my ability to <strong>bridge the gap between business objectives and technical strategy</strong>. I don't just design systems — I empower teams to own them. I've successfully mentored engineers, established best practices, and ensured that our technical decisions aligned with organizational goals.
+
+My strengths are in <strong>cloud infrastructure design, distributed systems, system scaling</strong>, and making architectural decisions under constraints. On the leadership side, I'm skilled at hiring, building high-performing teams, fostering a culture of ownership, and communicating technical complexity to non-technical stakeholders.
+
+I'm now looking for a role where I can have broader impact — either as a <strong>lead cloud architect</strong> shaping the technical direction of an organization, or as an <strong>engineering manager</strong> building and scaling world-class teams. I'm excited about roles that value both technical depth and people leadership.</div>
+  </div>
+
+  <!-- BREAKDOWN BY SECTION -->
+  <div class="section-title">Script Breakdown</div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="step-num">01</span>
+      <span class="card-title">Opening — Who You Are</span>
+      <span class="card-sub">~20 sec</span>
+    </div>
+    <div class="card-body">
+      <p>
+        "My name is <span class="hl-blue">Sunil Kumar</span>, and I bring 
+        <span class="hl-green">nineteen years of IT experience</span> across 
+        <span class="hl-orange">government, retail, banking</span>, and most recently the 
+        sports technology domain at <span class="hl-purple">Nike</span>."
+      </p>
+      <p>
+        Lead with your name, years, and domain diversity. This immediately signals seniority 
+        and breadth. Nike name-dropping is strong social proof — use it confidently.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="step-num">02</span>
+      <span class="card-title">Most Recent Role — Impact</span>
+      <span class="card-sub">~30 sec</span>
+    </div>
+    <div class="card-body">
+      <p>
+        "I led a <span class="hl-blue">team of sixteen engineers</span> responsible for critical 
+        system design in a high-stakes environment. Deep expertise in 
+        <span class="hl-green">AWS compute, networking and storage</span>."
+      </p>
+      <p>
+        Numbers matter — "sixteen engineers" is specific and credible. 
+        Connect technical work to business stakes: <em>high-stakes environment</em> signals 
+        real-world pressure and trust.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="step-num">03</span>
+      <span class="card-title">Your Superpower — Bridge Builder</span>
+      <span class="card-sub">~25 sec</span>
+    </div>
+    <div class="card-body">
+      <p>
+        "I <span class="hl-purple">bridge the gap between business objectives and technical strategy</span>. 
+        I don't just design systems — I <span class="hl-green">empower teams to own them</span>."
+      </p>
+      <p>
+        This is your key differentiator. Many engineers can code; fewer can align 
+        technical decisions with business goals AND grow people. This line separates 
+        you from IC-track candidates.
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="step-num">04</span>
+      <span class="card-title">Your Strengths — Technical & Leadership</span>
+      <span class="card-sub">~25 sec</span>
+    </div>
+    <div class="card-body">
+      <p>
+        Technical: <span class="hl-blue">Cloud infrastructure design, distributed systems, 
+        system scaling, architectural decisions under constraints.</span>
+      </p>
+      <p>
+        Leadership: <span class="hl-green">Hiring, building high-performing teams, culture 
+        of ownership, communicating complexity to non-technical stakeholders.</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="step-num">05</span>
+      <span class="card-title">Closing — What You Are Seeking</span>
+      <span class="card-sub">~20 sec</span>
+    </div>
+    <div class="card-body">
+      <p>
+        "I'm looking for a role with broader impact — as a 
+        <span class="hl-orange">lead cloud architect</span> shaping technical direction, 
+        or as an <span class="hl-purple">engineering manager</span> building and scaling 
+        world-class teams."
+      </p>
+      <p>
+        End with intention. This signals you know what you want, you're targeting deliberately, 
+        and you bring a growth mindset. It also naturally hands back the conversation.
+      </p>
+    </div>
+  </div>
+
+  <!-- DELIVERY TIPS -->
+  <div class="section-title">Delivery Tips</div>
+  <div class="card">
+    <div class="tips-grid">
+      <div class="tip-item">
+        <div class="tip-icon">⏱</div>
+        <div class="tip-text"><strong>2 min max</strong>Keep it between 90 seconds and 2 minutes. Anything longer loses the interviewer.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">📈</div>
+        <div class="tip-text"><strong>Show progression</strong>IC → Lead → Architect mindset. Make your growth story clear and intentional.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">🎯</div>
+        <div class="tip-text"><strong>Be specific</strong>Say "sixteen engineers" not "a large team." Numbers build instant credibility.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">🤝</div>
+        <div class="tip-text"><strong>Both sides</strong>Lead with technical depth, close with leadership strength. That's your differentiator.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">😌</div>
+        <div class="tip-text"><strong>Natural, not rehearsed</strong>Practice until fluent, not memorized. Vary the wording slightly each time.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">✋</div>
+        <div class="tip-text"><strong>Pause at transitions</strong>Pause briefly between paragraphs. It signals confidence, not nervousness.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">👁</div>
+        <div class="tip-text"><strong>Eye contact</strong>If virtual, look at the camera — not the screen. Builds trust instantly.</div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">🔚</div>
+        <div class="tip-text"><strong>Hand it back</strong>End with "I'm excited to learn more about this role" — it invites the next question naturally.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRACTICE NOTES -->
+  <div class="section-title">Practice Notes</div>
+  <div class="card">
+    <div class="practice-box">
+      <div class="practice-label">Your notes after each rehearsal (auto-saved to browser)</div>
+      <textarea class="practice-textarea" id="practiceNotes" placeholder="Write your notes here after each practice run... e.g. 'Need to slow down on AWS section', 'Remember to pause after opening line', 'Felt more confident today'"></textarea>
+      <div class="practice-actions">
+        <button class="btn-save-note" onclick="saveNote()">Save Note</button>
+        <button class="btn-clear-note" onclick="clearNote()">Clear</button>
+      </div>
+      <div class="saved-msg" id="savedMsg">✓ Note saved to browser storage!</div>
+      <div class="saved-notes-display" id="savedDisplay"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Sunil Kumar · Interview Prep · Cloud Architect & Engineering Manager &nbsp;·&nbsp; Open in browser to rehearse anytime
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const SCRIPT_TEXT = `My name is Sunil Kumar, and I bring nineteen years of IT experience across government, retail, banking, and most recently the sports technology domain at Nike. Throughout my career, I've evolved from hands-on technical roles into leadership, which has given me a unique perspective on both architecture and team dynamics.
+
+In my most recent role, I led a team of sixteen engineers and was accountable for critical system design and implementation in a high-stakes environment. I designed and implemented solutions using the AWS stack, with deep expertise in compute, networking, and storage services. This taught me how to balance architectural excellence with delivery timelines and team capability.
+
+What I'm most proud of is my ability to bridge the gap between business objectives and technical strategy. I don't just design systems — I empower teams to own them. I've successfully mentored engineers, established best practices, and ensured that our technical decisions aligned with organizational goals.
+
+My strengths are in cloud infrastructure design, distributed systems, system scaling, and making architectural decisions under constraints. On the leadership side, I'm skilled at hiring, building high-performing teams, fostering a culture of ownership, and communicating technical complexity to non-technical stakeholders.
+
+I'm now looking for a role where I can have broader impact — either as a lead cloud architect shaping the technical direction of an organization, or as an engineering manager building and scaling world-class teams. I'm excited about roles that value both technical depth and people leadership.`;
+
+  let utterance = null;
+  let speaking = false;
+  let charCount = 0;
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  function startSpeech() {
+    if (!('speechSynthesis' in window)) {
+      showToast('Speech not supported in this browser');
+      return;
+    }
+    speechSynthesis.cancel();
+    utterance = new SpeechSynthesisUtterance(SCRIPT_TEXT);
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+
+    const fill = document.getElementById('progressFill');
+    const label = document.getElementById('progressLabel');
+    const total = SCRIPT_TEXT.length;
+
+    utterance.onboundary = (e) => {
+      if (e.name === 'word') {
+        charCount = e.charIndex;
+        const pct = Math.min(100, Math.round((charCount / total) * 100));
+        fill.style.width = pct + '%';
+        label.textContent = pct + '% — speaking...';
+      }
+    };
+
+    utterance.onend = () => {
+      speaking = false;
+      document.getElementById('btnPlay').style.display = 'flex';
+      document.getElementById('btnPause').style.display = 'none';
+      fill.style.width = '100%';
+      label.textContent = 'Done! Great practice.';
+      showToast('Done! Great practice run 🎉');
+      setTimeout(() => { fill.style.width = '0%'; label.textContent = 'Ready to practice'; }, 4000);
+    };
+
+    speechSynthesis.speak(utterance);
+    speaking = true;
+    document.getElementById('btnPlay').style.display = 'none';
+    document.getElementById('btnPause').style.display = 'flex';
+    label.textContent = 'Speaking...';
+  }
+
+  function stopSpeech() {
+    speechSynthesis.cancel();
+    speaking = false;
+    document.getElementById('btnPlay').style.display = 'flex';
+    document.getElementById('btnPause').style.display = 'none';
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressLabel').textContent = 'Ready to practice';
+  }
+
+  function copyScript() {
+    navigator.clipboard.writeText(SCRIPT_TEXT).then(() => {
+      showToast('✓ Copied to clipboard!');
+    }).catch(() => {
+      showToast('Copy failed — try manually selecting the text');
+    });
+  }
+
+  function downloadFile() {
+    const blob = new Blob([SCRIPT_TEXT], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Sunil-Tell-Me-About-Yourself.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('✓ Downloaded!');
+  }
+
+  function resetAll() {
+    stopSpeech();
+    showToast('Reset — ready to practice again!');
+  }
+
+  function saveNote() {
+    const notes = document.getElementById('practiceNotes').value.trim();
+    if (!notes) { showToast('Write a note first!'); return; }
+    const timestamp = new Date().toLocaleString();
+    const existing = localStorage.getItem('sunil_interview_notes') || '';
+    const newEntry = (existing ? existing + '\n\n' : '') + '[' + timestamp + ']\n' + notes;
+    localStorage.setItem('sunil_interview_notes', newEntry);
+    document.getElementById('savedMsg').style.display = 'block';
+    setTimeout(() => document.getElementById('savedMsg').style.display = 'none', 2500);
+    showToast('✓ Note saved!');
+    loadNotes();
+  }
+
+  function clearNote() {
+    document.getElementById('practiceNotes').value = '';
+  }
+
+  function loadNotes() {
+    const saved = localStorage.getItem('sunil_interview_notes');
+    const display = document.getElementById('savedDisplay');
+    if (saved) {
+      display.textContent = saved;
+      display.style.display = 'block';
+    } else {
+      display.style.display = 'none';
+    }
+  }
+
+  // Load saved notes on page open
+  window.addEventListener('DOMContentLoaded', () => {
+    loadNotes();
+    const saved = localStorage.getItem('sunil_interview_notes');
+    if (saved) {
+      document.getElementById('practiceNotes').placeholder = 'Add another note...';
+    }
+  });
+</script>
+</body>
+</html>

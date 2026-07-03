@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EKS + GitOps — DevOps Engineer Interview Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EEF2F8;
+    --surface:#FFFFFF;
+    --surface-2:#F4F7FB;
+    --ink:#13202F;
+    --ink-soft:#3A4A5E;
+    --muted:#64768C;
+    --line:#D8E0EC;
+    --line-strong:#C2CEDD;
+    --control:#2D5BD6;     /* control-plane blue */
+    --control-deep:#1B3C97;
+    --synced:#1F9D6B;      /* healthy / synced */
+    --synced-bg:#E4F4ED;
+    --outofsync:#C77C16;   /* drift / out of sync */
+    --outofsync-bg:#FBF0DD;
+    --degraded:#C9413E;    /* degraded / pitfall */
+    --degraded-bg:#FBE6E5;
+    --terminal:#0E1A2B;    /* code surface */
+    --terminal-ink:#D6E2F2;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(45,91,214,0.07) 1px, transparent 0) 0 0/22px 22px,
+      var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 22px;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(238,242,248,0.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:920px;margin:0 auto;padding:11px 22px;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  .brand{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;
+    letter-spacing:-0.02em;font-size:15px;display:flex;align-items:center;gap:9px;
+  }
+  .brand .dot{
+    width:10px;height:10px;border-radius:50%;background:var(--synced);
+    box-shadow:0 0 0 4px var(--synced-bg);flex:none;
+  }
+  .nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap;}
+  .nav a{
+    font-family:"IBM Plex Mono",monospace;font-size:12px;text-decoration:none;
+    color:var(--muted);padding:4px 9px;border-radius:7px;transition:.15s;
+  }
+  .nav a:hover{color:var(--control);background:var(--surface);}
+
+  /* ---------- hero ---------- */
+  .hero{padding:64px 0 30px;}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;font-size:12.5px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--control);font-weight:500;margin-bottom:18px;
+  }
+  h1{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-0.03em;
+    font-size:clamp(34px,6vw,54px);line-height:1.04;margin:0 0 20px;
+  }
+  h1 em{font-style:normal;color:var(--control);}
+  .lede{font-size:18.5px;color:var(--ink-soft);max-width:660px;margin:0 0 28px;}
+
+  /* desired/observed state panel — the signature reconciliation motif */
+  .recon{
+    display:grid;grid-template-columns:1fr auto 1fr;gap:0;align-items:stretch;
+    border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;
+    background:var(--surface);box-shadow:0 14px 38px -22px rgba(19,32,47,0.45);
+  }
+  .recon-cell{padding:20px 22px;}
+  .recon-cell .k{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:9px;
+  }
+  .recon-cell .v{font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:17px;line-height:1.3;}
+  .recon-cell .s{font-size:13.5px;color:var(--muted);margin-top:6px;}
+  .recon-arrow{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:var(--surface-2);border-left:1px solid var(--line);border-right:1px solid var(--line);
+    padding:0 18px;color:var(--control);font-family:"IBM Plex Mono",monospace;
+  }
+  .recon-arrow .lbl{font-size:9.5px;letter-spacing:.1em;color:var(--muted);margin-top:4px;text-transform:uppercase;}
+  .recon-arrow svg{width:34px;height:34px;}
+
+  /* ---------- status pills (ArgoCD-style) ---------- */
+  .pill{
+    display:inline-flex;align-items:center;gap:6px;font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;font-weight:500;letter-spacing:.02em;padding:3px 10px 3px 8px;border-radius:999px;
+    border:1px solid transparent;white-space:nowrap;
+  }
+  .pill::before{content:"";width:7px;height:7px;border-radius:50%;}
+  .pill.synced{background:var(--synced-bg);color:#136046;border-color:#BBE6D3;}
+  .pill.synced::before{background:var(--synced);}
+  .pill.drift{background:var(--outofsync-bg);color:#8A560B;border-color:#EDD6A8;}
+  .pill.drift::before{background:var(--outofsync);}
+  .pill.degraded{background:var(--degraded-bg);color:#8E2B29;border-color:#F0C3C1;}
+  .pill.degraded::before{background:var(--degraded);}
+  .pill.healthy{background:#E7EEFB;color:var(--control-deep);border-color:#C3D4F4;}
+  .pill.healthy::before{background:var(--control);}
+
+  /* ---------- sections ---------- */
+  section{padding:42px 0;border-top:1px solid var(--line);}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px;}
+  .sec-num{
+    font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--control);
+    font-weight:600;flex:none;padding-top:4px;
+  }
+  h2{
+    font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-0.02em;
+    font-size:clamp(25px,3.6vw,33px);line-height:1.1;margin:0;
+  }
+  .sec-sub{color:var(--muted);font-size:15px;margin:2px 0 22px 38px;}
+  @media(max-width:640px){.sec-sub{margin-left:0;}}
+  h3{
+    font-family:"Space Grotesk",sans-serif;font-weight:600;font-size:19px;
+    letter-spacing:-0.01em;margin:30px 0 8px;
+  }
+  p{margin:0 0 14px;}
+  strong{font-weight:600;color:var(--ink);}
+  ul{margin:0 0 16px;padding-left:0;list-style:none;}
+  ul li{position:relative;padding-left:24px;margin-bottom:9px;}
+  ul li::before{
+    content:"";position:absolute;left:4px;top:10px;width:7px;height:7px;
+    border:1.5px solid var(--control);border-radius:2px;transform:rotate(45deg);
+  }
+  ul li strong{color:var(--ink);}
+
+  /* code */
+  pre{
+    background:var(--terminal);color:var(--terminal-ink);border-radius:12px;
+    padding:18px 20px;overflow-x:auto;margin:6px 0 18px;
+    font-family:"IBM Plex Mono",monospace;font-size:13px;line-height:1.62;
+    border:1px solid #1d3047;position:relative;
+  }
+  pre .cmt{color:#6E89A8;}
+  pre .key{color:#8FB8FF;}
+  pre .str{color:#8FE3C0;}
+  pre .flag{color:#E5C07B;}
+  .codecap{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--muted);margin:18px 0 7px;
+  }
+  code{
+    font-family:"IBM Plex Mono",monospace;font-size:0.9em;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;color:var(--control-deep);
+  }
+
+  /* cards / callouts */
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px 22px;margin:18px 0;
+  }
+  .callout{
+    border-radius:12px;padding:16px 18px 16px 18px;margin:18px 0;
+    border:1px solid;border-left-width:4px;font-size:15px;
+  }
+  .callout .ctitle{
+    font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.1em;
+    text-transform:uppercase;font-weight:600;margin-bottom:7px;display:flex;align-items:center;gap:8px;
+  }
+  .callout.gold{background:var(--synced-bg);border-color:#BBE6D3;border-left-color:var(--synced);}
+  .callout.gold .ctitle{color:#136046;}
+  .callout.probe{background:var(--outofsync-bg);border-color:#EDD6A8;border-left-color:var(--outofsync);}
+  .callout.probe .ctitle{color:#8A560B;}
+  .callout.pitfall{background:var(--degraded-bg);border-color:#F0C3C1;border-left-color:var(--degraded);}
+  .callout.pitfall .ctitle{color:#8E2B29;}
+  .callout p:last-child{margin-bottom:0;}
+
+  /* comparison table */
+  .cmp{width:100%;border-collapse:collapse;margin:16px 0;font-size:14.5px;}
+  .cmp th,.cmp td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:top;}
+  .cmp thead th{
+    font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--muted);border-bottom:1.5px solid var(--line-strong);
+  }
+  .cmp tbody th{font-weight:600;color:var(--ink);font-family:"IBM Plex Sans",sans-serif;width:30%;}
+  .cmp tr:hover td,.cmp tr:hover th{background:var(--surface-2);}
+
+  /* Q&A */
+  .qa{border:1px solid var(--line);border-radius:12px;margin:12px 0;overflow:hidden;background:var(--surface);}
+  .qa summary{
+    cursor:pointer;padding:15px 18px;font-weight:600;list-style:none;
+    display:flex;gap:11px;align-items:flex-start;font-size:15.5px;
+  }
+  .qa summary::-webkit-details-marker{display:none;}
+  .qa summary .q{
+    font-family:"IBM Plex Mono",monospace;color:var(--control);font-size:13px;flex:none;padding-top:2px;
+  }
+  .qa summary::after{
+    content:"+";margin-left:auto;color:var(--muted);font-family:"IBM Plex Mono",monospace;
+    font-size:20px;line-height:1;flex:none;transition:.2s;
+  }
+  .qa[open] summary::after{transform:rotate(45deg);}
+  .qa .ans{padding:0 18px 17px 42px;color:var(--ink-soft);font-size:15px;}
+  .qa .ans p:last-child{margin-bottom:0;}
+
+  /* footer */
+  footer{padding:40px 0 70px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px;}
+  footer .tag{font-family:"IBM Plex Mono",monospace;}
+
+  @media(max-width:600px){
+    .recon{grid-template-columns:1fr;}
+    .recon-arrow{flex-direction:row;border:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px;}
+    .recon-arrow svg{transform:rotate(90deg);}
+  }
+  @media print{
+    .topbar{display:none;}
+    body{background:#fff;}
+    .qa{break-inside:avoid;}
+    .qa .ans{display:block!important;}
+    section{break-inside:avoid-page;}
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="dot"></span>EKS &amp; GitOps · Interview Prep</div>
+    <nav class="nav">
+      <a href="#arch">k8s</a>
+      <a href="#choice">eks/ecs</a>
+      <a href="#setup">setup</a>
+      <a href="#net">net</a>
+      <a href="#iam">iam</a>
+      <a href="#storage">storage</a>
+      <a href="#scale">scale</a>
+      <a href="#obs">obs</a>
+      <a href="#gitops">gitops</a>
+      <a href="#cost">cost</a>
+      <a href="#qa">q&amp;a</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">DevOps Engineer · EKS + ArgoCD track</div>
+    <h1>Reconciling <em>what you know</em> with <em>what they'll ask</em>.</h1>
+    <p class="lede">A focused study guide for an EKS + GitOps DevOps role. It covers the cluster you operate, the network and identity model underneath it, and the ArgoCD workflow that ships to it — framed the way an interviewer probes each layer.</p>
+
+    <div class="recon">
+      <div class="recon-cell">
+        <div class="k">Desired state</div>
+        <div class="v">Operate EKS confidently end-to-end</div>
+        <div class="s">Cluster, network, IAM, storage, scaling, observability, GitOps</div>
+      </div>
+      <div class="recon-arrow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 0 1 15.5-6.2M21 12a9 9 0 0 1-15.5 6.2"/><path d="M18 3v3.5h-3.5M6 21v-3.5h3.5"/></svg>
+        <span class="lbl">sync</span>
+      </div>
+      <div class="recon-cell">
+        <div class="k">Observed state</div>
+        <div class="v">Strong AWS + IaC base, sharpening k8s internals</div>
+        <div class="s">This guide closes the diff before the interview</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========== 1. K8S ARCHITECTURE ========== -->
+  <section id="arch">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Kubernetes, the way it actually runs</h2></div>
+    <p class="sec-sub">Know the moving parts before you talk about EKS — interviewers test whether "managed control plane" means something concrete to you.</p>
+
+    <p>A cluster splits into a <strong>control plane</strong> (the brain that decides what should run) and a <strong>data plane</strong> of worker nodes (where containers actually run). In EKS, AWS runs and scales the control plane for you across availability zones — you never SSH into it. You own the worker nodes.</p>
+
+    <h3>Control plane components</h3>
+    <ul>
+      <li><strong>kube-apiserver</strong> — the front door. Every <code>kubectl</code> call, every controller, every node talks to it. It's the only component that reads/writes etcd.</li>
+      <li><strong>etcd</strong> — the distributed key-value store holding the entire cluster state (the "source of truth" for what exists). AWS manages and backs this up in EKS.</li>
+      <li><strong>kube-scheduler</strong> — decides which node a new pod lands on, using resource requests, taints/tolerations, and affinity rules.</li>
+      <li><strong>kube-controller-manager</strong> — runs reconciliation loops (Deployment, ReplicaSet, Node controllers) that drive actual state toward desired state.</li>
+      <li><strong>cloud-controller-manager</strong> — the AWS integration point: provisions load balancers, EBS volumes, and node lifecycle against the AWS API.</li>
+    </ul>
+
+    <h3>Data plane (your nodes)</h3>
+    <ul>
+      <li><strong>kubelet</strong> — the agent on each node; it talks to the API server, starts/stops containers, and reports health.</li>
+      <li><strong>container runtime</strong> — <code>containerd</code> on modern EKS, which pulls images and runs containers.</li>
+      <li><strong>kube-proxy</strong> — programs the node's networking rules so traffic to a Service reaches the right pods.</li>
+    </ul>
+
+    <h3>The objects you'll actually deploy</h3>
+    <ul>
+      <li><strong>Pod</strong> — smallest unit; one or more containers sharing a network namespace. You rarely create these directly.</li>
+      <li><strong>Deployment</strong> → <strong>ReplicaSet</strong> → Pods — for stateless apps; handles rolling updates and rollbacks.</li>
+      <li><strong>StatefulSet</strong> — for stateful apps needing stable identity and ordered startup (databases, brokers).</li>
+      <li><strong>Service</strong> — stable virtual IP/DNS in front of a changing set of pods.</li>
+      <li><strong>Ingress</strong> — HTTP(S) routing rules into the cluster, fulfilled by an ingress controller.</li>
+      <li><strong>ConfigMap / Secret</strong> — externalized configuration and sensitive values.</li>
+    </ul>
+
+    <div class="callout gold">
+      <div class="ctitle">Interview gold</div>
+      <p>The single sentence that ties it together: <em>"Kubernetes is a set of reconciliation loops — controllers continuously compare desired state in etcd to observed state and act to close the gap."</em> That framing is exactly what ArgoCD extends out to Git.</p>
+    </div>
+  </section>
+
+  <!-- ========== 2. EKS vs ECS ========== -->
+  <section id="choice">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Choosing EKS over ECS</h2></div>
+    <p class="sec-sub">The classic opening question. Lead with the decision criteria, then the concrete limits — not "Kubernetes is better."</p>
+
+    <p>ECS is AWS's own orchestrator: simpler, tightly integrated, low operational overhead. EKS is managed Kubernetes: portable, standards-based, richer ecosystem, but more to operate. The honest framing is that <strong>most AWS-only teams don't need EKS</strong> — so be ready to justify when it's actually the right call.</p>
+
+    <table class="cmp">
+      <thead><tr><th>Dimension</th><th>ECS</th><th>EKS</th></tr></thead>
+      <tbody>
+        <tr><th>Operational overhead</th><td>Low — AWS owns most of it</td><td>Higher — you own networking, RBAC, add-ons</td></tr>
+        <tr><th>Portability</th><td>AWS-locked task definitions</td><td>Standard k8s manifests, multi-cloud capable</td></tr>
+        <tr><th>Scheduling</th><td>Simple task placement</td><td>Affinity, anti-affinity, topology spread, taints</td></tr>
+        <tr><th>Ecosystem</th><td>AWS-native add-ons only</td><td>Helm, operators, service mesh, ArgoCD, etc.</td></tr>
+        <tr><th>Stateful workloads</th><td>You wire it up manually</td><td>StatefulSets + CSI drivers natively</td></tr>
+        <tr><th>Team skills needed</th><td>AWS familiarity</td><td>Kubernetes expertise</td></tr>
+      </tbody>
+    </table>
+
+    <h3>What ECS genuinely can't do well (beyond multi-cloud)</h3>
+    <ul>
+      <li><strong>Fine-grained scheduling</strong> — pod affinity/anti-affinity, topology spread, and node taints for heterogeneous workloads. ECS placement is far coarser.</li>
+      <li><strong>Ecosystem &amp; extensibility</strong> — Custom Resources and operators let you extend the API (ArgoCD, cert-manager, External Secrets, service meshes). ECS has no equivalent extension model.</li>
+      <li><strong>Stateful orchestration</strong> — StatefulSets give stable network identity and ordered rollout; on ECS you're hand-rolling that.</li>
+      <li><strong>Declarative GitOps</strong> — the whole ArgoCD model assumes a Kubernetes API to reconcile against. This is likely <em>the</em> reason a GitOps shop like the one you're interviewing with runs EKS.</li>
+    </ul>
+
+    <div class="callout probe">
+      <div class="ctitle">They'll probe</div>
+      <p>"When would you <em>not</em> pick EKS?" — Have an answer ready: a small team, a handful of stateless services, no multi-cloud need, and no appetite for k8s operational burden. Showing you'd choose ECS or Fargate there proves you're picking tools for the problem, not résumé-driven.</p>
+    </div>
+  </section>
+
+  <!-- ========== 3. SETUP ========== -->
+  <section id="setup">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Standing up the cluster</h2></div>
+    <p class="sec-sub">Be able to narrate provisioning end-to-end and name the IAM roles involved — this is bread-and-butter for the role.</p>
+
+    <h3>The prerequisites</h3>
+    <ul>
+      <li><strong>VPC across ≥2 AZs</strong> with public subnets (for load balancers / NAT) and private subnets (for worker nodes). Subnets need the right tags so the cluster can place load balancers correctly.</li>
+      <li><strong>Cluster IAM role</strong> — assumed by the EKS control plane to manage AWS resources on your behalf.</li>
+      <li><strong>Node IAM role</strong> — attached to worker nodes; needs policies for the worker kubelet, the VPC CNI, and ECR pull access.</li>
+      <li><strong>OIDC provider</strong> — enables IRSA so pods can assume IAM roles (covered in §05).</li>
+    </ul>
+
+    <h3>Compute options for the data plane</h3>
+    <ul>
+      <li><strong>Managed node groups</strong> — AWS-managed EC2 Auto Scaling Groups with handled upgrades/draining. The common default.</li>
+      <li><strong>Self-managed nodes</strong> — full control, more work; for custom AMIs or special requirements.</li>
+      <li><strong>Fargate</strong> — serverless pods, no nodes to manage; great for spiky or isolated workloads, with cost and feature trade-offs.</li>
+      <li><strong>Karpenter</strong> — modern just-in-time node provisioner that picks right-sized instances per pending pod (see §07 and §09).</li>
+    </ul>
+
+    <p class="codecap">Provision with eksctl (fast path)</p>
+    <pre><span class="cmt"># Creates VPC, control plane, and a managed node group</span>
+eksctl create cluster <span class="flag">\</span>
+  <span class="flag">--name</span> mugen-prod <span class="flag">\</span>
+  <span class="flag">--region</span> us-west-2 <span class="flag">\</span>
+  <span class="flag">--version</span> 1.30 <span class="flag">\</span>
+  <span class="flag">--nodegroup-name</span> app-workers <span class="flag">\</span>
+  <span class="flag">--node-type</span> m6i.large <span class="flag">\</span>
+  <span class="flag">--nodes</span> 3 <span class="flag">--nodes-min</span> 2 <span class="flag">--nodes-max</span> 6 <span class="flag">\</span>
+  <span class="flag">--with-oidc</span> <span class="flag">--managed</span></pre>
+
+    <div class="callout gold">
+      <div class="ctitle">Interview gold</div>
+      <p>In production you'd do this in <strong>Terraform</strong> (or CDK) — likely the <code>terraform-aws-eks</code> module — so the cluster itself is version-controlled and reviewable. Mention that infra-as-code is the foundation that makes GitOps for apps coherent: <em>everything</em> is declarative, just at two layers.</p>
+    </div>
+  </section>
+
+  <!-- ========== 4. NETWORKING ========== -->
+  <section id="net">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Networking</h2></div>
+    <p class="sec-sub">The layer interviewers push hardest on, because it's where EKS differs most from vanilla Kubernetes.</p>
+
+    <h3>The AWS VPC CNI — the key EKS detail</h3>
+    <p>EKS uses the <strong>AWS VPC CNI</strong> by default, which gives every pod a real IP address from your VPC subnet via secondary ENIs on the node. The upside is native VPC routing and security-group-level control; the catch is that <strong>pod density is bounded by how many IPs an instance type can attach</strong>, so IP/subnet planning is a real design concern.</p>
+
+    <h3>Service discovery &amp; traffic</h3>
+    <ul>
+      <li><strong>CoreDNS</strong> resolves Service names to cluster IPs — in-cluster DNS.</li>
+      <li><strong>kube-proxy</strong> programs each node so traffic to a Service IP load-balances across healthy pods.</li>
+      <li><strong>Service types:</strong> <code>ClusterIP</code> (internal), <code>NodePort</code> (port on every node), <code>LoadBalancer</code> (provisions an AWS NLB).</li>
+      <li><strong>AWS Load Balancer Controller</strong> turns <code>Ingress</code> objects into ALBs (L7 routing) and <code>Service type=LoadBalancer</code> into NLBs (L4). This is how external traffic typically enters.</li>
+    </ul>
+
+    <h3>Things they may dig into</h3>
+    <ul>
+      <li><strong>Security groups for pods</strong> — apply SGs at pod granularity, not just node level.</li>
+      <li><strong>NetworkPolicies</strong> — k8s-native east-west traffic rules (allow/deny between pods/namespaces).</li>
+      <li><strong>ALB vs NLB</strong> — ALB for HTTP(S) path/host routing and TLS termination; NLB for raw TCP/UDP, ultra-low latency, static IPs.</li>
+      <li><strong>IP exhaustion</strong> — a real EKS failure mode; mitigations include prefix delegation and well-sized subnets.</li>
+    </ul>
+
+    <div class="callout probe">
+      <div class="ctitle">They'll probe</div>
+      <p>"A pod is stuck in <code>ContainerCreating</code> with a network error — what's your first guess?" Strong answer: likely <strong>IP exhaustion</strong> on the node/subnet from the VPC CNI, or a failing CNI add-on. You'd check <code>kubectl describe pod</code> events, available IPs on the ENI, and the <code>aws-node</code> daemonset.</p>
+    </div>
+  </section>
+
+  <!-- ========== 5. IAM & RBAC ========== -->
+  <section id="iam">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Identity: IAM ↔ RBAC</h2></div>
+    <p class="sec-sub">Two separate permission systems meet here. Being crisp about which is which is a strong signal.</p>
+
+    <p>There are <strong>two distinct layers</strong>, and conflating them is a common stumble:</p>
+    <ul>
+      <li><strong>AWS IAM</strong> controls what can call the <em>AWS</em> API (read S3, pull from ECR, get a Secret).</li>
+      <li><strong>Kubernetes RBAC</strong> controls what can call the <em>Kubernetes</em> API (create deployments, read pods in a namespace).</li>
+    </ul>
+
+    <h3>IRSA — pods that need AWS access</h3>
+    <p><strong>IAM Roles for Service Accounts (IRSA)</strong> is the right way to give a pod AWS permissions. Via the cluster's OIDC provider, a Kubernetes ServiceAccount is mapped to an IAM role, so the pod gets scoped, temporary credentials — no static keys on nodes. (EKS <strong>Pod Identity</strong> is the newer, simpler alternative worth name-dropping.)</p>
+
+    <pre><span class="cmt"># ServiceAccount annotated with the IAM role it assumes</span>
+<span class="key">apiVersion:</span> v1
+<span class="key">kind:</span> ServiceAccount
+<span class="key">metadata:</span>
+  <span class="key">name:</span> checkout-sa
+  <span class="key">namespace:</span> payments
+  <span class="key">annotations:</span>
+    <span class="key">eks.amazonaws.com/role-arn:</span> <span class="str">arn:aws:iam::1234:role/checkout-irsa</span></pre>
+
+    <h3>Mapping humans &amp; nodes into the cluster</h3>
+    <ul>
+      <li><strong>EKS access entries</strong> (modern) or the legacy <strong>aws-auth ConfigMap</strong> map IAM principals to Kubernetes RBAC groups — that's how an IAM user/role becomes a cluster admin or read-only viewer.</li>
+      <li><strong>RBAC objects:</strong> <code>Role</code>/<code>ClusterRole</code> define permissions; <code>RoleBinding</code>/<code>ClusterRoleBinding</code> attach them to users, groups, or service accounts.</li>
+    </ul>
+
+    <div class="callout pitfall">
+      <div class="ctitle">Common pitfall</div>
+      <p>Don't attach broad IAM policies to the <em>node role</em> so "pods can reach AWS" — that gives every pod on the node those rights. The whole point of IRSA is least-privilege <em>per workload</em>. Calling this out unprompted reads as production maturity.</p>
+    </div>
+  </section>
+
+  <!-- ========== 6. STORAGE ========== -->
+  <section id="storage">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Storage &amp; state</h2></div>
+    <p class="sec-sub">Know the access-mode trade-offs and which CSI driver fits which need.</p>
+
+    <table class="cmp">
+      <thead><tr><th></th><th>EBS CSI</th><th>EFS CSI</th></tr></thead>
+      <tbody>
+        <tr><th>Access mode</th><td>ReadWriteOnce — one node at a time</td><td>ReadWriteMany — many pods/AZs at once</td></tr>
+        <tr><th>Scope</th><td>Single AZ (volume is AZ-bound)</td><td>Multi-AZ shared file system</td></tr>
+        <tr><th>Best for</th><td>Databases, per-pod block storage</td><td>Shared assets, content read by many pods</td></tr>
+        <tr><th>Performance</th><td>Low-latency block</td><td>Network file system; higher latency</td></tr>
+      </tbody>
+    </table>
+
+    <h3>How it fits together</h3>
+    <ul>
+      <li><strong>StorageClass</strong> defines <em>how</em> volumes get provisioned (which driver, type, encryption) and enables dynamic provisioning.</li>
+      <li><strong>PersistentVolumeClaim (PVC)</strong> is a pod's request for storage; it binds to a <strong>PersistentVolume (PV)</strong>.</li>
+      <li><strong>StatefulSet</strong> uses <code>volumeClaimTemplates</code> to give each replica its own stable EBS volume that survives reschedules.</li>
+    </ul>
+
+    <div class="callout probe">
+      <div class="ctitle">They'll probe</div>
+      <p>"Your pod with an EBS volume won't schedule after a node failure — why?" EBS volumes are <strong>AZ-bound</strong>; if the scheduler tries to place the pod in a different AZ from the volume, it can't attach. You'd use topology-aware scheduling or pin to the volume's AZ. Naming this is a strong production tell.</p>
+    </div>
+  </section>
+
+  <!-- ========== 7. SCALING ========== -->
+  <section id="scale">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Autoscaling, two layers</h2></div>
+    <p class="sec-sub">Separate scaling <em>pods</em> from scaling <em>nodes</em> — interviewers love when candidates keep these distinct.</p>
+
+    <ul>
+      <li><strong>HPA (Horizontal Pod Autoscaler)</strong> — adds/removes <em>pod replicas</em> based on CPU, memory, or custom metrics. Needs <code>metrics-server</code> installed.</li>
+      <li><strong>VPA (Vertical Pod Autoscaler)</strong> — adjusts a pod's CPU/memory <em>requests</em>; usually for right-sizing, not run alongside HPA on the same metric.</li>
+      <li><strong>Cluster Autoscaler</strong> — adds/removes <em>nodes</em> in a node group when pods can't be scheduled or nodes sit idle.</li>
+      <li><strong>Karpenter</strong> — the modern replacement: provisions right-sized nodes directly (any instance type/AZ) in seconds, consolidates underused nodes, and natively favors Spot. Increasingly the production default and great to mention.</li>
+    </ul>
+
+    <div class="callout gold">
+      <div class="ctitle">Interview gold</div>
+      <p>The clean mental model: <em>"HPA scales pods to meet demand; Cluster Autoscaler or Karpenter scales nodes to fit the pods."</em> Two loops at two layers — and both depend on accurate resource <strong>requests</strong>, which is also your main cost lever (§09).</p>
+    </div>
+  </section>
+
+  <!-- ========== 8. OBSERVABILITY ========== -->
+  <section id="obs">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Observability &amp; debugging</h2></div>
+    <p class="sec-sub">Expect a "production is broken, walk me through it" scenario. Have a calm, ordered method.</p>
+
+    <h3>The stack</h3>
+    <ul>
+      <li><strong>Metrics</strong> — CloudWatch Container Insights, or Prometheus + Grafana (the common k8s-native combo). AWS offers managed Prometheus/Grafana.</li>
+      <li><strong>Logs</strong> — Fluent Bit daemonset ships container logs to CloudWatch Logs or another backend.</li>
+      <li><strong>Traces</strong> — OpenTelemetry / AWS Distro for OpenTelemetry for distributed tracing across services.</li>
+    </ul>
+
+    <h3>The debugging sequence (say it out loud in this order)</h3>
+    <pre><span class="cmt"># 1. What's the pod's status and recent events?</span>
+kubectl get pods <span class="flag">-n</span> payments
+kubectl describe pod checkout-7f9 <span class="flag">-n</span> payments   <span class="cmt"># events at bottom</span>
+
+<span class="cmt"># 2. What is the app itself saying?</span>
+kubectl logs checkout-7f9 <span class="flag">-n</span> payments <span class="flag">--previous</span>   <span class="cmt"># crash loop? prior logs</span>
+
+<span class="cmt"># 3. Cluster-wide events &amp; node pressure</span>
+kubectl get events <span class="flag">-n</span> payments <span class="flag">--sort-by=.lastTimestamp</span>
+kubectl top nodes</pre>
+
+    <h3>Failure states to recognize on sight</h3>
+    <ul>
+      <li><strong>CrashLoopBackOff</strong> — app starts then exits; check logs and the readiness/liveness probes.</li>
+      <li><strong>ImagePullBackOff</strong> — can't pull from ECR; usually IAM/ECR permission or a bad tag.</li>
+      <li><strong>Pending</strong> — scheduler can't place it; insufficient resources, taints, or no node matches (ties to §07).</li>
+      <li><strong>OOMKilled</strong> — exceeded its memory limit; revisit requests/limits.</li>
+    </ul>
+  </section>
+
+  <!-- ========== 9. GITOPS / ARGOCD ========== -->
+  <section id="gitops">
+    <div class="sec-head"><span class="sec-num">09</span><h2>GitOps with ArgoCD</h2></div>
+    <p class="sec-sub">The center of gravity for this role. Be fluent in the model, the repo layout, and how drift is handled.</p>
+
+    <h3>The principle</h3>
+    <p>GitOps treats infrastructure and app config like source code: <strong>Git is the single source of truth</strong> for desired state. ArgoCD runs in-cluster, continuously watches the config repo, compares it to the live cluster, and reconciles — extending Kubernetes' own control-loop idea out to Git. No one runs <code>kubectl apply</code> by hand; you change the cluster by merging a PR.</p>
+
+    <h3>The two-repo pattern (you described this exactly)</h3>
+    <ul>
+      <li><strong>App repo</strong> — application source code. On merge, CI builds the image and pushes it to <strong>ECR</strong> with a new tag.</li>
+      <li><strong>Config / manifest repo</strong> — Kubernetes manifests (or Helm/Kustomize). A pipeline step or <strong>ArgoCD Image Updater</strong> bumps the image tag here.</li>
+      <li><strong>ArgoCD</strong> watches the config repo, sees the new tag as a diff, and syncs it to EKS.</li>
+    </ul>
+    <p>Separation of concerns is the "why": developers own code and CI; platform owns deployment config; the cluster is never changed by hand, so the audit trail is just Git history. Rollback = revert a commit.</p>
+
+    <h3>Drift detection &amp; self-healing</h3>
+    <p>Drift is when live cluster state diverges from Git — someone hand-scales a deployment, or something mutates a resource. ArgoCD continuously diffs and marks the app <span class="pill drift">OutOfSync</span>. You can either alert on it or enable <strong>self-heal</strong> so ArgoCD forces the cluster back to match Git. With <strong>auto-sync + prune + self-heal</strong>, Git is genuinely authoritative.</p>
+
+    <p class="codecap">An ArgoCD Application with auto-sync, prune, and self-heal</p>
+    <pre><span class="key">apiVersion:</span> argoproj.io/v1alpha1
+<span class="key">kind:</span> Application
+<span class="key">metadata:</span>
+  <span class="key">name:</span> checkout
+  <span class="key">namespace:</span> argocd
+<span class="key">spec:</span>
+  <span class="key">project:</span> payments
+  <span class="key">source:</span>
+    <span class="key">repoURL:</span> <span class="str">https://git/mugen/manifests.git</span>
+    <span class="key">path:</span> apps/checkout/overlays/prod
+    <span class="key">targetRevision:</span> main
+  <span class="key">destination:</span>
+    <span class="key">server:</span> <span class="str">https://kubernetes.default.svc</span>
+    <span class="key">namespace:</span> payments
+  <span class="key">syncPolicy:</span>
+    <span class="key">automated:</span>
+      <span class="key">prune:</span> true        <span class="cmt"># delete resources removed from Git</span>
+      <span class="key">selfHeal:</span> true     <span class="cmt"># revert manual drift</span></pre>
+
+    <h3>Patterns they'll likely name-check</h3>
+    <ul>
+      <li><strong>App-of-apps</strong> — one parent Application that points at a folder of child Applications, so ArgoCD bootstraps and manages many apps from one root.</li>
+      <li><strong>ApplicationSet</strong> — templates Applications across many targets (per-environment, per-cluster, per-team) from a generator — the scalable answer for fleets.</li>
+      <li><strong>Helm vs Kustomize</strong> — ArgoCD renders both; Helm for packaged/parameterized charts, Kustomize for overlay-based env differences. Be ready to defend a preference.</li>
+      <li><strong>Sync waves &amp; hooks</strong> — order resource application (e.g., run a DB migration before the app rolls out).</li>
+    </ul>
+
+    <h3>Secrets — the question that separates people</h3>
+    <p>You never commit plaintext secrets to Git. The two standard answers:</p>
+    <ul>
+      <li><strong>External Secrets Operator</strong> — pulls from AWS Secrets Manager / SSM Parameter Store into k8s Secrets at runtime. Common with EKS because it reuses IRSA.</li>
+      <li><strong>Sealed Secrets / SOPS</strong> — encrypt secrets so the <em>ciphertext</em> can live safely in Git and is decrypted in-cluster.</li>
+    </ul>
+
+    <div class="callout gold">
+      <div class="ctitle">Interview gold</div>
+      <p>Multi-environment promotion in their language: <em>"Dev/staging/prod are separate overlays (or branches) in the config repo. Promotion is a PR that moves a tested image tag from one overlay to the next — so every environment change is reviewed, audited, and trivially revertible."</em></p>
+    </div>
+  </section>
+
+  <!-- ========== 10. COST ========== -->
+  <section id="cost">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Cost optimization</h2></div>
+    <p class="sec-sub">DevOps owns the bill. A few sharp levers signal you operate, not just deploy.</p>
+
+    <ul>
+      <li><strong>Right-size with requests/limits</strong> — the biggest lever. Over-requested pods strand node capacity and inflate node count; accurate requests pack nodes efficiently.</li>
+      <li><strong>Spot instances</strong> — big savings for fault-tolerant/stateless workloads; Karpenter handles Spot interruptions and diversification well.</li>
+      <li><strong>Karpenter consolidation</strong> — actively bin-packs and replaces underused nodes with cheaper right-sized ones.</li>
+      <li><strong>Fargate for spiky/bursty</strong> — pay per pod, no idle nodes, when traffic is uneven.</li>
+      <li><strong>Scale to zero</strong> — dev/preview environments shut down off-hours (a natural ArgoCD/ApplicationSet fit).</li>
+      <li><strong>Visibility</strong> — Kubecost or AWS split-cost allocation tags to attribute spend per namespace/team.</li>
+    </ul>
+
+    <div class="callout gold">
+      <div class="ctitle">Interview gold</div>
+      <p>Tie cost back to scheduling: <em>"Cost in EKS is mostly a bin-packing problem — accurate resource requests plus Karpenter consolidation and Spot is where the real savings are, well before reserved instances."</em></p>
+    </div>
+  </section>
+
+  <!-- ========== Q&A ========== -->
+  <section id="qa">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Rapid-fire rehearsal</h2></div>
+    <p class="sec-sub">Tap each to reveal a tight answer. Say them aloud — fluency beats memorization.</p>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>What does AWS manage in EKS vs. what do you own?</span></summary>
+      <div class="ans"><p>AWS manages the control plane — API server, etcd, scheduler, controller-manager — across AZs, including patching and backups. You own the worker nodes (or use Fargate/Karpenter), networking config, RBAC, add-ons, and the workloads.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>Why does the VPC CNI matter for capacity planning?</span></summary>
+      <div class="ans"><p>It gives each pod a real VPC IP via node ENIs, so the number of pods per node is capped by the instance's IP allotment, and large clusters can exhaust subnet IPs. You plan subnet sizing accordingly and can use prefix delegation to raise density.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>IRSA in one breath?</span></summary>
+      <div class="ans"><p>It maps a Kubernetes ServiceAccount to an IAM role via the cluster's OIDC provider, giving a pod scoped, temporary AWS credentials — least privilege per workload, no static keys on nodes.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>How does ArgoCD know something drifted?</span></summary>
+      <div class="ans"><p>It continuously diffs live cluster state against the desired state in Git. Any divergence flips the Application to OutOfSync; with self-heal on, it reapplies Git to revert the drift automatically.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>Why two repos instead of one?</span></summary>
+      <div class="ans"><p>Separation of concerns and clean audit trails. Devs own app code + CI in one repo; platform owns deployment config in the other. The cluster only ever changes via the config repo, so Git history is the deployment record and rollback is a revert.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>Pod stuck Pending — how do you diagnose?</span></summary>
+      <div class="ans"><p><code>kubectl describe pod</code> and read the events. Usual causes: insufficient CPU/memory on any node (autoscaler should add one), a taint with no matching toleration, a node-selector/affinity mismatch, or an unbound PVC in the wrong AZ.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>HPA vs Cluster Autoscaler vs Karpenter?</span></summary>
+      <div class="ans"><p>HPA scales pod replicas on metrics. Cluster Autoscaler adds/removes nodes within fixed node groups. Karpenter provisions right-sized nodes just-in-time across instance types/AZs and consolidates idle capacity — the modern node-scaling choice.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>How do you handle secrets in GitOps?</span></summary>
+      <div class="ans"><p>Never plaintext in Git. Either External Secrets Operator pulling from AWS Secrets Manager/SSM at runtime (reuses IRSA), or Sealed Secrets/SOPS where only encrypted ciphertext lives in Git and is decrypted in-cluster.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>App-of-apps vs ApplicationSet?</span></summary>
+      <div class="ans"><p>App-of-apps is a parent Application managing a folder of child Applications — good for bootstrapping a set. ApplicationSet templates Applications from a generator across many environments/clusters/teams — the scalable choice for fleets.</p></div>
+    </details>
+
+    <details class="qa">
+      <summary><span class="q">Q</span><span>Biggest EKS cost lever?</span></summary>
+      <div class="ans"><p>Accurate resource requests/limits — it's a bin-packing problem. Right-sized requests plus Karpenter consolidation and Spot capacity for fault-tolerant workloads beat reserved-instance discounts as a starting point.</p></div>
+    </details>
+  </section>
+
+  <footer>
+    <p class="tag">// study guide · EKS + ArgoCD DevOps track</p>
+    <p>Built from our walkthrough of Kubernetes internals, EKS operations, and GitOps. Work through each section out loud, then use §11 as a timed drill. Good luck with Mugen.</p>
+  </footer>
+
+</div>
+</body>
+</html>

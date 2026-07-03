@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Integration Patterns</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e1a; --bg2: #111827; --bg3: #1a2235;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+  --text: #e8eaf0; --muted: #6b7a99;
+  --green: #00d4aa; --blue: #4f8ef7; --orange: #f7774f;
+  --purple: #c084fc; --yellow: #fbbf24;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;}
+header{background:var(--bg2);border-bottom:1px solid var(--border2);padding:0 2rem;position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:1.5rem;height:54px;flex-wrap:wrap;}
+.logo{font-family:'Space Mono',monospace;font-size:11px;color:var(--green);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;}
+.logo span{color:var(--muted);}
+nav{display:flex;gap:4px;flex-wrap:wrap;}
+nav button{background:transparent;border:1px solid transparent;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.05em;padding:5px 11px;border-radius:4px;cursor:pointer;transition:all .15s;text-transform:uppercase;}
+nav button:hover{color:var(--text);border-color:var(--border2);}
+nav button.active{color:var(--green);border-color:var(--green);background:rgba(0,212,170,0.07);}
+.hero{padding:2.5rem 2rem 1.5rem;border-bottom:1px solid var(--border);}
+.hero-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--green);letter-spacing:.15em;text-transform:uppercase;margin-bottom:.6rem;}
+.hero h1{font-weight:300;font-size:clamp(20px,3vw,32px);line-height:1.2;margin-bottom:.6rem;}
+.hero h1 strong{font-weight:600;color:var(--green);}
+.hero p{color:var(--muted);font-size:13px;max-width:540px;}
+.companies{display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap;}
+.tag{font-family:'Space Mono',monospace;font-size:10px;padding:3px 10px;border-radius:3px;}
+.tag-n{background:rgba(79,142,247,.12);color:var(--blue);border:1px solid rgba(79,142,247,.25);}
+.tag-c{background:rgba(0,212,170,.1);color:var(--green);border:1px solid rgba(0,212,170,.2);}
+.tag-b{background:rgba(247,119,79,.1);color:var(--orange);border:1px solid rgba(247,119,79,.2);}
+.legend-bar{display:flex;gap:8px;flex-wrap:wrap;padding:.8rem 2rem;border-bottom:1px solid var(--border);align-items:center;}
+.ll{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);margin-right:4px;}
+.badge{font-family:'Space Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;}
+.bk{background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(251,191,36,.2);}
+.be{background:rgba(247,119,79,.1);color:var(--orange);border:1px solid rgba(247,119,79,.2);}
+.ba{background:rgba(0,212,170,.08);color:var(--green);border:1px solid rgba(0,212,170,.18);}
+.bd{background:rgba(192,132,252,.1);color:var(--purple);border:1px solid rgba(192,132,252,.2);}
+.bp{background:rgba(79,142,247,.1);color:var(--blue);border:1px solid rgba(79,142,247,.2);}
+main{padding:1.5rem 2rem 4rem;}
+.section{display:none;}
+.section.active{display:block;}
+.sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:1.2rem;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.sec-hdr h2{font-weight:500;font-size:15px;}
+.sec-hdr .cnt{font-family:'Space Mono',monospace;font-size:10px;color:var(--muted);}
+.grid{display:flex;flex-direction:column;gap:14px;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.card-head{display:grid;grid-template-columns:220px 1fr 170px;align-items:start;}
+.cell{padding:13px 15px;border-right:1px solid var(--border);}
+.cell:last-child{border-right:none;}
+.cl{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;}
+.pname{font-weight:600;font-size:13px;color:var(--text);margin-bottom:3px;}
+.eip{font-family:'Space Mono',monospace;font-size:9px;color:var(--green);border:1px solid rgba(0,212,170,.3);padding:1px 5px;border-radius:2px;display:inline-block;margin-top:2px;}
+.badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.where{font-size:12px;color:var(--muted);line-height:1.5;}
+.desc{font-size:12px;color:var(--muted);line-height:1.6;}
+
+/* DIAGRAM SECTION — always open by default */
+.diag-wrap{border-top:1px solid var(--border);}
+.diag-toggle{display:flex;align-items:center;gap:8px;padding:7px 15px;background:transparent;border:none;border-bottom:1px solid transparent;color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;cursor:pointer;width:100%;text-align:left;letter-spacing:.05em;transition:color .15s,background .15s;}
+.diag-toggle:hover{color:var(--green);background:rgba(0,212,170,.04);}
+.diag-toggle.open{color:var(--green);border-bottom-color:var(--border);}
+.arrow-icon{display:inline-block;transition:transform .2s;font-style:normal;}
+.diag-toggle.open .arrow-icon{transform:rotate(90deg);}
+.diag-body{display:none;padding:16px;background:var(--bg3);}
+.diag-body.open{display:block;}
+.diag-body svg{width:100%;max-width:700px;display:block;margin:0 auto;}
+
+@media(max-width:680px){
+  .card-head{grid-template-columns:1fr;}
+  .cell{border-right:none;border-bottom:1px solid var(--border);}
+  header{height:auto;padding:10px 1rem;}
+  main{padding:1rem;}
+}
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<header>
+  <div class="logo">SC<span>/</span>Integration <span>// Patterns</span></div>
+  <nav>
+    <button class="active" onclick="showTab('order',this)">Order Mgmt</button>
+    <button onclick="showTab('inventory',this)">Inventory</button>
+    <button onclick="showTab('event',this)">Event-Driven</button>
+    <button onclick="showTab('planning',this)">Demand Planning</button>
+    <button onclick="showTab('supplier',this)">Supplier / EDI</button>
+    <button onclick="showTab('resilience',this)">Resilience</button>
+  </nav>
+</header>
+
+<div class="hero">
+  <div class="hero-label">Enterprise Integration Architect — Interview Reference</div>
+  <h1>Supply Chain <strong>Integration Patterns</strong><br>mapped to software solutions</h1>
+  <p>Domain patterns → EIP patterns → software tools, with architecture diagrams. Tailored for retail &amp; supply chain companies.</p>
+  <div class="companies">
+    <span class="tag tag-n">Nike</span>
+    <span class="tag tag-c">Columbia Sportswear</span>
+    <span class="tag tag-b">Blue Yonder</span>
+  </div>
+</div>
+
+<div class="legend-bar">
+  <span class="ll">Software layer:</span>
+  <span class="badge bk">Kafka / Streaming</span>
+  <span class="badge be">ERP / WMS / OMS</span>
+  <span class="badge ba">API / ESB</span>
+  <span class="badge bd">Messaging / EDI</span>
+  <span class="badge bp">Planning / Analytics</span>
+</div>
+
+<main>
+
+<!-- ═══════════════ ORDER MANAGEMENT ═══════════════ -->
+<div class="section active" id="sec-order">
+  <div class="sec-hdr"><h2>Order Management</h2><span class="cnt">4 patterns</span></div>
+  <div class="grid">
+
+    <!-- CARD 1 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Order Orchestration</div>
+          <div class="eip">Process Manager EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge be">Manhattan OMS</span>
+            <span class="badge be">Blue Yonder OMS</span>
+            <span class="badge be">Salesforce OMS</span>
+            <span class="badge ba">MuleSoft / Apigee</span>
+          </div>
+          <div class="desc" style="margin-top:7px">OMS is the central orchestrator: it sequences ATP check → WMS pick/pack → carrier booking → ERP fulfillment record in order. MuleSoft handles the API fan-out and error recovery between each step.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Nike DTC &amp; wholesale<br>Columbia multi-channel<br>Blue Yonder OMS deployments</div>
+        </div>
+      </div>
+      <div class="diag-wrap">
+        <button class="diag-toggle open" onclick="toggleDiag(this)"><i class="arrow-icon">▶</i>&nbsp;Architecture Diagram</button>
+        <div class="diag-body open">
+          <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" role="img">
+            <title>Order Orchestration Flow</title>
+            <defs>
+              <marker id="m1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <!-- eComm -->
+            <rect x="10" y="75" width="90" height="38" rx="6" fill="#1a2f4a" stroke="#4f8ef7" stroke-width="1"/>
+            <text x="55" y="94" text-anchor="middle" dominant-baseline="central" fill="#7ab3f7" font-family="Space Mono,monospace" font-size="11">eComm</text>
+            <line x1="100" y1="94" x2="128" y2="94" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#m1)"/>
+            <!-- OMS box -->
+            <rect x="128" y="58" width="110" height="72" rx="6" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1.5"/>
+            <text x="183" y="82" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="12" font-weight="700">OMS</text>
+            <text x="183" y="102" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="11">Orchestrator</text>
+            <!-- arrows to steps -->
+            <line x1="238" y1="76" x2="275" y2="50" stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m1)"/>
+            <line x1="238" y1="94" x2="275" y2="94" stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m1)"/>
+            <line x1="238" y1="112" x2="275" y2="138" stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m1)"/>
+            <!-- ATP -->
+            <rect x="275" y="30" width="105" height="38" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="327" y="49" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">ATP Check</text>
+            <!-- WMS -->
+            <rect x="275" y="75" width="105" height="38" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="327" y="94" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">WMS Pick/Pack</text>
+            <!-- Carrier -->
+            <rect x="275" y="120" width="105" height="38" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="327" y="139" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">Carrier API</text>
+            <!-- to ERP -->
+            <line x1="380" y1="49"  x2="426" y2="86" stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m1)"/>
+            <line x1="380" y1="94"  x2="426" y2="94" stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m1)"/>
+            <line x1="380" y1="139" x2="426" y2="102" stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m1)"/>
+            <!-- ERP -->
+            <rect x="426" y="68" width="110" height="52" rx="6" fill="#1e1228" stroke="#c084fc" stroke-width="1"/>
+            <text x="481" y="87" text-anchor="middle" dominant-baseline="central" fill="#c084fc" font-family="Space Mono,monospace" font-size="11">ERP</text>
+            <text x="481" y="105" text-anchor="middle" dominant-baseline="central" fill="#7a5a9a" font-family="DM Sans,sans-serif" font-size="10">Fulfillment record</text>
+            <!-- to Shipped -->
+            <line x1="536" y1="94" x2="574" y2="94" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#m1)"/>
+            <rect x="574" y="75" width="100" height="38" rx="6" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1"/>
+            <text x="624" y="94" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="11">Shipped ✓</text>
+            <!-- caption -->
+            <text x="350" y="172" text-anchor="middle" fill="#4a5568" font-family="DM Sans,sans-serif" font-size="11">OMS sequences: ATP → WMS → Carrier → ERP. Each step is a sync API call with retry via MuleSoft.</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Order Splitting</div>
+          <div class="eip">Splitter EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge be">OMS Rule Engine</span>
+            <span class="badge bd">EDI 850</span>
+            <span class="badge ba">Vendor REST API</span>
+          </div>
+          <div class="desc" style="margin-top:7px">OMS applies sourcing rules (proximity, stock level, SLA cost) and splits one customer order into separate fulfillment sub-orders routed to DC, store, or drop-ship vendor — all running in parallel.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Nike multi-DC network<br>Columbia ship-from-store<br>Drop-ship vendor programs</div>
+        </div>
+      </div>
+      <div class="diag-wrap">
+        <button class="diag-toggle open" onclick="toggleDiag(this)"><i class="arrow-icon">▶</i>&nbsp;Architecture Diagram</button>
+        <div class="diag-body open">
+          <svg viewBox="0 0 700 195" xmlns="http://www.w3.org/2000/svg" role="img">
+            <title>Order Splitting Pattern</title>
+            <defs>
+              <marker id="m2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <rect x="10" y="78" width="105" height="38" rx="6" fill="#1a2f4a" stroke="#4f8ef7" stroke-width="1"/>
+            <text x="62" y="97" text-anchor="middle" dominant-baseline="central" fill="#7ab3f7" font-family="Space Mono,monospace" font-size="10">1 Customer Order</text>
+            <line x1="115" y1="97" x2="148" y2="97" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#m2)"/>
+            <rect x="148" y="62" width="120" height="70" rx="6" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1.5"/>
+            <text x="208" y="84" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="11" font-weight="700">OMS Splitter</text>
+            <text x="208" y="103" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="10">Sourcing rule engine</text>
+            <line x1="268" y1="78"  x2="315" y2="46"  stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m2)"/>
+            <line x1="268" y1="97"  x2="315" y2="97"  stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m2)"/>
+            <line x1="268" y1="116" x2="315" y2="148" stroke="#6b7a99" stroke-width="1.2" marker-end="url(#m2)"/>
+            <rect x="315" y="24" width="155" height="44" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="392" y="40" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">DC Fulfillment</text>
+            <text x="392" y="57" text-anchor="middle" dominant-baseline="central" fill="#7a6a30" font-family="DM Sans,sans-serif" font-size="10">Blue Yonder WMS</text>
+            <rect x="315" y="75" width="155" height="44" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="392" y="91" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">Ship-from-Store</text>
+            <text x="392" y="108" text-anchor="middle" dominant-baseline="central" fill="#7a6a30" font-family="DM Sans,sans-serif" font-size="10">Manhattan WMS</text>
+            <rect x="315" y="126" width="155" height="44" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="392" y="142" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">Drop-Ship Vendor</text>
+            <text x="392" y="159" text-anchor="middle" dominant-baseline="central" fill="#7a6a30" font-family="DM Sans,sans-serif" font-size="10">EDI 850 / REST API</text>
+            <text x="350" y="186" text-anchor="middle" fill="#4a5568" font-family="DM Sans,sans-serif" font-size="11">One order → 3 parallel fulfillment streams, each with independent SLA and tracking</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">ATP — Available to Promise</div>
+          <div class="eip">Request-Reply EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge be">SAP GATP</span>
+            <span class="badge bp">Blue Yonder OMS ATP</span>
+            <span class="badge ba">Custom ATP microservice</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Synchronous Request-Reply pattern. The storefront calls an ATP service which queries real-time inventory across all nodes and returns a promise date before the order is confirmed. Target SLA: &lt;200ms p99.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Checkout stock validation<br>Pre-order promising<br>B2B allocation confirmation</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4 -->
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Returns / Reverse Logistics</div>
+          <div class="eip">Saga EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge be">Blue Yonder WMS</span>
+            <span class="badge be">SAP ERP</span>
+            <span class="badge bk">Kafka event chain</span>
+          </div>
+          <div class="desc" style="margin-top:7px">A Saga with compensating transactions: RMA creation → carrier label → DC receipt → quality grading → restock or liquidation. Each step publishes a domain event; failures trigger reverse compensations upstream.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Store returns processing<br>eComm label generation<br>DC restocking workflows</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ INVENTORY ═══════════════ -->
+<div class="section" id="sec-inventory">
+  <div class="sec-hdr"><h2>Inventory Management</h2><span class="cnt">4 patterns</span></div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Unified Inventory Visibility</div>
+          <div class="eip">Aggregator EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Apache Kafka</span>
+            <span class="badge bk">Redis cache</span>
+            <span class="badge bp">Manhattan Active Omni</span>
+            <span class="badge bp">Fluent Commerce IMS</span>
+            <span class="badge be">SAP CAR</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Aggregator EIP. Each inventory node publishes stock-on-hand change events to Kafka. A streaming aggregator (Kafka Streams + Redis) merges them into a single real-time unified view consumed by OMS and ATP services.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Nike omni-channel<br>Columbia BOPIS<br>Any multi-node retailer</div>
+        </div>
+      </div>
+      <div class="diag-wrap">
+        <button class="diag-toggle open" onclick="toggleDiag(this)"><i class="arrow-icon">▶</i>&nbsp;Architecture Diagram</button>
+        <div class="diag-body open">
+          <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" role="img">
+            <title>Inventory Visibility Aggregation</title>
+            <defs>
+              <marker id="m3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <!-- Sources -->
+            <rect x="10" y="16" width="105" height="34" rx="5" fill="#1c1c2a" stroke="#6b7a99" stroke-width="1"/>
+            <text x="62" y="33" text-anchor="middle" dominant-baseline="central" fill="#8a9ab9" font-family="Space Mono,monospace" font-size="10">WMS / DC</text>
+            <rect x="10" y="64" width="105" height="34" rx="5" fill="#1c1c2a" stroke="#6b7a99" stroke-width="1"/>
+            <text x="62" y="81" text-anchor="middle" dominant-baseline="central" fill="#8a9ab9" font-family="Space Mono,monospace" font-size="10">POS / Stores</text>
+            <rect x="10" y="112" width="105" height="34" rx="5" fill="#1c1c2a" stroke="#6b7a99" stroke-width="1"/>
+            <text x="62" y="129" text-anchor="middle" dominant-baseline="central" fill="#8a9ab9" font-family="Space Mono,monospace" font-size="10">3PL API</text>
+            <rect x="10" y="160" width="105" height="34" rx="5" fill="#1c1c2a" stroke="#6b7a99" stroke-width="1"/>
+            <text x="62" y="177" text-anchor="middle" dominant-baseline="central" fill="#8a9ab9" font-family="Space Mono,monospace" font-size="10">In-Transit ASN</text>
+            <!-- lines to aggregator -->
+            <line x1="115" y1="33"  x2="208" y2="100" stroke="#6b7a99" stroke-width="1" marker-end="url(#m3)"/>
+            <line x1="115" y1="81"  x2="208" y2="107" stroke="#6b7a99" stroke-width="1" marker-end="url(#m3)"/>
+            <line x1="115" y1="129" x2="208" y2="113" stroke="#6b7a99" stroke-width="1" marker-end="url(#m3)"/>
+            <line x1="115" y1="177" x2="208" y2="120" stroke="#6b7a99" stroke-width="1" marker-end="url(#m3)"/>
+            <!-- Aggregator -->
+            <rect x="208" y="72" width="140" height="76" rx="6" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1.5"/>
+            <text x="278" y="94" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="11" font-weight="700">Aggregator</text>
+            <text x="278" y="112" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="10">Kafka Streams</text>
+            <text x="278" y="128" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="10">+ Redis IMS layer</text>
+            <line x1="348" y1="110" x2="408" y2="110" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#m3)"/>
+            <!-- Unified IMS -->
+            <rect x="408" y="72" width="140" height="76" rx="6" fill="#1e1228" stroke="#c084fc" stroke-width="1"/>
+            <text x="478" y="94" text-anchor="middle" dominant-baseline="central" fill="#c084fc" font-family="Space Mono,monospace" font-size="11">Unified IMS</text>
+            <text x="478" y="112" text-anchor="middle" dominant-baseline="central" fill="#7a5a9a" font-family="DM Sans,sans-serif" font-size="10">Single source of truth</text>
+            <text x="478" y="128" text-anchor="middle" dominant-baseline="central" fill="#7a5a9a" font-family="DM Sans,sans-serif" font-size="10">across all nodes</text>
+            <!-- to consumers -->
+            <line x1="548" y1="96"  x2="595" y2="72"  stroke="#6b7a99" stroke-width="1" marker-end="url(#m3)"/>
+            <line x1="548" y1="124" x2="595" y2="148" stroke="#6b7a99" stroke-width="1" marker-end="url(#m3)"/>
+            <rect x="595" y="54"  width="90" height="34" rx="5" fill="#1a2f4a" stroke="#4f8ef7" stroke-width="1"/>
+            <text x="640" y="71" text-anchor="middle" dominant-baseline="central" fill="#7ab3f7" font-family="Space Mono,monospace" font-size="10">OMS</text>
+            <rect x="595" y="130" width="90" height="34" rx="5" fill="#1a2f4a" stroke="#4f8ef7" stroke-width="1"/>
+            <text x="640" y="147" text-anchor="middle" dominant-baseline="central" fill="#7ab3f7" font-family="Space Mono,monospace" font-size="10">ATP</text>
+            <text x="350" y="210" text-anchor="middle" fill="#4a5568" font-family="DM Sans,sans-serif" font-size="11">4 inventory sources → Kafka Streams aggregation → Unified IMS → OMS + ATP consumers</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Inventory Reservation</div>
+          <div class="eip">Claim Check EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge be">OMS / IMS module</span>
+            <span class="badge bk">Redis atomic counter</span>
+            <span class="badge bk">Kafka saga</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Two-phase reservation: soft hold at cart add (TTL-limited, auto-released on abandon via Redis expiry), hard hold at order confirm. Implemented as an atomic Redis DECR or SELECT FOR UPDATE to prevent overselling during flash sales.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Flash sale prevention<br>Cart checkout flow<br>Warehouse pick allocation</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">CDC for Inventory Sync</div>
+          <div class="eip">Event Sourcing EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Debezium CDC</span>
+            <span class="badge bk">Kafka Connect</span>
+            <span class="badge be">SAP HANA CDC</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Change Data Capture reads the WAL of the ERP/WMS database and streams every inventory mutation as a Kafka event — zero impact on source system performance, sub-second latency to downstream consumers.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">ERP → IMS real-time sync<br>WMS → analytics pipeline<br>Inventory audit trail</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Safety Stock &amp; Reorder Trigger</div>
+          <div class="eip">Event-Driven Consumer</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bp">Blue Yonder Luminate</span>
+            <span class="badge be">SAP ERP MRP</span>
+            <span class="badge bp">o9 Solutions</span>
+          </div>
+          <div class="desc" style="margin-top:7px">When on-hand crosses the reorder point, an automated PO or transfer order fires. BY Luminate uses ML-computed dynamic safety stock adjusting for demand variability, lead time uncertainty, and service level targets.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">DC replenishment<br>Store-to-store transfers<br>Seasonal safety stock</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ EVENT-DRIVEN ═══════════════ -->
+<div class="section" id="sec-event">
+  <div class="sec-hdr"><h2>Event-Driven Supply Chain</h2><span class="cnt">4 patterns</span></div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Shipment Event Streaming</div>
+          <div class="eip">Publish-Subscribe EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Apache Kafka</span>
+            <span class="badge ba">Azure Event Hub</span>
+            <span class="badge ba">AWS EventBridge</span>
+            <span class="badge bp">project44 / FourKites</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Carrier/3PL posts status events (picked → packed → in-transit → delivered) to a Kafka topic. OMS, notification service, and analytics all consume independently — fully decoupled, each at its own pace and cadence.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Nike shipment tracking<br>Columbia 3PL visibility<br>OTIF KPI dashboards</div>
+        </div>
+      </div>
+      <div class="diag-wrap">
+        <button class="diag-toggle open" onclick="toggleDiag(this)"><i class="arrow-icon">▶</i>&nbsp;Architecture Diagram</button>
+        <div class="diag-body open">
+          <svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" role="img">
+            <title>Shipment Event Streaming Pub/Sub</title>
+            <defs>
+              <marker id="m4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <!-- Publisher -->
+            <rect x="10" y="82" width="115" height="44" rx="6" fill="#1c1c2a" stroke="#6b7a99" stroke-width="1"/>
+            <text x="67" y="104" text-anchor="middle" dominant-baseline="central" fill="#8a9ab9" font-family="Space Mono,monospace" font-size="10">Carrier / 3PL</text>
+            <line x1="125" y1="104" x2="162" y2="104" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#m4)"/>
+            <!-- Kafka topic -->
+            <rect x="162" y="66" width="140" height="76" rx="6" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1.5"/>
+            <text x="232" y="88" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="11" font-weight="700">Kafka Topic</text>
+            <text x="232" y="106" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="Space Mono,monospace" font-size="9">shipment-events</text>
+            <text x="232" y="122" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="10">Pub/Sub broker</text>
+            <!-- fan out -->
+            <line x1="302" y1="82"  x2="355" y2="46"  stroke="#6b7a99" stroke-width="1" marker-end="url(#m4)"/>
+            <line x1="302" y1="104" x2="355" y2="104" stroke="#6b7a99" stroke-width="1" marker-end="url(#m4)"/>
+            <line x1="302" y1="126" x2="355" y2="162" stroke="#6b7a99" stroke-width="1" marker-end="url(#m4)"/>
+            <!-- Consumers -->
+            <rect x="355" y="22"  width="175" height="48" rx="5" fill="#1e1228" stroke="#c084fc" stroke-width="1"/>
+            <text x="442" y="40" text-anchor="middle" dominant-baseline="central" fill="#c084fc" font-family="Space Mono,monospace" font-size="10">OMS</text>
+            <text x="442" y="58" text-anchor="middle" dominant-baseline="central" fill="#7a5a9a" font-family="DM Sans,sans-serif" font-size="10">Order status update</text>
+            <rect x="355" y="80"  width="175" height="48" rx="5" fill="#1e1228" stroke="#c084fc" stroke-width="1"/>
+            <text x="442" y="98" text-anchor="middle" dominant-baseline="central" fill="#c084fc" font-family="Space Mono,monospace" font-size="10">Notification Service</text>
+            <text x="442" y="116" text-anchor="middle" dominant-baseline="central" fill="#7a5a9a" font-family="DM Sans,sans-serif" font-size="10">Customer SMS / email</text>
+            <rect x="355" y="138" width="175" height="48" rx="5" fill="#1e1228" stroke="#c084fc" stroke-width="1"/>
+            <text x="442" y="156" text-anchor="middle" dominant-baseline="central" fill="#c084fc" font-family="Space Mono,monospace" font-size="10">Analytics Platform</text>
+            <text x="442" y="174" text-anchor="middle" dominant-baseline="central" fill="#7a5a9a" font-family="DM Sans,sans-serif" font-size="10">OTIF / delivery KPIs</text>
+            <text x="350" y="200" text-anchor="middle" fill="#4a5568" font-family="DM Sans,sans-serif" font-size="11">One carrier event → 3 independent consumers, each at its own pace — fully decoupled</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Demand Signal Propagation</div>
+          <div class="eip">Content Enricher EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Kafka Streams</span>
+            <span class="badge bp">Blue Yonder Luminate</span>
+            <span class="badge bp">SAP IBP</span>
+          </div>
+          <div class="desc" style="margin-top:7px">POS sale events stream via Kafka → demand sensing engine enriches with weather, events, promos → adjusts short-horizon (0–4 week) forecast → auto-triggers replenishment PO or warehouse transfer order.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">POS → replenishment<br>Sell-through driven buys<br>Markdown optimization</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Exception-Driven Alerting</div>
+          <div class="eip">Message Filter EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Kafka + Apache Flink</span>
+            <span class="badge ba">PagerDuty / Slack API</span>
+            <span class="badge bp">Blue Yonder Control Tower</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Flink stream processing evaluates shipment and inventory events against SLA rules. When a rule fires (delivery T+2 overdue, stock below safety), the Message Filter routes an alert to ops — normal events pass through silently.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Carrier delay escalation<br>Out-of-stock alerts<br>ASN discrepancy flags</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Digital Twin</div>
+          <div class="eip">Event Sourcing EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Kafka + Event Store</span>
+            <span class="badge bp">Blue Yonder Luminate</span>
+            <span class="badge ba">Azure Digital Twins</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Every physical state change is appended to an immutable event log. The digital twin rebuilds by replaying the log — enabling what-if simulation (port closure, demand spike) on a shadow copy before any live change is committed.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">DC simulation<br>Carrier network modeling<br>Disruption response</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ PLANNING ═══════════════ -->
+<div class="section" id="sec-planning">
+  <div class="sec-hdr"><h2>Demand &amp; Supply Planning</h2><span class="cnt">4 patterns</span></div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Demand Sensing</div>
+          <div class="eip">Content Enricher EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bp">Blue Yonder Luminate</span>
+            <span class="badge bp">o9 Solutions</span>
+            <span class="badge bp">Kinaxis RapidResponse</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Raw POS signals are enriched with weather, events, and promotions before entering the ML demand model. BY Luminate ingests Kafka streams and adjusts the 0–4 week forecast, feeding replenishment triggers automatically.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Nike seasonal launches<br>Columbia weather-driven buys<br>Promo lift modeling</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Consensus Forecasting (S&amp;OP)</div>
+          <div class="eip">Aggregator EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bp">Blue Yonder DF&amp;R</span>
+            <span class="badge bp">SAP IBP</span>
+            <span class="badge bp">Anaplan</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Aggregator EIP across planning horizons: statistical forecast + commercial overrides + financial targets are merged into one agreed plan. Anaplan or IBP hosts the collaboration workflow with version control and approval routing.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Monthly S&amp;OP cycle<br>Annual buying plan<br>Financial reconciliation</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">MEIO — Multi-Echelon Inventory Optimization</div>
+          <div class="eip">Scatter-Gather EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bp">Blue Yonder MEIO</span>
+            <span class="badge bp">ToolsGroup</span>
+            <span class="badge bp">LLamasoft GSCN</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Scatter-Gather EIP across the network: optimization engine queries each echelon (supplier → DC → regional DC → store) for cost/service data, gathers responses, and returns optimal stocking policy per node.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">DC-to-store balancing<br>Global network design<br>Working capital reduction</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">What-If Scenario Modeling</div>
+          <div class="eip">Digital Twin + Event Sourcing</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bp">Kinaxis RapidResponse</span>
+            <span class="badge bp">Blue Yonder Luminate</span>
+            <span class="badge bp">o9 Digital Brain</span>
+          </div>
+          <div class="desc" style="margin-top:7px">A shadow copy of the supply chain plan is forked, what-if changes applied (tariff impact, port closure, demand spike), and KPI delta compared to baseline — no live systems touched until a decision is made.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Disruption response<br>Tariff scenario analysis<br>Supplier risk modeling</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ SUPPLIER / EDI ═══════════════ -->
+<div class="section" id="sec-supplier">
+  <div class="sec-hdr"><h2>Supplier &amp; EDI Integration</h2><span class="cnt">4 patterns</span></div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">EDI Integration (X12 / EDIFACT)</div>
+          <div class="eip">Message Translator EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bd">IBM Sterling B2B</span>
+            <span class="badge bd">SPS Commerce</span>
+            <span class="badge ba">Boomi / MuleSoft</span>
+            <span class="badge bd">OpenText B2B</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Message Translator EIP: EDI gateway translates internal canonical XML/JSON from SAP/ERP into X12 or EDIFACT. Sterling/SPS handles envelope wrapping, 997 ACK, and retry. Key transactions: 850 PO, 856 ASN, 810 Invoice.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Nike factory orders<br>Columbia wholesale EDI<br>3PL 940/945 transactions</div>
+        </div>
+      </div>
+      <div class="diag-wrap">
+        <button class="diag-toggle open" onclick="toggleDiag(this)"><i class="arrow-icon">▶</i>&nbsp;Architecture Diagram</button>
+        <div class="diag-body open">
+          <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" role="img">
+            <title>EDI Integration Message Translator Flow</title>
+            <defs>
+              <marker id="m5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <!-- ERP -->
+            <rect x="10" y="90" width="115" height="44" rx="6" fill="#1c1c2a" stroke="#6b7a99" stroke-width="1"/>
+            <text x="67" y="112" text-anchor="middle" dominant-baseline="central" fill="#8a9ab9" font-family="Space Mono,monospace" font-size="10">Nike / Columbia ERP</text>
+            <line x1="125" y1="112" x2="162" y2="112" stroke="#00d4aa" stroke-width="1.5" marker-end="url(#m5)"/>
+            <!-- Gateway -->
+            <rect x="162" y="66" width="148" height="92" rx="6" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1.5"/>
+            <text x="236" y="88" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="11" font-weight="700">EDI Gateway</text>
+            <text x="236" y="106" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="10">IBM Sterling / SPS</text>
+            <text x="236" y="122" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="10">Translate + Envelope</text>
+            <text x="236" y="138" text-anchor="middle" dominant-baseline="central" fill="#5a9a8a" font-family="DM Sans,sans-serif" font-size="10">997 ACK + retry</text>
+            <!-- arrows to transactions -->
+            <line x1="310" y1="88"  x2="360" y2="54"  stroke="#6b7a99" stroke-width="1" marker-end="url(#m5)"/>
+            <line x1="310" y1="112" x2="360" y2="112" stroke="#6b7a99" stroke-width="1" marker-end="url(#m5)"/>
+            <line x1="310" y1="136" x2="360" y2="170" stroke="#6b7a99" stroke-width="1" marker-end="url(#m5)"/>
+            <!-- Transactions -->
+            <rect x="360" y="30"  width="170" height="48" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="445" y="48" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">850 – Purchase Order</text>
+            <text x="445" y="65" text-anchor="middle" dominant-baseline="central" fill="#7a6a30" font-family="DM Sans,sans-serif" font-size="10">Supplier receives PO</text>
+            <rect x="360" y="88"  width="170" height="48" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="445" y="106" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">856 – ASN</text>
+            <text x="445" y="123" text-anchor="middle" dominant-baseline="central" fill="#7a6a30" font-family="DM Sans,sans-serif" font-size="10">Advance ship notice</text>
+            <rect x="360" y="146" width="170" height="48" rx="5" fill="#1e2018" stroke="#fbbf24" stroke-width="1"/>
+            <text x="445" y="164" text-anchor="middle" dominant-baseline="central" fill="#fbbf24" font-family="Space Mono,monospace" font-size="10">810 – Invoice</text>
+            <text x="445" y="181" text-anchor="middle" dominant-baseline="central" fill="#7a6a30" font-family="DM Sans,sans-serif" font-size="10">AP auto-matching</text>
+            <text x="350" y="212" text-anchor="middle" fill="#4a5568" font-family="DM Sans,sans-serif" font-size="11">Message Translator: ERP canonical model → EDI X12 transaction sets per document type</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Vendor-Managed Inventory (VMI)</div>
+          <div class="eip">Pub-Sub (inverted)</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bd">EDI 852 / 855</span>
+            <span class="badge bp">SAP SNC</span>
+            <span class="badge ba">Supplier Portal API</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Publish-Subscribe inversion: the retailer publishes inventory and POS signals (EDI 852) to the supplier's planning system. The supplier self-generates replenishment POs — reducing buyer workload and improving fill rates.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Key material suppliers<br>Packaging VMI programs<br>Store-in-store partnerships</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Drop-Ship Integration</div>
+          <div class="eip">Content-Based Router EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bd">EDI 850 / REST</span>
+            <span class="badge be">OMS routing engine</span>
+            <span class="badge bd">SPS Commerce</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Router + Translator pattern: OMS applies drop-ship rules and routes qualifying orders to the vendor via EDI 850 or REST. Vendor returns 856 ASN + tracking; OMS closes the loop. No DC touch — ships direct to customer.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Nike marketplace extended<br>Columbia vendor assortment<br>Long-tail SKU fulfillment</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Supplier Self-Service Portal</div>
+          <div class="eip">Request-Reply EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge ba">SAP Ariba</span>
+            <span class="badge ba">Coupa</span>
+            <span class="badge ba">Custom REST / GraphQL</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Request-Reply API pattern: suppliers consume a portal API to view POs, confirm capacity, upload ASNs, and submit invoices — replacing email and full EDI for SMB suppliers who cannot support Sterling or SPS implementations.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">PO acknowledgement<br>Capacity confirmation<br>Invoice submission portal</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════ RESILIENCE ═══════════════ -->
+<div class="section" id="sec-resilience">
+  <div class="sec-hdr"><h2>Resilience &amp; Exception Handling</h2><span class="cnt">5 patterns</span></div>
+  <div class="grid">
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Saga / Compensating Transactions</div>
+          <div class="eip">Saga EIP + Event Sourcing</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Apache Kafka</span>
+            <span class="badge ba">Netflix Conductor</span>
+            <span class="badge ba">Temporal.io</span>
+            <span class="badge ba">AWS Step Functions</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Each step in order fulfillment publishes a domain event. On failure, the saga orchestrator (Temporal/Conductor) triggers compensating transactions in reverse: cancel pick → reverse payment → release inventory. No distributed 2PC needed.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Order fulfillment rollback<br>Return refund chain<br>Allocation failure recovery</div>
+        </div>
+      </div>
+      <div class="diag-wrap">
+        <button class="diag-toggle open" onclick="toggleDiag(this)"><i class="arrow-icon">▶</i>&nbsp;Architecture Diagram</button>
+        <div class="diag-body open">
+          <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" role="img">
+            <title>Saga Compensating Transactions Pattern</title>
+            <defs>
+              <marker id="m6g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#00d4aa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <marker id="m6r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M2 1L8 5L2 9" fill="none" stroke="#f7774f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+            </defs>
+            <!-- Label rows -->
+            <text x="350" y="18" text-anchor="middle" fill="#5a9a8a" font-family="Space Mono,monospace" font-size="10">HAPPY PATH →</text>
+            <!-- Happy path steps -->
+            <rect x="8"   y="28" width="112" height="42" rx="5" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1"/>
+            <text x="64"  y="49" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="10">1. Reserve Inv.</text>
+            <line x1="120" y1="49" x2="148" y2="49" stroke="#00d4aa" stroke-width="1.2" marker-end="url(#m6g)"/>
+            <rect x="148" y="28" width="112" height="42" rx="5" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1"/>
+            <text x="204" y="49" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="10">2. Charge Card</text>
+            <line x1="260" y1="49" x2="288" y2="49" stroke="#00d4aa" stroke-width="1.2" marker-end="url(#m6g)"/>
+            <rect x="288" y="28" width="112" height="42" rx="5" fill="#0e2a1e" stroke="#00d4aa" stroke-width="1"/>
+            <text x="344" y="49" text-anchor="middle" dominant-baseline="central" fill="#00d4aa" font-family="Space Mono,monospace" font-size="10">3. Create Pick</text>
+            <line x1="400" y1="49" x2="428" y2="49" stroke="#00d4aa" stroke-width="1.2" marker-end="url(#m6g)"/>
+            <!-- Fail step -->
+            <rect x="428" y="28" width="112" height="42" rx="5" fill="#2a1410" stroke="#f7774f" stroke-width="1.5"/>
+            <text x="484" y="43" text-anchor="middle" dominant-baseline="central" fill="#f7774f" font-family="Space Mono,monospace" font-size="10">4. Book Carrier</text>
+            <text x="484" y="60" text-anchor="middle" dominant-baseline="central" fill="#9a4020" font-family="DM Sans,sans-serif" font-size="10">FAILS ↓</text>
+            <!-- Skipped step -->
+            <line x1="540" y1="49" x2="568" y2="49" stroke="#6b7a99" stroke-width="0.8" stroke-dasharray="4 3"/>
+            <rect x="568" y="28" width="112" height="42" rx="5" fill="#1c1c2a" stroke="#4a5568" stroke-width="1" stroke-dasharray="4 3"/>
+            <text x="624" y="43" text-anchor="middle" dominant-baseline="central" fill="#4a5568" font-family="Space Mono,monospace" font-size="10">5. Shipped</text>
+            <text x="624" y="60" text-anchor="middle" dominant-baseline="central" fill="#3a4558" font-family="DM Sans,sans-serif" font-size="10">(skipped)</text>
+            <!-- Fail down arrow -->
+            <line x1="484" y1="70" x2="484" y2="108" stroke="#f7774f" stroke-width="1.2" marker-end="url(#m6r)"/>
+            <!-- Saga trigger box -->
+            <rect x="428" y="108" width="112" height="32" rx="4" fill="#2a1410" stroke="#f7774f" stroke-width="1"/>
+            <text x="484" y="124" text-anchor="middle" dominant-baseline="central" fill="#f7774f" font-family="DM Sans,sans-serif" font-size="11">Saga triggers rollback</text>
+            <!-- Compensating path label -->
+            <text x="350" y="165" text-anchor="middle" fill="#f7774f" font-family="Space Mono,monospace" font-size="10">← COMPENSATING PATH</text>
+            <!-- Compensating steps -->
+            <line x1="428" y1="140" x2="400" y2="178" stroke="#f7774f" stroke-width="1.2" marker-end="url(#m6r)"/>
+            <rect x="288" y="178" width="112" height="42" rx="5" fill="#2a1410" stroke="#f7774f" stroke-width="1"/>
+            <text x="344" y="193" text-anchor="middle" dominant-baseline="central" fill="#f7774f" font-family="Space Mono,monospace" font-size="10">C3. Cancel Pick</text>
+            <text x="344" y="210" text-anchor="middle" dominant-baseline="central" fill="#9a4020" font-family="DM Sans,sans-serif" font-size="10">WMS rollback</text>
+            <line x1="288" y1="199" x2="260" y2="199" stroke="#f7774f" stroke-width="1.2" marker-end="url(#m6r)"/>
+            <rect x="148" y="178" width="112" height="42" rx="5" fill="#2a1410" stroke="#f7774f" stroke-width="1"/>
+            <text x="204" y="193" text-anchor="middle" dominant-baseline="central" fill="#f7774f" font-family="Space Mono,monospace" font-size="10">C2. Refund Card</text>
+            <text x="204" y="210" text-anchor="middle" dominant-baseline="central" fill="#9a4020" font-family="DM Sans,sans-serif" font-size="10">Payment reversal</text>
+            <line x1="148" y1="199" x2="120" y2="199" stroke="#f7774f" stroke-width="1.2" marker-end="url(#m6r)"/>
+            <rect x="8"   y="178" width="112" height="42" rx="5" fill="#2a1410" stroke="#f7774f" stroke-width="1"/>
+            <text x="64"  y="193" text-anchor="middle" dominant-baseline="central" fill="#f7774f" font-family="Space Mono,monospace" font-size="10">C1. Release Inv.</text>
+            <text x="64"  y="210" text-anchor="middle" dominant-baseline="central" fill="#9a4020" font-family="DM Sans,sans-serif" font-size="10">IMS update</text>
+            <text x="350" y="242" text-anchor="middle" fill="#4a5568" font-family="DM Sans,sans-serif" font-size="11">Temporal.io / Conductor orchestrates each step + its compensating action. No distributed 2PC needed.</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Circuit Breaker</div>
+          <div class="eip">Circuit Breaker Pattern</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge ba">Resilience4j</span>
+            <span class="badge ba">Istio Service Mesh</span>
+            <span class="badge ba">AWS App Mesh</span>
+          </div>
+          <div class="desc" style="margin-top:7px">When a downstream system (carrier tracking API, WMS) fails repeatedly past a threshold, the circuit opens. Calls are short-circuited with a cached/fallback response — preventing cascade failures across the entire order pipeline.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Carrier API timeouts<br>3PL system outages<br>ERP maintenance windows</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Idempotent Receiver</div>
+          <div class="eip">Idempotent Consumer EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Kafka consumer groups</span>
+            <span class="badge be">ERP idempotency key</span>
+            <span class="badge bd">EDI 997 ACK</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Each message carries a unique ID (PO number, ASN ID, shipment tracking). The receiver checks a deduplication store (Redis or DB) before processing — guaranteeing exactly-once business semantics despite at-least-once Kafka delivery.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">Duplicate ASN processing<br>Double PO sends<br>Payment retry storms</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Transactional Outbox</div>
+          <div class="eip">Outbox Pattern</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bk">Debezium + Kafka</span>
+            <span class="badge ba">SAP Event Mesh</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Instead of dual-writes (DB + broker), the app writes only to a transactional outbox table in the same DB transaction. Debezium CDC tails the outbox and publishes to Kafka — guaranteeing zero lost events even if the broker is temporarily down.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">ERP → WMS order sync<br>Guaranteed event delivery<br>Audit trail requirements</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="cell">
+          <div class="cl">Domain Pattern</div>
+          <div class="pname">Dead Letter + Alerting</div>
+          <div class="eip">Dead Letter Channel EIP</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Software Solutions</div>
+          <div class="badges">
+            <span class="badge bd">IBM MQ DLQ</span>
+            <span class="badge bk">Kafka Dead Letter Topic</span>
+            <span class="badge ba">PagerDuty / OpsGenie</span>
+          </div>
+          <div class="desc" style="margin-top:7px">Failed messages (EDI parse errors, schema mismatches, downstream rejects) route to a Dead Letter Topic. An alerting consumer monitors the DLT and pages the integration ops team with the failed payload and structured error context for triage.</div>
+        </div>
+        <div class="cell">
+          <div class="cl">Used At</div>
+          <div class="where">EDI translation failures<br>WMS receipt errors<br>Carrier API rejects</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</main>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('nav button').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('sec-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleDiag(btn) {
+  var body = btn.nextElementSibling;
+  var open = body.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.innerHTML = '<i class="arrow-icon">▶</i>&nbsp;' + (open ? 'Hide Diagram' : 'Architecture Diagram');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Word temp files
+~$*
+
+# Personal documents (not needed for the web app)
+*.docx
+*.pdf
+*.zip
+*.sql
+
+# Images not linked from the site
+*.jpeg
+*.jpg
+*.png

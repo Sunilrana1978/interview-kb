@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terraform Production Security Checklist</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f6f9;
+      padding: 40px 20px;
+      color: #1a1a2e;
+    }
+
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+      padding: 36px 40px 28px;
+      color: white;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .terraform-icon {
+      width: 44px;
+      height: 44px;
+      background: #7b42f6;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #ffffff;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: #a0aec0;
+      margin-top: 4px;
+      margin-left: 60px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 11.5px;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+
+    .body {
+      padding: 32px 40px 36px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #7b42f6;
+      margin-bottom: 16px;
+    }
+
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: #f8f9ff;
+      border: 1px solid #e8eaf6;
+      border-radius: 8px;
+      padding: 13px 16px;
+      transition: border-color 0.2s;
+    }
+
+    .checklist li:hover {
+      border-color: #7b42f6;
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #c4b5fd;
+      border-radius: 5px;
+      flex-shrink: 0;
+      margin-top: 1px;
+      background: white;
+    }
+
+    .item-content {
+      flex: 1;
+    }
+
+    .item-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 2px;
+    }
+
+    .item-desc {
+      font-size: 12.5px;
+      color: #64748b;
+      line-height: 1.5;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #ede9fe;
+      color: #6d28d9;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 1px 7px;
+      margin-right: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      vertical-align: middle;
+    }
+
+    .tag.red    { background: #fee2e2; color: #b91c1c; }
+    .tag.green  { background: #dcfce7; color: #15803d; }
+    .tag.blue   { background: #dbeafe; color: #1d4ed8; }
+    .tag.orange { background: #ffedd5; color: #c2410c; }
+
+    .footer {
+      background: #f8f9ff;
+      border-top: 1px solid #e8eaf6;
+      padding: 16px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-left {
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+
+    .footer-right {
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+
+    .print-btn {
+      display: block;
+      margin: 24px auto 0;
+      max-width: 800px;
+      text-align: right;
+    }
+
+    .print-btn button {
+      background: #7b42f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+
+    .print-btn button:hover {
+      background: #6d28d9;
+    }
+
+    @media print {
+      body { background: white; padding: 0; }
+      .page { box-shadow: none; border-radius: 0; }
+      .print-btn { display: none; }
+    }
+  </style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+  <div class="print-btn">
+    <button onclick="window.print()">🖨️ Print Checklist</button>
+  </div>
+
+  <div class="page">
+    <div class="header">
+      <div class="header-top">
+        <div class="terraform-icon">TF</div>
+        <h1>Terraform Production Security Checklist</h1>
+      </div>
+      <p>Verify all items before promoting infrastructure to production</p>
+      <div class="badge-row">
+        <span class="badge">Infrastructure as Code</span>
+        <span class="badge">AWS</span>
+        <span class="badge">Security Hardening</span>
+        <span class="badge">12 Controls</span>
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="section-label">Security Controls</div>
+      <ul class="checklist">
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag">Encryption</span> Storage Encryption at Rest</div>
+            <div class="item-desc">Encryption is enabled on all storage resources — S3, RDS, EBS — all using KMS customer managed keys.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag blue">IAM</span> Least Privilege IAM Roles</div>
+            <div class="item-desc">IAM roles follow least privilege with no wildcard actions (*) or wildcard resources (*) in any policy statement.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag red">Network</span> Restricted Security Groups</div>
+            <div class="item-desc">Security groups do not allow 0.0.0.0/0 ingress except on public-facing load balancers. All other ingress is scoped to specific CIDR blocks or security group references.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag red">Network</span> Private Subnets for Sensitive Resources</div>
+            <div class="item-desc">All sensitive resources — databases, application servers, internal services — are deployed in private subnets with no public IP assignment.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag orange">Audit</span> Logging and Auditing Enabled</div>
+            <div class="item-desc">Logging and auditing are enabled across all layers — CloudTrail for API calls, VPC Flow Logs for network traffic, and S3 access logs for object-level activity.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag">State</span> Secure Remote State</div>
+            <div class="item-desc">Terraform state file is encrypted using KMS, versioned with S3 versioning enabled, and locked with DynamoDB to prevent concurrent modifications.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag green">Protection</span> Deletion Protection on Critical Resources</div>
+            <div class="item-desc">Deletion protection is enabled on databases and critical resources. <code>prevent_destroy = true</code> is set in lifecycle blocks to prevent accidental destruction.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag blue">Validation</span> Input Validation Rules</div>
+            <div class="item-desc">All variables have validation blocks enforcing allowed values, CIDR formats, tag requirements, and instance type whitelists before any resources are created.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag blue">Validation</span> Preconditions and Postconditions</div>
+            <div class="item-desc">Resource-level preconditions verify security requirements before creation. Postconditions verify encryption, access controls, and configuration are correctly applied after creation.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag orange">Scanning</span> Checkov and tfsec Pass Clean</div>
+            <div class="item-desc">Static security scans with Checkov and tfsec return no critical or high severity violations. Any suppressions are documented with explicit justification.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag red">Secrets</span> Sensitive Outputs Protected</div>
+            <div class="item-desc">Sensitive outputs are marked with <code>sensitive = true</code>. Passwords, connection strings, and API keys are never exposed as plain text outputs.</div>
+          </div>
+        </li>
+
+        <li>
+          <div class="checkbox"></div>
+          <div class="item-content">
+            <div class="item-title"><span class="tag red">Secrets</span> Secrets from Secrets Manager Only</div>
+            <div class="item-desc">All secrets — database passwords, API keys, certificates — are fetched from AWS Secrets Manager or HashiCorp Vault at runtime. Nothing sensitive is hardcoded in tfvars or configuration files.</div>
+          </div>
+        </li>
+
+      </ul>
+    </div>
+
+    <div class="footer">
+      <div class="footer-left">Terraform Production Readiness · Security Hardening Guide</div>
+      <div class="footer-right">12 of 12 controls must pass before prod deployment</div>
+    </div>
+  </div>
+
+</body>
+</html>

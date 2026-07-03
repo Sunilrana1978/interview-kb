@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CloudWatch Composite Alarms — Reference Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #07090f;
+      --surface: #0f1521;
+      --surface2: #141c2e;
+      --border: #1a2438;
+      --border2: #243044;
+      --accent-alb: #f97316;
+      --accent-cf: #38bdf8;
+      --green: #34d399;
+      --red: #f87171;
+      --purple: #a78bfa;
+      --yellow: #fbbf24;
+      --text: #dde4f0;
+      --muted: #556070;
+      --code-bg: #080d14;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Bricolage Grotesque', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Subtle noise texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* ─── TOP NAV ─── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7,9,15,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .nav-brand {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.05em;
+    }
+
+    .nav-brand span { color: var(--accent-cf); }
+
+    .nav-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-tab {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: none;
+      color: var(--muted);
+    }
+
+    .nav-tab:hover { color: var(--text); border-color: var(--border2); }
+
+    .nav-tab.active-alb {
+      background: rgba(249,115,22,0.12);
+      border-color: rgba(249,115,22,0.35);
+      color: var(--accent-alb);
+    }
+
+    .nav-tab.active-cf {
+      background: rgba(56,189,248,0.12);
+      border-color: rgba(56,189,248,0.35);
+      color: var(--accent-cf);
+    }
+
+    .nav-tab.active-both {
+      background: rgba(167,139,250,0.12);
+      border-color: rgba(167,139,250,0.35);
+      color: var(--purple);
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      padding: 60px 40px 48px;
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .hero-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    .badge-aws { background: rgba(249,115,22,0.12); color: var(--accent-alb); border: 1px solid rgba(249,115,22,0.25); }
+    .badge-ref { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid rgba(167,139,250,0.25); }
+
+    .hero h1 {
+      font-size: clamp(30px, 4vw, 50px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 14px;
+    }
+
+    .hero h1 .cf { color: var(--accent-cf); }
+    .hero h1 .alb { color: var(--accent-alb); }
+
+    .hero-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 600px;
+    }
+
+    /* ─── SECTION TABS ─── */
+    .sections {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-panel {
+      display: none;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .section-panel.visible { display: block; }
+
+    /* ─── ARCH DIAGRAM ─── */
+    .arch {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      margin-bottom: 32px;
+    }
+
+    .arch-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .arch-flow {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .arch-node {
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-align: center;
+      border: 1px solid var(--border2);
+      min-width: 110px;
+    }
+
+    .arch-node .n-icon { font-size: 20px; margin-bottom: 4px; }
+    .arch-node .n-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .arch-node .n-name { font-size: 12px; font-weight: 700; margin-top: 2px; }
+
+    .arch-node.alb { background: rgba(249,115,22,0.07); border-color: rgba(249,115,22,0.25); }
+    .arch-node.alb .n-name { color: var(--accent-alb); }
+    .arch-node.cf  { background: rgba(56,189,248,0.07); border-color: rgba(56,189,248,0.25); }
+    .arch-node.cf  .n-name { color: var(--accent-cf); }
+    .arch-node.r53 { background: rgba(52,211,153,0.07); border-color: rgba(52,211,153,0.25); }
+    .arch-node.r53 .n-name { color: var(--green); }
+    .arch-node.alarm { background: rgba(251,191,36,0.07); border-color: rgba(251,191,36,0.25); }
+    .arch-node.alarm .n-name { color: var(--yellow); }
+    .arch-node.pd { background: rgba(167,139,250,0.07); border-color: rgba(167,139,250,0.25); }
+    .arch-node.pd .n-name { color: var(--purple); }
+    .arch-node.api { background: rgba(248,113,113,0.07); border-color: rgba(248,113,113,0.25); }
+    .arch-node.api .n-name { color: var(--red); }
+
+    .arch-arrow {
+      color: var(--muted);
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ─── METRIC CARDS ─── */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .mc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .mc:hover { transform: translateY(-2px); }
+
+    .mc::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .mc.m1::after { background: var(--red); }
+    .mc.m2::after { background: var(--accent-cf); }
+    .mc.m3::after { background: var(--green); }
+    .mc.m4::after { background: var(--yellow); }
+
+    .mc-id {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .mc-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .mc.m1 .mc-name { color: var(--red); }
+    .mc.m2 .mc-name { color: var(--accent-cf); }
+    .mc.m3 .mc-name { color: var(--green); }
+    .mc.m4 .mc-name { color: var(--yellow); }
+
+    .mc-ns {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .mc-thresh {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: var(--code-bg);
+      border: 1px solid var(--border2);
+      padding: 4px 8px;
+      border-radius: 5px;
+      color: var(--text);
+      display: inline-block;
+    }
+
+    /* ─── CODE BLOCK ─── */
+    .code-wrap {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border2);
+      margin-bottom: 32px;
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0b1120;
+      padding: 10px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; }
+    .dot.r { background: #ff5f57; }
+    .dot.y { background: #febc2e; }
+    .dot.g { background: #28c840; }
+
+    .code-filename {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--accent-cf);
+    }
+
+    .copy-btn {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: rgba(56,189,248,0.08);
+      border: 1px solid rgba(56,189,248,0.2);
+      color: var(--accent-cf);
+      padding: 4px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover { background: rgba(56,189,248,0.18); }
+
+    pre {
+      background: var(--code-bg);
+      padding: 22px 24px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.75;
+      tab-size: 2;
+    }
+
+    .k  { color: #7dd3fc; }
+    .v  { color: #86efac; }
+    .n  { color: #fbbf24; }
+    .c  { color: #4a5568; font-style: italic; }
+    .s  { color: #f97316; }
+    .b  { color: #a78bfa; }
+    .e  { color: #f87171; }
+
+    /* ─── EXPRESSION BOX ─── */
+    .expr-box {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-left: 3px solid var(--yellow);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+    }
+
+    .expr-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--yellow);
+      margin-bottom: 10px;
+    }
+
+    .expr-formula {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--code-bg);
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border2);
+      margin-bottom: 10px;
+      word-break: break-all;
+    }
+
+    .expr-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ─── PAGERDUTY CALLOUT ─── */
+    .pd-box {
+      background: rgba(167,139,250,0.06);
+      border: 1px solid rgba(167,139,250,0.25);
+      border-radius: 12px;
+      padding: 22px 26px;
+      margin-bottom: 32px;
+    }
+
+    .pd-box .pd-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--purple);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pd-box p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 8px;
+    }
+
+    .pd-box p:last-child { margin-bottom: 0; }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      background: rgba(167,139,250,0.1);
+      color: var(--purple);
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(167,139,250,0.2);
+    }
+
+    /* ─── COMPARISON TABLE ─── */
+    .compare-section { margin-bottom: 32px; }
+
+    .compare-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 10px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border2);
+      color: var(--muted);
+    }
+
+    th.alb-col { color: var(--accent-alb); }
+    th.cf-col  { color: var(--accent-cf); }
+
+    td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    td.alb-val { color: var(--accent-alb); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+    td.cf-val  { color: var(--accent-cf);  font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+    tr:last-child td { border-bottom: none; }
+
+    .compare-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    /* ─── DIVIDER ─── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+
+    .section-heading {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-heading .dot-accent {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-accent.alb { background: var(--accent-alb); box-shadow: 0 0 8px var(--accent-alb); }
+    .dot-accent.cf  { background: var(--accent-cf);  box-shadow: 0 0 8px var(--accent-cf); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── DEPLOY SECTION ─── */
+    .deploy-section {
+      margin-top: 24px;
+      margin-bottom: 32px;
+    }
+
+    .deploy-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .deploy-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .deploy-header h3 span { color: var(--green); }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      position: relative;
+    }
+
+    .step-card .step-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--green);
+      background: rgba(52,211,153,0.1);
+      border: 1px solid rgba(52,211,153,0.25);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+
+    .step-card .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .step-card .step-desc {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .cmd-wrap {
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border2);
+    }
+
+    .cmd-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0b1120;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .cmd-bar .cmd-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--green);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cmd-bar .cmd-label::before {
+      content: '▶';
+      font-size: 9px;
+    }
+
+    .cmd-copy {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      background: rgba(52,211,153,0.08);
+      border: 1px solid rgba(52,211,153,0.2);
+      color: var(--green);
+      padding: 3px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .cmd-copy:hover { background: rgba(52,211,153,0.18); }
+
+    .cmd-block {
+      background: var(--code-bg);
+      padding: 18px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      line-height: 1.8;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .cmd-comment { color: #4a5568; }
+    .cmd-key { color: var(--accent-cf); }
+    .cmd-val { color: var(--green); }
+    .cmd-flag { color: var(--yellow); }
+    .cmd-param { color: var(--accent-alb); }
+
+    .warn-box {
+      background: rgba(251,191,36,0.05);
+      border: 1px solid rgba(251,191,36,0.2);
+      border-left: 3px solid var(--yellow);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .warn-box strong { color: var(--yellow); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 680px) {
+      nav { padding: 0 16px; }
+      .hero, .sections { padding-left: 16px; padding-right: 16px; }
+      .arch-flow { flex-direction: column; align-items: flex-start; }
+      .nav-tabs { gap: 2px; }
+      .nav-tab { padding: 5px 10px; font-size: 10px; }
+    }
+  </style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">☁ CW <span>Alarms</span> Reference</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active-alb" onclick="show('alb', this)">ALB + EC2</button>
+    <button class="nav-tab" onclick="show('cf', this)">CloudFront + SPA</button>
+    <button class="nav-tab" onclick="show('both', this)">Compare</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">
+    <span class="badge badge-aws">AWS CloudFormation</span>
+    <span class="badge badge-ref">Reference Guide</span>
+  </div>
+  <h1>CloudWatch Composite Alarms<br/><span class="alb">ALB</span> &amp; <span class="cf">CloudFront</span> Patterns</h1>
+  <p class="hero-sub">
+    # Two complete examples. One for ALB-backed apps.<br/>
+    # One for SPA on CloudFront + API Gateway + PagerDuty.<br/>
+    # Both use Metric Math — single alarm, zero noise.
+  </p>
+</div>
+
+<div class="sections">
+
+  <!-- ══════════════════════════════════════════
+       PANEL 1: ALB + EC2
+  ══════════════════════════════════════════ -->
+  <div id="panel-alb" class="section-panel visible">
+
+    <div class="section-heading">
+      <div class="dot-accent alb"></div>
+      Example 1 — ALB-Backed Application
+    </div>
+
+    <!-- Architecture -->
+    <div class="arch">
+      <div class="arch-title">Architecture Flow</div>
+      <div class="arch-flow">
+        <div class="arch-node r53"><div class="n-icon">🌐</div><div class="n-label">DNS</div><div class="n-name">Route 53</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node alb"><div class="n-icon">⚖️</div><div class="n-label">Load Balancer</div><div class="n-name">ALB</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node api"><div class="n-icon">🖥</div><div class="n-label">Compute</div><div class="n-name">EC2 / ECS</div></div>
+        <div class="arch-arrow" style="margin-left:auto;">⟹</div>
+        <div class="arch-node alarm"><div class="n-icon">🔔</div><div class="n-label">Metric Math</div><div class="n-name">CW Alarm</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node pd"><div class="n-icon">📧</div><div class="n-label">Notification</div><div class="n-name">SNS Email</div></div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metric-grid">
+      <div class="mc m1">
+        <div class="mc-id">m1 — Error Rate</div>
+        <div class="mc-name">HTTPCode_Target_5XX_Count</div>
+        <div class="mc-ns">AWS/ApplicationELB</div>
+        <div class="mc-thresh">Sum &gt; 5 over 60s</div>
+      </div>
+      <div class="mc m2">
+        <div class="mc-id">m2 — Latency p99</div>
+        <div class="mc-name">TargetResponseTime</div>
+        <div class="mc-ns">AWS/ApplicationELB</div>
+        <div class="mc-thresh">p99 &gt; 0.5s (500ms)</div>
+      </div>
+      <div class="mc m3">
+        <div class="mc-id">m3 — Health Check</div>
+        <div class="mc-name">HealthCheckStatus</div>
+        <div class="mc-ns">AWS/Route53</div>
+        <div class="mc-thresh">Minimum &lt; 1 (unhealthy)</div>
+      </div>
+    </div>
+
+    <!-- Expression -->
+    <div class="expr-box">
+      <div class="expr-label">⚡ Metric Math Expression</div>
+      <div class="expr-formula">IF(m1 &gt; 5 AND m2 &gt; 0.5 AND m3 &lt; 1, 1, 0)</div>
+      <div class="expr-desc">Returns 1 only when all three signals breach simultaneously. Alarm fires when expression ≥ 1 for 2 evaluation periods. Single SNS notification sent to on-call email.</div>
+    </div>
+
+    <!-- CloudFormation -->
+    <div class="code-wrap">
+      <div class="code-bar">
+        <div class="code-bar-left">
+          <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+          <div class="code-filename">📄 alb-composite-alarm.yaml</div>
+        </div>
+        <button class="copy-btn" onclick="copyCode('alb-code')">Copy</button>
+      </div>
+      <pre id="alb-code"><span class="c"># ══════════════════════════════════════════════════════
+# Example 1: ALB-backed app — Composite Alarm (Metric Math)
+# Signals: 5xx errors + p99 latency + Route53 health check
+# Notification: SNS → Email (on-call engineer)
+# ══════════════════════════════════════════════════════</span>
+
+<span class="k">AWSTemplateFormatVersion:</span> <span class="v">"2010-09-09"</span>
+<span class="k">Description:</span> <span class="v">ALB Composite Alarm using Metric Math — single alarm, no child alarms</span>
+
+<span class="k">Parameters:</span>
+  <span class="k">AppName:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Default:</span> <span class="v">my-app</span>
+  <span class="k">LoadBalancerName:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Description:</span> <span class="v">Full ALB resource name (e.g. app/my-alb/abc1234567)</span>
+  <span class="k">HealthCheckId:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Description:</span> <span class="v">Route53 Health Check ID</span>
+  <span class="k">OnCallEmail:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Description:</span> <span class="v">On-call engineer email address</span>
+
+<span class="k">Resources:</span>
+
+  <span class="c">  # SNS Topic — single notification target</span>
+  <span class="k">AlertTopic:</span>
+    <span class="k">Type:</span> <span class="s">AWS::SNS::Topic</span>
+    <span class="k">Properties:</span>
+      <span class="k">TopicName:</span> <span class="v">!Sub "${AppName}-outage-alert"</span>
+      <span class="k">Subscription:</span>
+        - <span class="k">Protocol:</span> <span class="v">email</span>
+          <span class="k">Endpoint:</span> <span class="v">!Ref OnCallEmail</span>
+
+  <span class="c">  # Single composite alarm — Metric Math expression</span>
+  <span class="k">OutageAlarm:</span>
+    <span class="k">Type:</span> <span class="s">AWS::CloudWatch::Alarm</span>
+    <span class="k">Properties:</span>
+      <span class="k">AlarmName:</span> <span class="v">!Sub "${AppName}-ALB-OUTAGE"</span>
+      <span class="k">AlarmDescription:</span> <span class="v">High 5xx + high latency + health check down simultaneously</span>
+
+      <span class="k">Metrics:</span>
+        <span class="c">        # m1 — 5xx error count from ALB</span>
+        - <span class="k">Id:</span> <span class="v">m1</span>
+          <span class="k">MetricStat:</span>
+            <span class="k">Metric:</span>
+              <span class="k">Namespace:</span> <span class="v">AWS/ApplicationELB</span>
+              <span class="k">MetricName:</span> <span class="v">HTTPCode_Target_5XX_Count</span>
+              <span class="k">Dimensions:</span>
+                - <span class="k">Name:</span> <span class="v">LoadBalancer</span>
+                  <span class="k">Value:</span> <span class="v">!Ref LoadBalancerName</span>
+            <span class="k">Period:</span> <span class="n">60</span>
+            <span class="k">Stat:</span> <span class="v">Sum</span>
+          <span class="k">ReturnData:</span> <span class="b">false</span>
+
+        <span class="c">        # m2 — p99 latency from ALB</span>
+        - <span class="k">Id:</span> <span class="v">m2</span>
+          <span class="k">MetricStat:</span>
+            <span class="k">Metric:</span>
+              <span class="k">Namespace:</span> <span class="v">AWS/ApplicationELB</span>
+              <span class="k">MetricName:</span> <span class="v">TargetResponseTime</span>
+              <span class="k">Dimensions:</span>
+                - <span class="k">Name:</span> <span class="v">LoadBalancer</span>
+                  <span class="k">Value:</span> <span class="v">!Ref LoadBalancerName</span>
+            <span class="k">Period:</span> <span class="n">60</span>
+            <span class="k">Stat:</span> <span class="v">p99</span>
+          <span class="k">ReturnData:</span> <span class="b">false</span>
+
+        <span class="c">        # m3 — Route53 health check (1=healthy, 0=down)</span>
+        - <span class="k">Id:</span> <span class="v">m3</span>
+          <span class="k">MetricStat:</span>
+            <span class="k">Metric:</span>
+              <span class="k">Namespace:</span> <span class="v">AWS/Route53</span>
+              <span class="k">MetricName:</span> <span class="v">HealthCheckStatus</span>
+              <span class="k">Dimensions:</span>
+                - <span class="k">Name:</span> <span class="v">HealthCheckId</span>
+                  <span class="k">Value:</span> <span class="v">!Ref HealthCheckId</span>
+            <span class="k">Period:</span> <span class="n">60</span>
+            <span class="k">Stat:</span> <span class="v">Minimum</span>
+          <span class="k">ReturnData:</span> <span class="b">false</span>
+
+        <span class="c">        # expr — fires when ALL three breach at once</span>
+        - <span class="k">Id:</span> <span class="v">expr</span>
+          <span class="k">Expression:</span> <span class="v">"IF(m1 > 5 AND m2 > 0.5 AND m3 < 1, 1, 0)"</span>
+          <span class="k">Label:</span> <span class="v">ALBOutageSignal</span>
+          <span class="k">ReturnData:</span> <span class="b">true</span>
+
+      <span class="k">ComparisonOperator:</span> <span class="v">GreaterThanOrEqualToThreshold</span>
+      <span class="k">Threshold:</span> <span class="n">1</span>
+      <span class="k">EvaluationPeriods:</span> <span class="n">2</span>
+      <span class="k">TreatMissingData:</span> <span class="v">notBreaching</span>
+      <span class="k">AlarmActions:</span>
+        - <span class="v">!Ref AlertTopic</span>
+      <span class="k">OKActions:</span>
+        - <span class="v">!Ref AlertTopic</span>
+
+<span class="k">Outputs:</span>
+  <span class="k">AlarmName:</span>
+    <span class="k">Value:</span> <span class="v">!Ref OutageAlarm</span>
+  <span class="k">SNSTopicArn:</span>
+    <span class="k">Value:</span> <span class="v">!Ref AlertTopic</span></pre>
+    </div>
+    <!-- Deploy Commands — ALB -->
+    <div class="deploy-section">
+      <div class="deploy-header">
+        <h3>🚀 Deploy <span>Commands</span></h3>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">STEP 1</div>
+          <div class="step-title">Save the template</div>
+          <div class="step-desc">Save the YAML above as <code>alb-composite-alarm.yaml</code> in your working directory.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">STEP 2</div>
+          <div class="step-title">Confirm AWS credentials</div>
+          <div class="step-desc">Run <code>aws sts get-caller-identity</code> to verify you're authenticated to the correct account and region.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">STEP 3</div>
+          <div class="step-title">Deploy the stack</div>
+          <div class="step-desc">Run the deploy command below. CloudFormation creates the SNS topic and alarm in one operation.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">STEP 4</div>
+          <div class="step-title">Confirm email subscription</div>
+          <div class="step-desc">Check the on-call inbox for an AWS SNS confirmation email and click the link to activate alerts.</div>
+        </div>
+      </div>
+
+      <div class="cmd-wrap">
+        <div class="cmd-bar">
+          <div class="cmd-label">Terminal — AWS CLI</div>
+          <button class="cmd-copy" onclick="copyCmd('alb-cmd')">Copy</button>
+        </div>
+        <div class="cmd-block" id="alb-cmd"><span class="cmd-comment"># ── Verify AWS identity first ──────────────────────────</span>
+<span class="cmd-key">aws</span> <span class="cmd-val">sts get-caller-identity</span>
+
+<span class="cmd-comment"># ── Deploy ALB composite alarm stack ───────────────────</span>
+<span class="cmd-key">aws cloudformation deploy</span> \
+  <span class="cmd-flag">--template-file</span> <span class="cmd-val">alb-composite-alarm.yaml</span> \
+  <span class="cmd-flag">--stack-name</span>    <span class="cmd-val">my-app-alb-alarms</span> \
+  <span class="cmd-flag">--region</span>        <span class="cmd-val">us-east-1</span> \
+  <span class="cmd-flag">--parameter-overrides</span> \
+    <span class="cmd-param">AppName</span>=<span class="cmd-val">my-app</span> \
+    <span class="cmd-param">LoadBalancerName</span>=<span class="cmd-val">app/my-app-alb/abc1234567890</span> \
+    <span class="cmd-param">HealthCheckId</span>=<span class="cmd-val">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span> \
+    <span class="cmd-param">OnCallEmail</span>=<span class="cmd-val">oncall@yourcompany.com</span>
+
+<span class="cmd-comment"># ── Verify stack deployed successfully ─────────────────</span>
+<span class="cmd-key">aws cloudformation describe-stacks</span> \
+  <span class="cmd-flag">--stack-name</span> <span class="cmd-val">my-app-alb-alarms</span> \
+  <span class="cmd-flag">--query</span> <span class="cmd-val">"Stacks[0].StackStatus"</span>
+
+<span class="cmd-comment"># ── Check the alarm state ───────────────────────────────</span>
+<span class="cmd-key">aws cloudwatch describe-alarms</span> \
+  <span class="cmd-flag">--alarm-names</span> <span class="cmd-val">my-app-ALB-OUTAGE</span> \
+  <span class="cmd-flag">--query</span> <span class="cmd-val">"MetricAlarms[0].StateValue"</span>
+
+<span class="cmd-comment"># ── Delete stack if no longer needed ───────────────────</span>
+<span class="cmd-key">aws cloudformation delete-stack</span> \
+  <span class="cmd-flag">--stack-name</span> <span class="cmd-val">my-app-alb-alarms</span></div>
+      </div>
+
+      <div class="warn-box">
+        <strong>⚠ Note:</strong> Replace <code>app/my-app-alb/abc1234567890</code> with your actual ALB resource name — find it in the AWS Console under EC2 → Load Balancers → select your ALB → copy the ARN suffix after <code>loadbalancer/</code>. The Route53 HealthCheckId is found under Route53 → Health Checks.
+      </div>
+    </div>
+
+  </div><!-- /panel-alb -->
+
+
+  <!-- ══════════════════════════════════════════
+       PANEL 2: CLOUDFRONT + SPA + PAGERDUTY
+  ══════════════════════════════════════════ -->
+  <div id="panel-cf" class="section-panel">
+
+    <div class="section-heading">
+      <div class="dot-accent cf"></div>
+      Example 2 — SPA on CloudFront + API Gateway + PagerDuty
+    </div>
+
+    <!-- Architecture -->
+    <div class="arch">
+      <div class="arch-title">Architecture Flow</div>
+      <div class="arch-flow">
+        <div class="arch-node r53"><div class="n-icon">🌐</div><div class="n-label">DNS</div><div class="n-name">Route 53</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node cf"><div class="n-icon">🚀</div><div class="n-label">CDN</div><div class="n-name">CloudFront</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node api"><div class="n-icon">🔌</div><div class="n-label">Backend</div><div class="n-name">API Gateway</div></div>
+        <div class="arch-arrow" style="margin-left:auto;">⟹</div>
+        <div class="arch-node alarm"><div class="n-icon">🔔</div><div class="n-label">Metric Math</div><div class="n-name">CW Alarm</div></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node pd"><div class="n-icon">🟣</div><div class="n-label">PagerDuty</div><div class="n-name">SNS → PD</div></div>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metric-grid">
+      <div class="mc m1">
+        <div class="mc-id">m1 — CloudFront 5xx</div>
+        <div class="mc-name">5xxErrorRate</div>
+        <div class="mc-ns">AWS/CloudFront</div>
+        <div class="mc-thresh">Average &gt; 5%</div>
+      </div>
+      <div class="mc m2">
+        <div class="mc-id">m2 — API Gateway Errors</div>
+        <div class="mc-name">5XXError</div>
+        <div class="mc-ns">AWS/ApiGateway</div>
+        <div class="mc-thresh">Sum &gt; 10 over 60s</div>
+      </div>
+      <div class="mc m3">
+        <div class="mc-id">m3 — Health Check</div>
+        <div class="mc-name">HealthCheckStatus</div>
+        <div class="mc-ns">AWS/Route53</div>
+        <div class="mc-thresh">Minimum &lt; 1 (unhealthy)</div>
+      </div>
+      <div class="mc m4">
+        <div class="mc-id">m4 — CF Request Drop</div>
+        <div class="mc-name">Requests</div>
+        <div class="mc-ns">AWS/CloudFront</div>
+        <div class="mc-thresh">Sum &lt; 10 (traffic gone)</div>
+      </div>
+    </div>
+
+    <!-- Expression -->
+    <div class="expr-box">
+      <div class="expr-label">⚡ Metric Math Expression</div>
+      <div class="expr-formula">IF(m1 &gt; 5 AND m2 &gt; 10 AND m3 &lt; 1, 1, IF(m4 &lt; 10 AND m3 &lt; 1, 1, 0))</div>
+      <div class="expr-desc">Two trigger paths: (1) high CloudFront 5xx + high API errors + health check down, OR (2) near-zero requests + health check down (silent outage — traffic stopped reaching CloudFront entirely).</div>
+    </div>
+
+    <!-- PagerDuty callout -->
+    <div class="pd-box">
+      <div class="pd-title">🟣 PagerDuty Integration via SNS</div>
+      <p>Instead of an email subscription, add PagerDuty's HTTPS endpoint as an SNS subscriber. PagerDuty provides a unique <strong>Events API v2 integration URL</strong> per service.</p>
+      <p>In the SNS subscription, set <code>Protocol: https</code> and <code>Endpoint: https://events.pagerduty.com/integration/&lt;YOUR_KEY&gt;/enqueue</code>. PagerDuty auto-confirms the SNS subscription and routes alerts based on your escalation policy.</p>
+      <p>You can add both PagerDuty and Slack webhooks as separate subscribers on the same SNS topic — one alarm, multiple notification channels.</p>
+    </div>
+
+    <!-- CloudFormation -->
+    <div class="code-wrap">
+      <div class="code-bar">
+        <div class="code-bar-left">
+          <div class="dots"><div class="dot r"></div><div class="dot y"></div><div class="dot g"></div></div>
+          <div class="code-filename">📄 cloudfront-spa-composite-alarm.yaml</div>
+        </div>
+        <button class="copy-btn" onclick="copyCode('cf-code')">Copy</button>
+      </div>
+      <pre id="cf-code"><span class="c"># ══════════════════════════════════════════════════════
+# Example 2: SPA on CloudFront + API Gateway + PagerDuty
+# Signals: CF 5xx rate + API Gateway errors + Route53 health
+#          + CloudFront request drop (silent outage detection)
+# Notification: SNS → PagerDuty HTTPS endpoint
+# ══════════════════════════════════════════════════════</span>
+
+<span class="k">AWSTemplateFormatVersion:</span> <span class="v">"2010-09-09"</span>
+<span class="k">Description:</span> <span class="v">CloudFront SPA Composite Alarm — Metric Math + PagerDuty</span>
+
+<span class="k">Parameters:</span>
+  <span class="k">AppName:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Default:</span> <span class="v">my-spa</span>
+  <span class="k">CloudFrontDistributionId:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Description:</span> <span class="v">CloudFront Distribution ID (e.g. E1ABCDEF123456)</span>
+  <span class="k">ApiGatewayName:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Description:</span> <span class="v">API Gateway name (matches ApiName dimension)</span>
+  <span class="k">ApiGatewayStage:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Default:</span> <span class="v">prod</span>
+  <span class="k">HealthCheckId:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Description:</span> <span class="v">Route53 Health Check ID for your domain</span>
+  <span class="k">PagerDutyEndpoint:</span>
+    <span class="k">Type:</span> <span class="s">String</span>
+    <span class="k">Description:</span> <span class="v">PagerDuty Events API v2 HTTPS URL for your service</span>
+    <span class="c">    # Format: https://events.pagerduty.com/integration/&lt;KEY&gt;/enqueue</span>
+
+<span class="k">Resources:</span>
+
+  <span class="c">  # SNS Topic — routes to PagerDuty (and optionally Slack)</span>
+  <span class="k">AlertTopic:</span>
+    <span class="k">Type:</span> <span class="s">AWS::SNS::Topic</span>
+    <span class="k">Properties:</span>
+      <span class="k">TopicName:</span> <span class="v">!Sub "${AppName}-outage-alert"</span>
+      <span class="k">Subscription:</span>
+        <span class="c">        # PagerDuty receives SNS via HTTPS and creates incidents</span>
+        - <span class="k">Protocol:</span> <span class="v">https</span>
+          <span class="k">Endpoint:</span> <span class="v">!Ref PagerDutyEndpoint</span>
+        <span class="c">        # Optional: add Slack webhook as second subscriber
+        # - Protocol: https
+        #   Endpoint: https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK</span>
+
+  <span class="c">  # Single composite alarm using Metric Math across 4 signals</span>
+  <span class="k">SPAOutageAlarm:</span>
+    <span class="k">Type:</span> <span class="s">AWS::CloudWatch::Alarm</span>
+    <span class="k">Properties:</span>
+      <span class="k">AlarmName:</span> <span class="v">!Sub "${AppName}-SPA-OUTAGE"</span>
+      <span class="k">AlarmDescription:</span> <span class="v">>
+        CRITICAL: SPA outage detected. CloudFront errors, API Gateway
+        failures, and health check down. Page SRE immediately.</span>
+
+      <span class="k">Metrics:</span>
+        <span class="c">        # m1 — CloudFront 5xx error rate (%)
+        # NOTE: CloudFront metrics must use us-east-1 region</span>
+        - <span class="k">Id:</span> <span class="v">m1</span>
+          <span class="k">MetricStat:</span>
+            <span class="k">Metric:</span>
+              <span class="k">Namespace:</span> <span class="v">AWS/CloudFront</span>
+              <span class="k">MetricName:</span> <span class="v">5xxErrorRate</span>
+              <span class="k">Dimensions:</span>
+                - <span class="k">Name:</span> <span class="v">DistributionId</span>
+                  <span class="k">Value:</span> <span class="v">!Ref CloudFrontDistributionId</span>
+                - <span class="k">Name:</span> <span class="v">Region</span>
+                  <span class="k">Value:</span> <span class="v">Global</span>
+            <span class="k">Period:</span> <span class="n">60</span>
+            <span class="k">Stat:</span> <span class="v">Average</span>
+          <span class="k">ReturnData:</span> <span class="b">false</span>
+
+        <span class="c">        # m2 — API Gateway 5xx error count</span>
+        - <span class="k">Id:</span> <span class="v">m2</span>
+          <span class="k">MetricStat:</span>
+            <span class="k">Metric:</span>
+              <span class="k">Namespace:</span> <span class="v">AWS/ApiGateway</span>
+              <span class="k">MetricName:</span> <span class="v">5XXError</span>
+              <span class="k">Dimensions:</span>
+                - <span class="k">Name:</span> <span class="v">ApiName</span>
+                  <span class="k">Value:</span> <span class="v">!Ref ApiGatewayName</span>
+                - <span class="k">Name:</span> <span class="v">Stage</span>
+                  <span class="k">Value:</span> <span class="v">!Ref ApiGatewayStage</span>
+            <span class="k">Period:</span> <span class="n">60</span>
+            <span class="k">Stat:</span> <span class="v">Sum</span>
+          <span class="k">ReturnData:</span> <span class="b">false</span>
+
+        <span class="c">        # m3 — Route53 health check (1=healthy, 0=down)</span>
+        - <span class="k">Id:</span> <span class="v">m3</span>
+          <span class="k">MetricStat:</span>
+            <span class="k">Metric:</span>
+              <span class="k">Namespace:</span> <span class="v">AWS/Route53</span>
+              <span class="k">MetricName:</span> <span class="v">HealthCheckStatus</span>
+              <span class="k">Dimensions:</span>
+                - <span class="k">Name:</span> <span class="v">HealthCheckId</span>
+                  <span class="k">Value:</span> <span class="v">!Ref HealthCheckId</span>
+            <span class="k">Period:</span> <span class="n">60</span>
+            <span class="k">Stat:</span> <span class="v">Minimum</span>
+          <span class="k">ReturnData:</span> <span class="b">false</span>
+
+        <span class="c">        # m4 — CloudFront total request count
+        # Catches silent outages: traffic drops to near-zero</span>
+        - <span class="k">Id:</span> <span class="v">m4</span>
+          <span class="k">MetricStat:</span>
+            <span class="k">Metric:</span>
+              <span class="k">Namespace:</span> <span class="v">AWS/CloudFront</span>
+              <span class="k">MetricName:</span> <span class="v">Requests</span>
+              <span class="k">Dimensions:</span>
+                - <span class="k">Name:</span> <span class="v">DistributionId</span>
+                  <span class="k">Value:</span> <span class="v">!Ref CloudFrontDistributionId</span>
+                - <span class="k">Name:</span> <span class="v">Region</span>
+                  <span class="k">Value:</span> <span class="v">Global</span>
+            <span class="k">Period:</span> <span class="n">60</span>
+            <span class="k">Stat:</span> <span class="v">Sum</span>
+          <span class="k">ReturnData:</span> <span class="b">false</span>
+
+        <span class="c">        # expr — Two trigger scenarios:
+        # Path A: CF errors + API errors + health check down
+        # Path B: Traffic vanished + health check down (silent outage)</span>
+        - <span class="k">Id:</span> <span class="v">expr</span>
+          <span class="k">Expression:</span> <span class="v">"IF(m1 > 5 AND m2 > 10 AND m3 < 1, 1, IF(m4 < 10 AND m3 < 1, 1, 0))"</span>
+          <span class="k">Label:</span> <span class="v">SPAOutageSignal</span>
+          <span class="k">ReturnData:</span> <span class="b">true</span>
+
+      <span class="k">ComparisonOperator:</span> <span class="v">GreaterThanOrEqualToThreshold</span>
+      <span class="k">Threshold:</span> <span class="n">1</span>
+      <span class="k">EvaluationPeriods:</span> <span class="n">2</span>
+      <span class="k">TreatMissingData:</span> <span class="v">breaching</span>   <span class="c"># Missing CloudFront data = assume down</span>
+      <span class="k">AlarmActions:</span>
+        - <span class="v">!Ref AlertTopic</span>
+      <span class="k">OKActions:</span>
+        - <span class="v">!Ref AlertTopic</span>
+
+<span class="k">Outputs:</span>
+  <span class="k">AlarmName:</span>
+    <span class="k">Value:</span> <span class="v">!Ref SPAOutageAlarm</span>
+    <span class="k">Description:</span> <span class="v">Composite alarm for SPA outage detection</span>
+  <span class="k">SNSTopicArn:</span>
+    <span class="k">Value:</span> <span class="v">!Ref AlertTopic</span>
+    <span class="k">Description:</span> <span class="v">SNS topic ARN — add more subscribers (Slack, email) here</span></pre>
+    </div>
+    <!-- Deploy Commands — CloudFront -->
+    <div class="deploy-section">
+      <div class="deploy-header">
+        <h3>🚀 Deploy <span>Commands</span></h3>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">STEP 1</div>
+          <div class="step-title">Save the template</div>
+          <div class="step-desc">Save the YAML as <code>cloudfront-spa-composite-alarm.yaml</code> in your working directory.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">STEP 2 — CRITICAL</div>
+          <div class="step-title">Use us-east-1 region</div>
+          <div class="step-desc">CloudFront metrics only exist in <code>us-east-1</code>. This stack MUST be deployed there regardless of where your app runs.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">STEP 3</div>
+          <div class="step-title">Get PagerDuty URL</div>
+          <div class="step-desc">In PagerDuty → Services → your service → Integrations → Add Integration → Amazon CloudWatch. Copy the HTTPS endpoint URL.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-num">STEP 4</div>
+          <div class="step-title">Deploy &amp; confirm</div>
+          <div class="step-desc">Run the deploy command. PagerDuty auto-confirms the SNS subscription — no manual email confirmation needed.</div>
+        </div>
+      </div>
+
+      <div class="cmd-wrap">
+        <div class="cmd-bar">
+          <div class="cmd-label">Terminal — AWS CLI</div>
+          <button class="cmd-copy" onclick="copyCmd('cf-cmd')">Copy</button>
+        </div>
+        <div class="cmd-block" id="cf-cmd"><span class="cmd-comment"># ── Verify AWS identity ─────────────────────────────────</span>
+<span class="cmd-key">aws</span> <span class="cmd-val">sts get-caller-identity</span>
+
+<span class="cmd-comment"># ── IMPORTANT: CloudFront metrics only exist in us-east-1</span>
+<span class="cmd-comment">#    Deploy this stack to us-east-1 regardless of app region</span>
+
+<span class="cmd-comment"># ── Deploy CloudFront SPA composite alarm stack ─────────</span>
+<span class="cmd-key">aws cloudformation deploy</span> \
+  <span class="cmd-flag">--template-file</span> <span class="cmd-val">cloudfront-spa-composite-alarm.yaml</span> \
+  <span class="cmd-flag">--stack-name</span>    <span class="cmd-val">my-spa-cf-alarms</span> \
+  <span class="cmd-flag">--region</span>        <span class="cmd-val">us-east-1</span> \
+  <span class="cmd-flag">--parameter-overrides</span> \
+    <span class="cmd-param">AppName</span>=<span class="cmd-val">my-spa</span> \
+    <span class="cmd-param">CloudFrontDistributionId</span>=<span class="cmd-val">E1ABCDEF1234567</span> \
+    <span class="cmd-param">ApiGatewayName</span>=<span class="cmd-val">my-api</span> \
+    <span class="cmd-param">ApiGatewayStage</span>=<span class="cmd-val">prod</span> \
+    <span class="cmd-param">HealthCheckId</span>=<span class="cmd-val">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</span> \
+    <span class="cmd-param">PagerDutyEndpoint</span>=<span class="cmd-val">https://events.pagerduty.com/integration/YOUR_KEY/enqueue</span>
+
+<span class="cmd-comment"># ── Verify stack status ─────────────────────────────────</span>
+<span class="cmd-key">aws cloudformation describe-stacks</span> \
+  <span class="cmd-flag">--stack-name</span> <span class="cmd-val">my-spa-cf-alarms</span> \
+  <span class="cmd-flag">--region</span>     <span class="cmd-val">us-east-1</span> \
+  <span class="cmd-flag">--query</span>      <span class="cmd-val">"Stacks[0].StackStatus"</span>
+
+<span class="cmd-comment"># ── Check alarm state ───────────────────────────────────</span>
+<span class="cmd-key">aws cloudwatch describe-alarms</span> \
+  <span class="cmd-flag">--alarm-names</span> <span class="cmd-val">my-spa-SPA-OUTAGE</span> \
+  <span class="cmd-flag">--region</span>      <span class="cmd-val">us-east-1</span> \
+  <span class="cmd-flag">--query</span>       <span class="cmd-val">"MetricAlarms[0].StateValue"</span>
+
+<span class="cmd-comment"># ── Test alarm manually (force ALARM state) ─────────────</span>
+<span class="cmd-key">aws cloudwatch set-alarm-state</span> \
+  <span class="cmd-flag">--alarm-name</span>   <span class="cmd-val">my-spa-SPA-OUTAGE</span> \
+  <span class="cmd-flag">--state-value</span>  <span class="cmd-val">ALARM</span> \
+  <span class="cmd-flag">--state-reason</span> <span class="cmd-val">"Manual test — verifying PagerDuty integration"</span> \
+  <span class="cmd-flag">--region</span>       <span class="cmd-val">us-east-1</span>
+
+<span class="cmd-comment"># ── Reset alarm back to OK after testing ────────────────</span>
+<span class="cmd-key">aws cloudwatch set-alarm-state</span> \
+  <span class="cmd-flag">--alarm-name</span>   <span class="cmd-val">my-spa-SPA-OUTAGE</span> \
+  <span class="cmd-flag">--state-value</span>  <span class="cmd-val">OK</span> \
+  <span class="cmd-flag">--state-reason</span> <span class="cmd-val">"Resetting after manual test"</span> \
+  <span class="cmd-flag">--region</span>       <span class="cmd-val">us-east-1</span>
+
+<span class="cmd-comment"># ── Delete stack if no longer needed ────────────────────</span>
+<span class="cmd-key">aws cloudformation delete-stack</span> \
+  <span class="cmd-flag">--stack-name</span> <span class="cmd-val">my-spa-cf-alarms</span> \
+  <span class="cmd-flag">--region</span>     <span class="cmd-val">us-east-1</span></div>
+      </div>
+
+      <div class="warn-box">
+        <strong>⚠ CloudFront Distribution ID:</strong> Find it in AWS Console → CloudFront → Distributions → the ID column (e.g. <code>E1ABCDEF1234567</code>). Your API Gateway name is under API Gateway → APIs → the API name shown in the list. The <code>set-alarm-state</code> commands let you test the PagerDuty integration without waiting for a real outage.
+      </div>
+    </div>
+
+  </div><!-- /panel-cf -->
+
+
+  <!-- ══════════════════════════════════════════
+       PANEL 3: COMPARISON
+  ══════════════════════════════════════════ -->
+  <div id="panel-both" class="section-panel">
+
+    <div class="section-heading">
+      <div class="dot-accent" style="background:var(--purple);box-shadow:0 0 8px var(--purple);"></div>
+      Side-by-Side Comparison
+    </div>
+
+    <div class="compare-section">
+      <div class="compare-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Signal / Property</th>
+              <th class="alb-col">⚖️ ALB + EC2</th>
+              <th class="cf-col">🚀 CloudFront + SPA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Error metric</td>
+              <td class="alb-val">HTTPCode_Target_5XX_Count<br/>AWS/ApplicationELB</td>
+              <td class="cf-val">5xxErrorRate<br/>AWS/CloudFront</td>
+            </tr>
+            <tr>
+              <td>Latency / perf</td>
+              <td class="alb-val">TargetResponseTime (p99)<br/>AWS/ApplicationELB</td>
+              <td class="cf-val">5XXError count<br/>AWS/ApiGateway</td>
+            </tr>
+            <tr>
+              <td>Health check</td>
+              <td class="alb-val">HealthCheckStatus<br/>AWS/Route53</td>
+              <td class="cf-val">HealthCheckStatus<br/>AWS/Route53</td>
+            </tr>
+            <tr>
+              <td>Silent outage</td>
+              <td class="alb-val">Not needed<br/>(ALB shows errors)</td>
+              <td class="cf-val">Requests &lt; 10<br/>AWS/CloudFront</td>
+            </tr>
+            <tr>
+              <td>Metric Math expr</td>
+              <td class="alb-val">IF(m1&gt;5 AND m2&gt;0.5 AND m3&lt;1, 1, 0)</td>
+              <td class="cf-val">IF(m1&gt;5 AND m2&gt;10 AND m3&lt;1, 1,<br/>  IF(m4&lt;10 AND m3&lt;1, 1, 0))</td>
+            </tr>
+            <tr>
+              <td>Notification</td>
+              <td class="alb-val">SNS → Email (on-call)</td>
+              <td class="cf-val">SNS → PagerDuty HTTPS</td>
+            </tr>
+            <tr>
+              <td>TreatMissingData</td>
+              <td class="alb-val">notBreaching</td>
+              <td class="cf-val">breaching<br/>(missing CF data = assume down)</td>
+            </tr>
+            <tr>
+              <td>CloudFront region note</td>
+              <td class="alb-val">N/A</td>
+              <td class="cf-val">CloudFront metrics must be read<br/>from us-east-1 only</td>
+            </tr>
+            <tr>
+              <td>CFN resource type</td>
+              <td class="alb-val">AWS::CloudWatch::Alarm</td>
+              <td class="cf-val">AWS::CloudWatch::Alarm</td>
+            </tr>
+            <tr>
+              <td>Child alarms needed?</td>
+              <td class="alb-val">No — Metric Math only</td>
+              <td class="cf-val">No — Metric Math only</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Key insight -->
+    <div class="pd-box" style="border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.05);">
+      <div class="pd-title" style="color:var(--yellow);">💡 Key Interview Takeaway</div>
+      <p>Both examples use a <strong>single <code>AWS::CloudWatch::Alarm</code></strong> with a Metric Math <code>Expression</code> entry — no child alarms, no <code>CompositeAlarm</code> resource needed.</p>
+      <p>The expression is evaluated every period. It returns <code>1</code> only when the right combination of signals breach — eliminating noise from individual metric spikes. One alarm fires one SNS message to one on-call channel.</p>
+      <p>For CloudFront, always remember: <strong>CloudFront metrics only exist in us-east-1</strong>. Your CloudFormation stack must be deployed there, or you must use a cross-region metric reference.</p>
+    </div>
+
+    <!-- Key insight -->
+    <div class="pd-box" style="border-color:rgba(251,191,36,0.3);background:rgba(251,191,36,0.05);">
+      <div class="pd-title" style="color:var(--yellow);">💡 Key Interview Takeaway</div>
+      <p>Both examples use a <strong>single <code>AWS::CloudWatch::Alarm</code></strong> with a Metric Math <code>Expression</code> entry — no child alarms, no <code>CompositeAlarm</code> resource needed.</p>
+      <p>The expression is evaluated every period. It returns <code>1</code> only when the right combination of signals breach — eliminating noise from individual metric spikes. One alarm fires one SNS message to one on-call channel.</p>
+      <p>For CloudFront, always remember: <strong>CloudFront metrics only exist in us-east-1</strong>. Your CloudFormation stack must be deployed there, or you must use a cross-region metric reference.</p>
+    </div>
+
+    <!-- Quick deploy reference in compare tab -->
+    <hr class="section-divider"/>
+    <div class="section-heading" style="margin-top:0;">
+      <div class="dot-accent" style="background:var(--green);box-shadow:0 0 8px var(--green);"></div>
+      Quick Deploy Reference
+    </div>
+
+    <div class="cmd-wrap" style="margin-bottom:16px;">
+      <div class="cmd-bar">
+        <div class="cmd-label">ALB + EC2 — Deploy Command</div>
+        <button class="cmd-copy" onclick="copyCmd('compare-alb-cmd')">Copy</button>
+      </div>
+      <div class="cmd-block" id="compare-alb-cmd"><span class="cmd-key">aws cloudformation deploy</span> \
+  <span class="cmd-flag">--template-file</span> <span class="cmd-val">alb-composite-alarm.yaml</span> \
+  <span class="cmd-flag">--stack-name</span>    <span class="cmd-val">my-app-alb-alarms</span> \
+  <span class="cmd-flag">--region</span>        <span class="cmd-val">us-east-1</span> \
+  <span class="cmd-flag">--parameter-overrides</span> \
+    <span class="cmd-param">AppName</span>=<span class="cmd-val">my-app</span> \
+    <span class="cmd-param">LoadBalancerName</span>=<span class="cmd-val">app/my-app-alb/abc1234567890</span> \
+    <span class="cmd-param">HealthCheckId</span>=<span class="cmd-val">YOUR_HEALTHCHECK_ID</span> \
+    <span class="cmd-param">OnCallEmail</span>=<span class="cmd-val">oncall@yourcompany.com</span></div>
+    </div>
+
+    <div class="cmd-wrap" style="margin-bottom:16px;">
+      <div class="cmd-bar">
+        <div class="cmd-label">CloudFront + SPA — Deploy Command</div>
+        <button class="cmd-copy" onclick="copyCmd('compare-cf-cmd')">Copy</button>
+      </div>
+      <div class="cmd-block" id="compare-cf-cmd"><span class="cmd-comment"># Must deploy to us-east-1 — CloudFront metrics only exist there</span>
+<span class="cmd-key">aws cloudformation deploy</span> \
+  <span class="cmd-flag">--template-file</span> <span class="cmd-val">cloudfront-spa-composite-alarm.yaml</span> \
+  <span class="cmd-flag">--stack-name</span>    <span class="cmd-val">my-spa-cf-alarms</span> \
+  <span class="cmd-flag">--region</span>        <span class="cmd-val">us-east-1</span> \
+  <span class="cmd-flag">--parameter-overrides</span> \
+    <span class="cmd-param">AppName</span>=<span class="cmd-val">my-spa</span> \
+    <span class="cmd-param">CloudFrontDistributionId</span>=<span class="cmd-val">E1ABCDEF1234567</span> \
+    <span class="cmd-param">ApiGatewayName</span>=<span class="cmd-val">my-api</span> \
+    <span class="cmd-param">ApiGatewayStage</span>=<span class="cmd-val">prod</span> \
+    <span class="cmd-param">HealthCheckId</span>=<span class="cmd-val">YOUR_HEALTHCHECK_ID</span> \
+    <span class="cmd-param">PagerDutyEndpoint</span>=<span class="cmd-val">https://events.pagerduty.com/integration/YOUR_KEY/enqueue</span></div>
+    </div>
+
+    <div class="cmd-wrap">
+      <div class="cmd-bar">
+        <div class="cmd-label">Useful Verification Commands (both stacks)</div>
+        <button class="cmd-copy" onclick="copyCmd('compare-verify-cmd')">Copy</button>
+      </div>
+      <div class="cmd-block" id="compare-verify-cmd"><span class="cmd-comment"># Check stack status</span>
+<span class="cmd-key">aws cloudformation describe-stacks</span> \
+  <span class="cmd-flag">--stack-name</span> <span class="cmd-val">STACK_NAME</span> \
+  <span class="cmd-flag">--query</span>      <span class="cmd-val">"Stacks[0].StackStatus"</span>
+
+<span class="cmd-comment"># Check alarm state</span>
+<span class="cmd-key">aws cloudwatch describe-alarms</span> \
+  <span class="cmd-flag">--alarm-names</span> <span class="cmd-val">ALARM_NAME</span> \
+  <span class="cmd-flag">--query</span>       <span class="cmd-val">"MetricAlarms[0].StateValue"</span>
+
+<span class="cmd-comment"># Manually trigger alarm to test notifications</span>
+<span class="cmd-key">aws cloudwatch set-alarm-state</span> \
+  <span class="cmd-flag">--alarm-name</span>   <span class="cmd-val">ALARM_NAME</span> \
+  <span class="cmd-flag">--state-value</span>  <span class="cmd-val">ALARM</span> \
+  <span class="cmd-flag">--state-reason</span> <span class="cmd-val">"Manual test"</span>
+
+<span class="cmd-comment"># Reset alarm after test</span>
+<span class="cmd-key">aws cloudwatch set-alarm-state</span> \
+  <span class="cmd-flag">--alarm-name</span>   <span class="cmd-val">ALARM_NAME</span> \
+  <span class="cmd-flag">--state-value</span>  <span class="cmd-val">OK</span> \
+  <span class="cmd-flag">--state-reason</span> <span class="cmd-val">"Reset after manual test"</span>
+
+<span class="cmd-comment"># List all CloudWatch alarms in account</span>
+<span class="cmd-key">aws cloudwatch describe-alarms</span> \
+  <span class="cmd-flag">--query</span> <span class="cmd-val">"MetricAlarms[*].{Name:AlarmName,State:StateValue}"</span> \
+  <span class="cmd-flag">--output</span> <span class="cmd-val">table</span>
+
+<span class="cmd-comment"># Delete a stack cleanly</span>
+<span class="cmd-key">aws cloudformation delete-stack</span> \
+  <span class="cmd-flag">--stack-name</span> <span class="cmd-val">STACK_NAME</span></div>
+    </div>
+
+  </div><!-- /panel-both -->
+
+</div><!-- /sections -->
+
+<script>
+  function show(panel, btn) {
+    document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('visible'));
+    document.querySelectorAll('.nav-tab').forEach(b => b.className = 'nav-tab');
+    document.getElementById('panel-' + panel).classList.add('visible');
+    btn.className = 'nav-tab active-' + panel;
+  }
+
+  function copyCmd(id) {
+    const block = document.getElementById(id);
+    navigator.clipboard.writeText(block.innerText).then(() => {
+      const btns = document.querySelectorAll('.cmd-copy');
+      btns.forEach(b => {
+        if (b.getAttribute('onclick').includes(id)) {
+          b.textContent = '✓ Copied';
+          setTimeout(() => b.textContent = 'Copy', 2000);
+        }
+      });
+    });
+  }
+
+  function copyCode(id) {
+    const pre = document.getElementById(id);
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      const btns = document.querySelectorAll('.copy-btn');
+      btns.forEach(b => {
+        if (b.getAttribute('onclick').includes(id)) {
+          b.textContent = '✓ Copied';
+          setTimeout(() => b.textContent = 'Copy', 2000);
+        }
+      });
+    });
+  }
+</script>
+</body>
+</html>

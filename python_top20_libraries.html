@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top 20 Python Libraries — Modern App Dev Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d1117;
+    --surface:   #161b22;
+    --card:      #1c2128;
+    --border:    #30363d;
+    --text:      #e6edf3;
+    --muted:     #8b949e;
+    --api:       #58a6ff;
+    --ms:        #3fb950;
+    --data:      #d29922;
+    --ai:        #bc8cff;
+    --api-bg:    #0d1b2e;
+    --ms-bg:     #0d1f14;
+    --data-bg:   #1f1a0d;
+    --ai-bg:     #1a0d2e;
+    --code-bg:   #0d1117;
+    --radius:    8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  nav .brand { font-weight: 700; font-size: 15px; color: var(--text); white-space: nowrap; }
+  nav .brand span { color: var(--ai); }
+  .nav-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .pill-api  { color: var(--api);  background: var(--api-bg);  border-color: #1a3a5e; }
+  .pill-ms   { color: var(--ms);   background: var(--ms-bg);   border-color: #1a3a1a; }
+  .pill-data { color: var(--data); background: var(--data-bg); border-color: #3a2e0d; }
+  .pill-ai   { color: var(--ai);   background: var(--ai-bg);   border-color: #3a1a5e; }
+  .pill:hover { opacity: 0.8; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 64px 32px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .hero h1 em { font-style: normal; color: var(--ai); }
+  .hero p { color: var(--muted); max-width: 600px; font-size: 15px; }
+  .hero-meta { display: flex; gap: 32px; margin-top: 28px; flex-wrap: wrap; }
+  .hero-stat { display: flex; flex-direction: column; gap: 2px; }
+  .hero-stat .num { font-size: 24px; font-weight: 700; }
+  .hero-stat .label { font-size: 11px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+  /* ── CATEGORY SECTION ── */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 32px 0;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .section-header h2 { font-size: 20px; font-weight: 700; }
+  .section-header .count { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+  /* ── LIBRARY CARD ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    transition: border-color 0.15s;
+  }
+  .card:hover { border-color: #484f58; }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .lib-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    padding-top: 3px;
+    min-width: 24px;
+  }
+  .lib-info { flex: 1; min-width: 200px; }
+  .lib-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .lib-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tag {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .tag-api  { color: var(--api);  background: var(--api-bg);  border: 1px solid #1a3a5e; }
+  .tag-ms   { color: var(--ms);   background: var(--ms-bg);   border: 1px solid #1a3a1a; }
+  .tag-data { color: var(--data); background: var(--data-bg); border: 1px solid #3a2e0d; }
+  .tag-ai   { color: var(--ai);   background: var(--ai-bg);   border: 1px solid #3a1a5e; }
+
+  .lib-install {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: var(--ms);
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  .lib-desc { color: #c9d1d9; margin-bottom: 16px; font-size: 13.5px; }
+
+  .use-cases {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .use-case {
+    font-size: 11px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 10px;
+    color: var(--muted);
+  }
+
+  /* ── CODE BLOCK ── */
+  .code-wrap {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .code-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: #161b22;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-dots { display: flex; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+  .code-filename { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); }
+  pre {
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.75;
+    color: #c9d1d9;
+  }
+
+  /* syntax highlight helpers */
+  .k  { color: #ff7b72; }   /* keyword */
+  .s  { color: #a5d6ff; }   /* string */
+  .c  { color: #8b949e; font-style: italic; } /* comment */
+  .f  { color: #d2a8ff; }   /* function */
+  .n  { color: #ffa657; }   /* number / decorator */
+  .m  { color: #79c0ff; }   /* module / class */
+  .p  { color: #e6edf3; }   /* punctuation */
+
+  /* ── DIVIDER ── */
+  .divider { height: 1px; background: var(--border); max-width: 1100px; margin: 48px auto 0; }
+
+  /* ── FOOTER ── */
+  footer {
+    max-width: 1100px;
+    margin: 48px auto;
+    padding: 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer p { color: var(--muted); font-size: 12px; }
+
+  /* ── TOC SIDEBAR HINT ── */
+  .toc-float {
+    position: fixed;
+    right: 24px;
+    top: 80px;
+    width: 180px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    display: none;
+  }
+  @media(min-width: 1400px) { .toc-float { display: block; } }
+  .toc-float h4 { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: 10px; }
+  .toc-float a { display: block; font-size: 11px; color: var(--muted); text-decoration: none; padding: 3px 0; border-left: 2px solid transparent; padding-left: 8px; transition: all 0.1s; }
+  .toc-float a:hover { color: var(--text); border-left-color: var(--ai); }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 26px; }
+    .section { padding: 32px 16px 0; }
+    .card { padding: 16px; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<!-- NAV -->
+<nav>
+  <div class="brand">Python <span>∙</span> Top 20 Libraries</div>
+  <div class="nav-pills">
+    <a href="#restful-api" class="pill pill-api">REST API</a>
+    <a href="#microservices" class="pill pill-ms">Microservices</a>
+    <a href="#data" class="pill pill-data">Data</a>
+    <a href="#ai" class="pill pill-ai">AI / RAG / Agents</a>
+  </div>
+</nav>
+
+<!-- FLOATING TOC -->
+<div class="toc-float">
+  <h4>Jump to</h4>
+  <a href="#restful-api">🔵 REST API</a>
+  <a href="#lib-fastapi">FastAPI</a>
+  <a href="#lib-flask">Flask</a>
+  <a href="#lib-django">Django REST</a>
+  <a href="#lib-pydantic">Pydantic</a>
+  <a href="#lib-httpx">HTTPX</a>
+  <a href="#microservices">🟢 Microservices</a>
+  <a href="#lib-celery">Celery</a>
+  <a href="#lib-kafka">Kafka</a>
+  <a href="#lib-grpc">gRPC</a>
+  <a href="#lib-redis">Redis</a>
+  <a href="#lib-sqlalchemy">SQLAlchemy</a>
+  <a href="#data">🟡 Data</a>
+  <a href="#lib-pandas">Pandas</a>
+  <a href="#lib-polars">Polars</a>
+  <a href="#lib-numpy">NumPy</a>
+  <a href="#lib-pyspark">PySpark</a>
+  <a href="#lib-dbt">dbt</a>
+  <a href="#ai">🟣 AI / RAG</a>
+  <a href="#lib-langchain">LangChain</a>
+  <a href="#lib-boto3">Boto3 Bedrock</a>
+  <a href="#lib-openai">OpenAI SDK</a>
+  <a href="#lib-chromadb">ChromaDB</a>
+  <a href="#lib-transformers">Transformers</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-eyebrow">Python Ecosystem · 2024–2025</p>
+  <h1>Top 20 Libraries for<br><em>Modern Application Development</em></h1>
+  <p>A curated reference covering REST APIs, microservices, data manipulation, and AI — RAG pipelines, agentic systems, and LLM integrations. Each entry includes a brief, use cases, and a real code snippet.</p>
+  <div class="hero-meta">
+    <div class="hero-stat"><span class="num" style="color:var(--api)">5</span><span class="label">REST API</span></div>
+    <div class="hero-stat"><span class="num" style="color:var(--ms)">5</span><span class="label">Microservices</span></div>
+    <div class="hero-stat"><span class="num" style="color:var(--data)">5</span><span class="label">Data</span></div>
+    <div class="hero-stat"><span class="num" style="color:var(--ai)">5</span><span class="label">AI / RAG / Agents</span></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 1 — REST API
+════════════════════════════════════════════ -->
+<section id="restful-api" class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:#0d1b2e;">🔵</div>
+    <h2 style="color:var(--api)">REST API Development</h2>
+    <span class="count">5 libraries</span>
+  </div>
+
+  <!-- 1. FastAPI -->
+  <div id="lib-fastapi" class="card">
+    <div class="card-header">
+      <span class="lib-num">01</span>
+      <div class="lib-info">
+        <div class="lib-name">FastAPI</div>
+        <div class="lib-tags">
+          <span class="tag tag-api">REST API</span>
+          <span class="tag tag-ms">Async</span>
+        </div>
+      </div>
+      <span class="lib-install">pip install fastapi uvicorn</span>
+    </div>
+    <p class="lib-desc">
+      The de-facto standard for building high-performance async REST APIs in Python. Built on Starlette + Pydantic, it auto-generates OpenAPI/Swagger docs, handles request validation via type hints, and achieves near Node.js throughput using ASGI + asyncio. Ideal for microservice APIs, ML model serving, and data APIs.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">ML model serving</span>
+      <span class="use-case">REST microservices</span>
+      <span class="use-case">OpenAPI auto-docs</span>
+      <span class="use-case">Background tasks</span>
+      <span class="use-case">WebSockets</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar">
+        <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+        <span class="code-filename">main.py</span>
+      </div>
+<pre><span class="k">from</span> <span class="m">fastapi</span> <span class="k">import</span> FastAPI, HTTPException, Depends
+<span class="k">from</span> <span class="m">pydantic</span> <span class="k">import</span> BaseModel
+<span class="k">from</span> <span class="m">typing</span> <span class="k">import</span> Annotated
+
+app = FastAPI(title=<span class="s">"Product API"</span>, version=<span class="s">"1.0"</span>)
+
+<span class="k">class</span> <span class="m">Product</span>(BaseModel):
+    name: str
+    price: <span class="m">float</span>
+    sku: str
+
+<span class="c"># Dependency injection — e.g., DB session or auth</span>
+<span class="k">async def</span> <span class="f">get_current_user</span>(token: str = <span class="s">"Bearer xyz"</span>):
+    <span class="k">return</span> {<span class="s">"user_id"</span>: <span class="s">"u123"</span>}
+
+<span class="n">@app.post</span>(<span class="s">"/products"</span>, status_code=<span class="n">201</span>)
+<span class="k">async def</span> <span class="f">create_product</span>(
+    product: Product,
+    user: Annotated[dict, Depends(get_current_user)]
+):
+    <span class="c"># Auto-validated by Pydantic; docs at /docs</span>
+    <span class="k">return</span> {<span class="s">"id"</span>: <span class="s">"p-001"</span>, **product.model_dump()}
+
+<span class="n">@app.get</span>(<span class="s">"/products/{product_id}"</span>)
+<span class="k">async def</span> <span class="f">get_product</span>(product_id: str):
+    <span class="k">if</span> product_id == <span class="s">"404"</span>:
+        <span class="k">raise</span> HTTPException(status_code=<span class="n">404</span>, detail=<span class="s">"Not found"</span>)
+    <span class="k">return</span> {<span class="s">"id"</span>: product_id, <span class="s">"name"</span>: <span class="s">"Air Max"</span>}
+
+<span class="c"># Run: uvicorn main:app --reload</span></pre>
+    </div>
+  </div>
+
+  <!-- 2. Flask -->
+  <div id="lib-flask" class="card">
+    <div class="card-header">
+      <span class="lib-num">02</span>
+      <div class="lib-info">
+        <div class="lib-name">Flask</div>
+        <div class="lib-tags"><span class="tag tag-api">REST API</span><span class="tag tag-ms">Microservice</span></div>
+      </div>
+      <span class="lib-install">pip install flask flask-restx</span>
+    </div>
+    <p class="lib-desc">
+      The original Python micro-framework. Flask is lightweight, battle-tested, and highly extensible via its ecosystem (Flask-SQLAlchemy, Flask-JWT-Extended, Flask-RestX). Best for small-to-medium APIs where simplicity and familiarity matter more than raw async throughput.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Lightweight APIs</span>
+      <span class="use-case">Prototyping</span>
+      <span class="use-case">Webhook receivers</span>
+      <span class="use-case">Internal tooling</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">app.py</span></div>
+<pre><span class="k">from</span> <span class="m">flask</span> <span class="k">import</span> Flask, request, jsonify
+<span class="k">from</span> <span class="m">flask_restx</span> <span class="k">import</span> Api, Resource, fields
+
+app = Flask(<span class="s">__name__</span>)
+api = Api(app, doc=<span class="s">"/docs"</span>)
+
+ns = api.namespace(<span class="s">"orders"</span>, description=<span class="s">"Order ops"</span>)
+order_model = api.model(<span class="s">"Order"</span>, {
+    <span class="s">"item"</span>: fields.String(required=<span class="k">True</span>),
+    <span class="s">"qty"</span>:  fields.Integer(required=<span class="k">True</span>),
+})
+
+<span class="n">@ns.route</span>(<span class="s">"/"</span>)
+<span class="k">class</span> <span class="m">OrderList</span>(Resource):
+    <span class="n">@ns.expect</span>(order_model)
+    <span class="k">def</span> <span class="f">post</span>(self):
+        data = request.json
+        <span class="k">return</span> {<span class="s">"order_id"</span>: <span class="s">"ORD-001"</span>, **data}, <span class="n">201</span>
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    app.run(debug=<span class="k">True</span>)</pre>
+    </div>
+  </div>
+
+  <!-- 3. Django REST Framework -->
+  <div id="lib-django" class="card">
+    <div class="card-header">
+      <span class="lib-num">03</span>
+      <div class="lib-info">
+        <div class="lib-name">Django REST Framework</div>
+        <div class="lib-tags"><span class="tag tag-api">REST API</span><span class="tag tag-data">ORM</span></div>
+      </div>
+      <span class="lib-install">pip install djangorestframework</span>
+    </div>
+    <p class="lib-desc">
+      DRF is the gold standard for full-stack REST APIs with Django. It bundles serializers (like Pydantic but ORM-aware), authentication, permissions, pagination, filtering, and browsable API docs. Best when you're using Django's ORM, admin, and auth system together.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">CRUD APIs</span>
+      <span class="use-case">Auth (JWT / OAuth)</span>
+      <span class="use-case">ORM-backed APIs</span>
+      <span class="use-case">Admin + API combo</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">views.py</span></div>
+<pre><span class="k">from</span> <span class="m">rest_framework</span> <span class="k">import</span> serializers, viewsets, routers
+<span class="k">from</span> <span class="m">.models</span> <span class="k">import</span> Product
+
+<span class="k">class</span> <span class="m">ProductSerializer</span>(serializers.ModelSerializer):
+    <span class="k">class</span> <span class="m">Meta</span>:
+        model = Product
+        fields = [<span class="s">"id"</span>, <span class="s">"name"</span>, <span class="s">"price"</span>, <span class="s">"sku"</span>]
+
+<span class="k">class</span> <span class="m">ProductViewSet</span>(viewsets.ModelViewSet):
+    queryset = Product.objects.all().order_by(<span class="s">"-created_at"</span>)
+    serializer_class = ProductSerializer
+    <span class="c"># Auto-generates: GET /products/ POST /products/</span>
+    <span class="c"># GET/PUT/PATCH/DELETE /products/{id}/</span>
+
+<span class="c"># urls.py</span>
+router = routers.DefaultRouter()
+router.register(<span class="s">r"products"</span>, ProductViewSet)
+<span class="c"># urlpatterns += router.urls</span></pre>
+    </div>
+  </div>
+
+  <!-- 4. Pydantic -->
+  <div id="lib-pydantic" class="card">
+    <div class="card-header">
+      <span class="lib-num">04</span>
+      <div class="lib-info">
+        <div class="lib-name">Pydantic v2</div>
+        <div class="lib-tags"><span class="tag tag-api">Validation</span><span class="tag tag-ai">AI / Structured Output</span></div>
+      </div>
+      <span class="lib-install">pip install pydantic</span>
+    </div>
+    <p class="lib-desc">
+      Runtime data validation and settings management using Python type annotations. v2 rewrote the core in Rust (pydantic-core), making it 5–50× faster. Essential for API request/response models, config parsing, and structured LLM output parsing. Also powers FastAPI's entire validation layer.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">API models</span>
+      <span class="use-case">Config / settings</span>
+      <span class="use-case">LLM output parsing</span>
+      <span class="use-case">Data contracts</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">models.py</span></div>
+<pre><span class="k">from</span> <span class="m">pydantic</span> <span class="k">import</span> BaseModel, field_validator, EmailStr
+<span class="k">from</span> <span class="m">pydantic_settings</span> <span class="k">import</span> BaseSettings
+<span class="k">from</span> <span class="m">typing</span> <span class="k">import</span> Optional
+<span class="k">from</span> <span class="m">datetime</span> <span class="k">import</span> datetime
+
+<span class="k">class</span> <span class="m">UserCreate</span>(BaseModel):
+    email: EmailStr
+    name: str
+    age: <span class="m">int</span>
+    role: str = <span class="s">"viewer"</span>
+
+    <span class="n">@field_validator</span>(<span class="s">"age"</span>)
+    <span class="n">@classmethod</span>
+    <span class="k">def</span> <span class="f">must_be_adult</span>(cls, v):
+        <span class="k">if</span> v < <span class="n">18</span>: <span class="k">raise</span> ValueError(<span class="s">"Must be 18+"</span>)
+        <span class="k">return</span> v
+
+<span class="c"># Structured LLM output — works with OpenAI .parse()</span>
+<span class="k">class</span> <span class="m">ProductExtract</span>(BaseModel):
+    product_name: str
+    price: <span class="m">float</span>
+    category: str
+    in_stock: <span class="m">bool</span>
+
+<span class="c"># App config from env vars</span>
+<span class="k">class</span> <span class="m">Settings</span>(BaseSettings):
+    db_url: str
+    secret_key: str
+    debug: <span class="m">bool</span> = <span class="k">False</span>
+    <span class="k">class</span> <span class="m">Config</span>: env_file = <span class="s">".env"</span>
+
+settings = Settings()</pre>
+    </div>
+  </div>
+
+  <!-- 5. HTTPX -->
+  <div id="lib-httpx" class="card">
+    <div class="card-header">
+      <span class="lib-num">05</span>
+      <div class="lib-info">
+        <div class="lib-name">HTTPX</div>
+        <div class="lib-tags"><span class="tag tag-api">HTTP Client</span><span class="tag tag-ms">Async</span></div>
+      </div>
+      <span class="lib-install">pip install httpx</span>
+    </div>
+    <p class="lib-desc">
+      A fully async-capable HTTP client with an API nearly identical to Requests. Supports HTTP/2, connection pooling, timeouts, retries, and both sync and async modes. The preferred choice for calling external APIs inside FastAPI services and for testing APIs via TestClient.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Calling external APIs</span>
+      <span class="use-case">Async HTTP</span>
+      <span class="use-case">API testing</span>
+      <span class="use-case">HTTP/2 support</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">client.py</span></div>
+<pre><span class="k">import</span> httpx
+<span class="k">import</span> asyncio
+
+<span class="c"># Async client with connection pooling</span>
+<span class="k">async def</span> <span class="f">fetch_products</span>(ids: list[str]) -> list[dict]:
+    <span class="k">async with</span> httpx.AsyncClient(
+        base_url=<span class="s">"https://api.shop.com"</span>,
+        timeout=<span class="n">10.0</span>,
+        headers={<span class="s">"Authorization"</span>: <span class="s">"Bearer TOKEN"</span>}
+    ) <span class="k">as</span> client:
+        tasks = [client.get(<span class="s">f"/products/{i}"</span>) <span class="k">for</span> i <span class="k">in</span> ids]
+        responses = <span class="k">await</span> asyncio.gather(*tasks)
+        <span class="k">return</span> [r.json() <span class="k">for</span> r <span class="k">in</span> responses <span class="k">if</span> r.status_code == <span class="n">200</span>]
+
+<span class="c"># FastAPI test client (sync, no server needed)</span>
+<span class="k">from</span> <span class="m">fastapi.testclient</span> <span class="k">import</span> TestClient
+<span class="k">from</span> <span class="m">.main</span> <span class="k">import</span> app
+
+client = TestClient(app)
+response = client.post(<span class="s">"/products"</span>, json={<span class="s">"name"</span>: <span class="s">"AJ1"</span>, <span class="s">"price"</span>: <span class="n">180.0</span>, <span class="s">"sku"</span>: <span class="s">"AJ1-001"</span>})
+<span class="k">assert</span> response.status_code == <span class="n">201</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 2 — MICROSERVICES
+════════════════════════════════════════════ -->
+<section id="microservices" class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--ms-bg);">🟢</div>
+    <h2 style="color:var(--ms)">Microservices & Async Infrastructure</h2>
+    <span class="count">5 libraries</span>
+  </div>
+
+  <!-- 6. Celery -->
+  <div id="lib-celery" class="card">
+    <div class="card-header">
+      <span class="lib-num">06</span>
+      <div class="lib-info">
+        <div class="lib-name">Celery</div>
+        <div class="lib-tags"><span class="tag tag-ms">Task Queue</span><span class="tag tag-ms">Background Jobs</span></div>
+      </div>
+      <span class="lib-install">pip install celery redis</span>
+    </div>
+    <p class="lib-desc">
+      The most widely used distributed task queue for Python. Offloads long-running work (emails, PDF generation, ML inference) to background workers with support for retries, rate limits, scheduled tasks (Celery Beat), and result backends. Works with Redis or RabbitMQ as broker.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Email / notification dispatch</span>
+      <span class="use-case">Async ML inference</span>
+      <span class="use-case">Cron jobs</span>
+      <span class="use-case">Distributed workers</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">tasks.py</span></div>
+<pre><span class="k">from</span> <span class="m">celery</span> <span class="k">import</span> Celery
+<span class="k">from</span> <span class="m">celery.utils.log</span> <span class="k">import</span> get_task_logger
+
+app = Celery(<span class="s">"shop"</span>, broker=<span class="s">"redis://localhost:6379/0"</span>,
+             backend=<span class="s">"redis://localhost:6379/1"</span>)
+
+logger = get_task_logger(<span class="s">__name__</span>)
+
+<span class="n">@app.task</span>(bind=<span class="k">True</span>, max_retries=<span class="n">3</span>, default_retry_delay=<span class="n">60</span>)
+<span class="k">def</span> <span class="f">send_order_confirmation</span>(self, order_id: str, email: str):
+    <span class="k">try</span>:
+        <span class="c"># send email logic here</span>
+        logger.info(<span class="s">f"Email sent for order {order_id}"</span>)
+        <span class="k">return</span> {<span class="s">"status"</span>: <span class="s">"sent"</span>, <span class="s">"order_id"</span>: order_id}
+    <span class="k">except</span> Exception <span class="k">as</span> exc:
+        <span class="k">raise</span> self.retry(exc=exc)
+
+<span class="c"># Dispatch from FastAPI endpoint</span>
+<span class="c"># task = send_order_confirmation.delay("ORD-001", "user@example.com")</span>
+<span class="c"># task.id  → "uuid-for-tracking"</span>
+
+<span class="c"># Scheduled task (celery beat)</span>
+app.conf.beat_schedule = {
+    <span class="s">"daily-report"</span>: {
+        <span class="s">"task"</span>: <span class="s">"tasks.send_daily_report"</span>,
+        <span class="s">"schedule"</span>: <span class="n">3600</span> * <span class="n">24</span>,
+    }
+}</pre>
+    </div>
+  </div>
+
+  <!-- 7. confluent-kafka -->
+  <div id="lib-kafka" class="card">
+    <div class="card-header">
+      <span class="lib-num">07</span>
+      <div class="lib-info">
+        <div class="lib-name">confluent-kafka-python</div>
+        <div class="lib-tags"><span class="tag tag-ms">Event Streaming</span><span class="tag tag-ms">Kafka</span></div>
+      </div>
+      <span class="lib-install">pip install confluent-kafka</span>
+    </div>
+    <p class="lib-desc">
+      The official Confluent Python client for Apache Kafka — the backbone of event-driven microservice architectures. Enables durable, ordered, high-throughput event streaming between services. Used heavily in retail, fintech, and logistics for order events, inventory updates, and CDC (Change Data Capture).
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Event-driven architecture</span>
+      <span class="use-case">CDC / Debezium sink</span>
+      <span class="use-case">Order event streaming</span>
+      <span class="use-case">Log aggregation</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">kafka_producer.py</span></div>
+<pre><span class="k">from</span> <span class="m">confluent_kafka</span> <span class="k">import</span> Producer, Consumer
+<span class="k">import</span> json
+
+<span class="c"># Producer</span>
+producer = Producer({<span class="s">"bootstrap.servers"</span>: <span class="s">"kafka:9092"</span>})
+
+<span class="k">def</span> <span class="f">publish_order_event</span>(order: dict):
+    producer.produce(
+        topic=<span class="s">"order.created"</span>,
+        key=order[<span class="s">"order_id"</span>].encode(),
+        value=json.dumps(order).encode(),
+        on_delivery=<span class="k">lambda</span> err, msg:
+            print(<span class="s">f"Delivered: {msg.topic()}"</span> <span class="k">if not</span> err <span class="k">else</span> <span class="s">f"Error: {err}"</span>)
+    )
+    producer.flush()
+
+<span class="c"># Consumer</span>
+consumer = Consumer({
+    <span class="s">"bootstrap.servers"</span>: <span class="s">"kafka:9092"</span>,
+    <span class="s">"group.id"</span>: <span class="s">"inventory-service"</span>,
+    <span class="s">"auto.offset.reset"</span>: <span class="s">"earliest"</span>
+})
+consumer.subscribe([<span class="s">"order.created"</span>])
+
+<span class="k">while</span> <span class="k">True</span>:
+    msg = consumer.poll(<span class="n">1.0</span>)
+    <span class="k">if</span> msg <span class="k">and not</span> msg.error():
+        order = json.loads(msg.value())
+        <span class="c"># process order, update inventory...</span></pre>
+    </div>
+  </div>
+
+  <!-- 8. gRPC -->
+  <div id="lib-grpc" class="card">
+    <div class="card-header">
+      <span class="lib-num">08</span>
+      <div class="lib-info">
+        <div class="lib-name">gRPC / grpcio</div>
+        <div class="lib-tags"><span class="tag tag-ms">RPC</span><span class="tag tag-ms">Service Mesh</span></div>
+      </div>
+      <span class="lib-install">pip install grpcio grpcio-tools</span>
+    </div>
+    <p class="lib-desc">
+      Google's high-performance RPC framework using Protocol Buffers. Preferred for inter-service communication in polyglot microservice environments (Python ↔ Go ↔ Java). Supports streaming, bidirectional, and unary calls with strict schema contracts — much faster than REST for internal service-to-service traffic.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Service-to-service calls</span>
+      <span class="use-case">Streaming RPCs</span>
+      <span class="use-case">Polyglot microservices</span>
+      <span class="use-case">Schema-first contracts</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">server.py</span></div>
+<pre><span class="c"># product.proto (generate stubs: python -m grpc_tools.protoc ...)</span>
+<span class="c"># service ProductService { rpc GetProduct(ProductRequest) returns (ProductResponse); }</span>
+
+<span class="k">import</span> grpc
+<span class="k">from</span> <span class="m">concurrent</span> <span class="k">import</span> futures
+<span class="k">import</span> product_pb2, product_pb2_grpc
+
+<span class="k">class</span> <span class="m">ProductServicer</span>(product_pb2_grpc.ProductServiceServicer):
+    <span class="k">def</span> <span class="f">GetProduct</span>(self, request, context):
+        <span class="c"># request.product_id is type-safe via protobuf</span>
+        <span class="k">return</span> product_pb2.ProductResponse(
+            product_id=request.product_id,
+            name=<span class="s">"Air Force 1"</span>,
+            price=<span class="n">110.00</span>
+        )
+
+<span class="k">def</span> <span class="f">serve</span>():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=<span class="n">10</span>))
+    product_pb2_grpc.add_ProductServiceServicer_to_server(ProductServicer(), server)
+    server.add_insecure_port(<span class="s">"[::]:50051"</span>)
+    server.start()
+    server.wait_for_termination()</pre>
+    </div>
+  </div>
+
+  <!-- 9. redis-py -->
+  <div id="lib-redis" class="card">
+    <div class="card-header">
+      <span class="lib-num">09</span>
+      <div class="lib-info">
+        <div class="lib-name">redis-py</div>
+        <div class="lib-tags"><span class="tag tag-ms">Cache</span><span class="tag tag-ms">Pub/Sub</span></div>
+      </div>
+      <span class="lib-install">pip install redis</span>
+    </div>
+    <p class="lib-desc">
+      Official Python client for Redis — the in-memory data structure store used for caching, session management, distributed locks, rate limiting, pub/sub messaging, and as a Celery broker. Supports both sync and async (aioredis-compatible) usage. Essential in any microservice that needs sub-millisecond data access.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">API response caching</span>
+      <span class="use-case">Session storage</span>
+      <span class="use-case">Rate limiting</span>
+      <span class="use-case">Distributed locks</span>
+      <span class="use-case">Pub/Sub</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">cache.py</span></div>
+<pre><span class="k">import</span> redis.asyncio <span class="k">as</span> redis
+<span class="k">import</span> json
+<span class="k">from</span> <span class="m">functools</span> <span class="k">import</span> wraps
+
+r = redis.Redis(host=<span class="s">"localhost"</span>, port=<span class="n">6379</span>, decode_responses=<span class="k">True</span>)
+
+<span class="c"># Cache decorator for FastAPI endpoints</span>
+<span class="k">def</span> <span class="f">cache</span>(ttl: int = <span class="n">300</span>):
+    <span class="k">def</span> <span class="f">decorator</span>(func):
+        <span class="n">@wraps</span>(func)
+        <span class="k">async def</span> <span class="f">wrapper</span>(*args, **kwargs):
+            key = <span class="s">f"cache:{func.__name__}:{args}:{kwargs}"</span>
+            cached = <span class="k">await</span> r.get(key)
+            <span class="k">if</span> cached: <span class="k">return</span> json.loads(cached)
+            result = <span class="k">await</span> func(*args, **kwargs)
+            <span class="k">await</span> r.setex(key, ttl, json.dumps(result))
+            <span class="k">return</span> result
+        <span class="k">return</span> wrapper
+    <span class="k">return</span> decorator
+
+<span class="c"># Distributed lock</span>
+<span class="k">async def</span> <span class="f">process_with_lock</span>(resource_id: str):
+    lock = r.lock(<span class="s">f"lock:{resource_id}"</span>, timeout=<span class="n">30</span>)
+    <span class="k">async with</span> lock:
+        <span class="c"># Only one instance runs this block</span>
+        <span class="k">pass</span></pre>
+    </div>
+  </div>
+
+  <!-- 10. SQLAlchemy -->
+  <div id="lib-sqlalchemy" class="card">
+    <div class="card-header">
+      <span class="lib-num">10</span>
+      <div class="lib-info">
+        <div class="lib-name">SQLAlchemy 2.x</div>
+        <div class="lib-tags"><span class="tag tag-ms">ORM</span><span class="tag tag-data">Database</span></div>
+      </div>
+      <span class="lib-install">pip install sqlalchemy asyncpg</span>
+    </div>
+    <p class="lib-desc">
+      Python's most powerful ORM and SQL toolkit. SQLAlchemy 2.0 introduced full async support (via asyncpg/aiomysql), a cleaner mapped_column() API, and better type inference. Works seamlessly with FastAPI via SQLModel (Pydantic + SQLAlchemy). Supports PostgreSQL, MySQL, SQLite, and more.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Async DB queries</span>
+      <span class="use-case">Complex joins</span>
+      <span class="use-case">Schema migrations (Alembic)</span>
+      <span class="use-case">Multi-DB support</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">database.py</span></div>
+<pre><span class="k">from</span> <span class="m">sqlalchemy.ext.asyncio</span> <span class="k">import</span> create_async_engine, AsyncSession
+<span class="k">from</span> <span class="m">sqlalchemy.orm</span> <span class="k">import</span> DeclarativeBase, mapped_column, Mapped
+<span class="k">from</span> <span class="m">sqlalchemy</span> <span class="k">import</span> String, Float, select
+<span class="k">import</span> uuid
+
+engine = create_async_engine(<span class="s">"postgresql+asyncpg://user:pass@db/shop"</span>)
+
+<span class="k">class</span> <span class="m">Base</span>(DeclarativeBase): <span class="k">pass</span>
+
+<span class="k">class</span> <span class="m">Product</span>(Base):
+    __tablename__ = <span class="s">"products"</span>
+    id:    Mapped[str]   = mapped_column(String, primary_key=<span class="k">True</span>, default=<span class="k">lambda</span>: str(uuid.uuid4()))
+    name:  Mapped[str]   = mapped_column(String(<span class="n">255</span>))
+    price: Mapped[float] = mapped_column(Float)
+
+<span class="c"># Async query</span>
+<span class="k">async def</span> <span class="f">get_products_over</span>(min_price: float, session: AsyncSession):
+    stmt = select(Product).where(Product.price > min_price).limit(<span class="n">50</span>)
+    result = <span class="k">await</span> session.execute(stmt)
+    <span class="k">return</span> result.scalars().all()</pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 3 — DATA MANIPULATION
+════════════════════════════════════════════ -->
+<section id="data" class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--data-bg);">🟡</div>
+    <h2 style="color:var(--data)">Data Manipulation & Engineering</h2>
+    <span class="count">5 libraries</span>
+  </div>
+
+  <!-- 11. Pandas -->
+  <div id="lib-pandas" class="card">
+    <div class="card-header">
+      <span class="lib-num">11</span>
+      <div class="lib-info">
+        <div class="lib-name">Pandas</div>
+        <div class="lib-tags"><span class="tag tag-data">DataFrames</span><span class="tag tag-data">EDA</span></div>
+      </div>
+      <span class="lib-install">pip install pandas</span>
+    </div>
+    <p class="lib-desc">
+      The foundation of Python data analysis. Pandas provides the DataFrame — a 2D labeled table — for loading, cleaning, transforming, aggregating, and exporting structured data. Still the most-used library for ETL pipelines, EDA, and data prep for ML. Pandas 2.0 added Apache Arrow backend for significant speed gains.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">CSV / Parquet ETL</span>
+      <span class="use-case">Data cleaning</span>
+      <span class="use-case">Aggregation / groupby</span>
+      <span class="use-case">Time-series</span>
+      <span class="use-case">Feature engineering</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">etl.py</span></div>
+<pre><span class="k">import</span> pandas <span class="k">as</span> pd
+
+<span class="c"># Load → clean → transform → export</span>
+df = pd.read_parquet(<span class="s">"s3://bucket/orders/2024/*.parquet"</span>,
+                     storage_options={<span class="s">"anon"</span>: <span class="k">False</span>})
+
+<span class="c"># Clean</span>
+df = df.dropna(subset=[<span class="s">"order_id"</span>, <span class="s">"amount"</span>])
+df[<span class="s">"order_date"</span>] = pd.to_datetime(df[<span class="s">"order_date"</span>])
+df[<span class="s">"amount"</span>] = df[<span class="s">"amount"</span>].clip(lower=<span class="n">0</span>)
+
+<span class="c"># Feature engineering</span>
+df[<span class="s">"month"</span>] = df[<span class="s">"order_date"</span>].dt.month
+df[<span class="s">"is_high_value"</span>] = df[<span class="s">"amount"</span>] > <span class="n">500</span>
+
+<span class="c"># Aggregation</span>
+monthly = (df.groupby([<span class="s">"region"</span>, <span class="s">"month"</span>])
+             .agg(total_revenue=(<span class="s">"amount"</span>, <span class="s">"sum"</span>),
+                  order_count=(<span class="s">"order_id"</span>, <span class="s">"count"</span>))
+             .reset_index())
+
+monthly.to_parquet(<span class="s">"s3://bucket/output/monthly_revenue.parquet"</span>)</pre>
+    </div>
+  </div>
+
+  <!-- 12. Polars -->
+  <div id="lib-polars" class="card">
+    <div class="card-header">
+      <span class="lib-num">12</span>
+      <div class="lib-info">
+        <div class="lib-name">Polars</div>
+        <div class="lib-tags"><span class="tag tag-data">DataFrames</span><span class="tag tag-data">High Performance</span></div>
+      </div>
+      <span class="lib-install">pip install polars</span>
+    </div>
+    <p class="lib-desc">
+      The modern, Rust-powered replacement for Pandas in performance-critical workloads. Polars uses columnar memory (Arrow), lazy evaluation, and automatic query optimization to process data 5–50× faster than Pandas. Its lazy API lets you build entire query plans before execution — similar to Spark but single-node and zero-overhead.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Large-file ETL</span>
+      <span class="use-case">Lazy query plans</span>
+      <span class="use-case">Multi-threaded transforms</span>
+      <span class="use-case">Parquet / Arrow pipelines</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">pipeline.py</span></div>
+<pre><span class="k">import</span> polars <span class="k">as</span> pl
+
+<span class="c"># Lazy API — nothing runs until .collect()</span>
+result = (
+    pl.scan_parquet(<span class="s">"orders/*.parquet"</span>)  <span class="c"># lazy scan</span>
+      .filter(pl.col(<span class="s">"amount"</span>) > <span class="n">0</span>)
+      .with_columns([
+          pl.col(<span class="s">"order_date"</span>).str.to_date().alias(<span class="s">"date"</span>),
+          (pl.col(<span class="s">"amount"</span>) * <span class="n">1.1</span>).alias(<span class="s">"amount_with_tax"</span>),
+      ])
+      .group_by([<span class="s">"region"</span>, pl.col(<span class="s">"date"</span>).dt.month().alias(<span class="s">"month"</span>)])
+      .agg([
+          pl.sum(<span class="s">"amount_with_tax"</span>).alias(<span class="s">"revenue"</span>),
+          pl.count(<span class="s">"order_id"</span>).alias(<span class="s">"orders"</span>),
+      ])
+      .sort(<span class="s">"revenue"</span>, descending=<span class="k">True</span>)
+      .collect()  <span class="c"># executes entire optimized plan</span>
+)
+
+print(result.head(<span class="n">10</span>))</pre>
+    </div>
+  </div>
+
+  <!-- 13. NumPy -->
+  <div id="lib-numpy" class="card">
+    <div class="card-header">
+      <span class="lib-num">13</span>
+      <div class="lib-info">
+        <div class="lib-name">NumPy</div>
+        <div class="lib-tags"><span class="tag tag-data">Numerical</span><span class="tag tag-ai">Embeddings</span></div>
+      </div>
+      <span class="lib-install">pip install numpy</span>
+    </div>
+    <p class="lib-desc">
+      The bedrock of all scientific Python. NumPy's n-dimensional array (ndarray) is the universal container for numerical data — used by Pandas, PyTorch, TensorFlow, scikit-learn, and every AI library under the hood. Critical for vector math, embedding manipulation, cosine similarity, and ML feature matrices.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Embedding arithmetic</span>
+      <span class="use-case">Cosine similarity</span>
+      <span class="use-case">Matrix ops</span>
+      <span class="use-case">Signal processing</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">vectors.py</span></div>
+<pre><span class="k">import</span> numpy <span class="k">as</span> np
+
+<span class="c"># Cosine similarity — used in RAG retrieval</span>
+<span class="k">def</span> <span class="f">cosine_similarity</span>(a: np.ndarray, b: np.ndarray) -> float:
+    <span class="k">return</span> np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+
+query_embedding   = np.random.randn(<span class="n">1536</span>).astype(<span class="s">"float32"</span>)
+doc_embeddings    = np.random.randn(<span class="n">1000</span>, <span class="n">1536</span>).astype(<span class="s">"float32"</span>)
+
+<span class="c"># Vectorized batch similarity (no Python loop)</span>
+norms = np.linalg.norm(doc_embeddings, axis=<span class="n">1</span>, keepdims=<span class="k">True</span>)
+normed = doc_embeddings / norms
+scores = normed @ query_embedding / np.linalg.norm(query_embedding)
+top5_idx = np.argsort(scores)[::-<span class="n">1</span>][:<span class="n">5</span>]
+
+print(<span class="s">f"Top-5 doc indices: {top5_idx}"</span>)
+print(<span class="s">f"Top-5 scores: {scores[top5_idx].round(4)}"</span>)</pre>
+    </div>
+  </div>
+
+  <!-- 14. PySpark -->
+  <div id="lib-pyspark" class="card">
+    <div class="card-header">
+      <span class="lib-num">14</span>
+      <div class="lib-info">
+        <div class="lib-name">PySpark</div>
+        <div class="lib-tags"><span class="tag tag-data">Big Data</span><span class="tag tag-data">Distributed</span></div>
+      </div>
+      <span class="lib-install">pip install pyspark</span>
+    </div>
+    <p class="lib-desc">
+      Python API for Apache Spark — the standard for large-scale distributed data processing. PySpark handles petabyte-scale ETL, structured streaming, and ML on clusters (EMR, Databricks, GCP Dataproc). Essential in enterprise data platforms where data volumes exceed single-machine RAM.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Petabyte ETL</span>
+      <span class="use-case">Structured streaming</span>
+      <span class="use-case">Medallion architecture</span>
+      <span class="use-case">Databricks / EMR</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">spark_etl.py</span></div>
+<pre><span class="k">from</span> <span class="m">pyspark.sql</span> <span class="k">import</span> SparkSession
+<span class="k">from</span> <span class="m">pyspark.sql</span> <span class="k">import</span> functions <span class="k">as</span> F
+<span class="k">from</span> <span class="m">pyspark.sql.types</span> <span class="k">import</span> StructType, StructField, StringType, FloatType
+
+spark = SparkSession.builder.appName(<span class="s">"OrderETL"</span>).getOrCreate()
+
+<span class="c"># Silver → Gold Medallion transform</span>
+silver = spark.read.parquet(<span class="s">"s3a://datalake/silver/orders/"</span>)
+
+gold = (silver
+    .filter(F.col(<span class="s">"status"</span>) == <span class="s">"COMPLETED"</span>)
+    .withColumn(<span class="s">"month"</span>, F.month(<span class="s">"order_date"</span>))
+    .groupBy(<span class="s">"region"</span>, <span class="s">"month"</span>)
+    .agg(
+        F.sum(<span class="s">"amount"</span>).alias(<span class="s">"revenue"</span>),
+        F.countDistinct(<span class="s">"customer_id"</span>).alias(<span class="s">"unique_customers"</span>)
+    )
+    .orderBy(F.desc(<span class="s">"revenue"</span>))
+)
+
+gold.write.mode(<span class="s">"overwrite"</span>).parquet(<span class="s">"s3a://datalake/gold/revenue/"</span>)
+spark.stop()</pre>
+    </div>
+  </div>
+
+  <!-- 15. dbt-core -->
+  <div id="lib-dbt" class="card">
+    <div class="card-header">
+      <span class="lib-num">15</span>
+      <div class="lib-info">
+        <div class="lib-name">dbt-core</div>
+        <div class="lib-tags"><span class="tag tag-data">SQL Transform</span><span class="tag tag-data">Data Warehouse</span></div>
+      </div>
+      <span class="lib-install">pip install dbt-core dbt-snowflake</span>
+    </div>
+    <p class="lib-desc">
+      Data Build Tool — the standard for SQL-first data transformation in modern data stacks. dbt models are SQL SELECT statements that dbt compiles into DDL/DML, manages dependencies, runs tests, and builds lineage graphs. Powers the Transform layer in ELT pipelines on Snowflake, BigQuery, Redshift, and DuckDB.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">ELT transforms</span>
+      <span class="use-case">Snowflake / BigQuery</span>
+      <span class="use-case">Data lineage</span>
+      <span class="use-case">Data testing</span>
+      <span class="use-case">Docs generation</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">models/gold/fct_monthly_revenue.sql</span></div>
+<pre><span class="c">-- dbt model: depends on ref("stg_orders") automatically</span>
+{{ config(materialized=<span class="s">'table'</span>, schema=<span class="s">'gold'</span>) }}
+
+<span class="k">WITH</span> orders <span class="k">AS</span> (
+    <span class="k">SELECT</span> *
+    <span class="k">FROM</span> {{ ref(<span class="s">'stg_orders'</span>) }}       <span class="c">-- resolved to staging model</span>
+    <span class="k">WHERE</span> status = <span class="s">'COMPLETED'</span>
+),
+monthly <span class="k">AS</span> (
+    <span class="k">SELECT</span>
+        region,
+        DATE_TRUNC(<span class="s">'month'</span>, order_date) <span class="k">AS</span> month,
+        SUM(amount)                      <span class="k">AS</span> revenue,
+        COUNT(DISTINCT customer_id)      <span class="k">AS</span> unique_customers
+    <span class="k">FROM</span> orders
+    <span class="k">GROUP BY</span> <span class="n">1</span>, <span class="n">2</span>
+)
+<span class="k">SELECT</span> * <span class="k">FROM</span> monthly
+
+<span class="c">-- schema.yml test: revenue should never be negative</span>
+<span class="c">-- tests: - dbt_utils.expression_is_true: "revenue >= 0"</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════════════════════
+     SECTION 4 — AI / RAG / AGENTIC
+════════════════════════════════════════════ -->
+<section id="ai" class="section">
+  <div class="section-header">
+    <div class="section-icon" style="background:var(--ai-bg);">🟣</div>
+    <h2 style="color:var(--ai)">AI · RAG · Agentic Systems</h2>
+    <span class="count">5 libraries</span>
+  </div>
+
+  <!-- 16. LangChain -->
+  <div id="lib-langchain" class="card">
+    <div class="card-header">
+      <span class="lib-num">16</span>
+      <div class="lib-info">
+        <div class="lib-name">LangChain</div>
+        <div class="lib-tags"><span class="tag tag-ai">RAG</span><span class="tag tag-ai">Agents</span><span class="tag tag-ai">Chains</span></div>
+      </div>
+      <span class="lib-install">pip install langchain langchain-openai</span>
+    </div>
+    <p class="lib-desc">
+      The most widely adopted framework for building LLM-powered applications. LangChain provides composable abstractions: chains, retrievers, document loaders, memory, and agents. Its LangGraph extension supports stateful multi-agent workflows with cycles — essential for agentic AI systems. The ecosystem covers 100+ integrations (vector stores, LLMs, tools).
+    </p>
+    <div class="use-cases">
+      <span class="use-case">RAG pipelines</span>
+      <span class="use-case">ReAct agents</span>
+      <span class="use-case">Multi-agent (LangGraph)</span>
+      <span class="use-case">Document Q&A</span>
+      <span class="use-case">Memory / conversation</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">rag_pipeline.py</span></div>
+<pre><span class="k">from</span> <span class="m">langchain_openai</span> <span class="k">import</span> ChatOpenAI, OpenAIEmbeddings
+<span class="k">from</span> <span class="m">langchain_community.vectorstores</span> <span class="k">import</span> OpenSearchVectorSearch
+<span class="k">from</span> <span class="m">langchain.chains</span> <span class="k">import</span> RetrievalQA
+<span class="k">from</span> <span class="m">langchain.text_splitter</span> <span class="k">import</span> RecursiveCharacterTextSplitter
+
+<span class="c"># 1. Chunk documents</span>
+splitter = RecursiveCharacterTextSplitter(chunk_size=<span class="n">512</span>, chunk_overlap=<span class="n">64</span>)
+chunks = splitter.split_documents(raw_docs)
+
+<span class="c"># 2. Embed + store in vector DB</span>
+embeddings = OpenAIEmbeddings(model=<span class="s">"text-embedding-3-small"</span>)
+vectorstore = OpenSearchVectorSearch.from_documents(
+    chunks, embeddings, opensearch_url=<span class="s">"https://..."</span>
+)
+
+<span class="c"># 3. RAG chain</span>
+llm = ChatOpenAI(model=<span class="s">"gpt-4o"</span>, temperature=<span class="n">0</span>)
+qa_chain = RetrievalQA.from_chain_type(
+    llm=llm,
+    retriever=vectorstore.as_retriever(search_kwargs={<span class="s">"k"</span>: <span class="n">4</span>}),
+    return_source_documents=<span class="k">True</span>
+)
+
+result = qa_chain.invoke({<span class="s">"query"</span>: <span class="s">"What is the return policy?"</span>})
+print(result[<span class="s">"result"</span>])</pre>
+    </div>
+  </div>
+
+  <!-- 17. boto3 / bedrock -->
+  <div id="lib-boto3" class="card">
+    <div class="card-header">
+      <span class="lib-num">17</span>
+      <div class="lib-info">
+        <div class="lib-name">boto3 + AWS Bedrock AgentCore</div>
+        <div class="lib-tags"><span class="tag tag-ai">AWS AI</span><span class="tag tag-ai">RAG</span><span class="tag tag-ai">Agents</span></div>
+      </div>
+      <span class="lib-install">pip install boto3 strands-agents</span>
+    </div>
+    <p class="lib-desc">
+      boto3 is the AWS SDK for Python — the entry point to Bedrock's foundational models (Claude, Titan, Llama), Knowledge Bases (managed RAG), Bedrock Agents, and AgentCore (2025). The Strands Agents SDK layered on top provides an ergonomic agent loop with tool use, MCP support, and multi-agent orchestration. Production RAG on AWS runs through this stack.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Bedrock Claude / Titan</span>
+      <span class="use-case">Knowledge Base RAG</span>
+      <span class="use-case">Bedrock Agents</span>
+      <span class="use-case">Strands multi-agent</span>
+      <span class="use-case">Tool use / MCP</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">bedrock_agent.py</span></div>
+<pre><span class="k">import</span> boto3
+<span class="k">from</span> <span class="m">strands</span> <span class="k">import</span> Agent, tool
+<span class="k">from</span> <span class="m">strands.models</span> <span class="k">import</span> BedrockModel
+
+<span class="c"># Bedrock Knowledge Base RAG</span>
+bedrock = boto3.client(<span class="s">"bedrock-agent-runtime"</span>, region_name=<span class="s">"us-east-1"</span>)
+
+<span class="k">def</span> <span class="f">rag_retrieve</span>(query: str, kb_id: str) -> str:
+    resp = bedrock.retrieve_and_generate(
+        input={<span class="s">"text"</span>: query},
+        retrieveAndGenerateConfiguration={
+            <span class="s">"type"</span>: <span class="s">"KNOWLEDGE_BASE"</span>,
+            <span class="s">"knowledgeBaseConfiguration"</span>: {
+                <span class="s">"knowledgeBaseId"</span>: kb_id,
+                <span class="s">"modelArn"</span>: <span class="s">"arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet"</span>
+            }
+        }
+    )
+    <span class="k">return</span> resp[<span class="s">"output"</span>][<span class="s">"text"</span>]
+
+<span class="c"># Strands Agents SDK — agentic tool use</span>
+<span class="n">@tool</span>
+<span class="k">def</span> <span class="f">get_order_status</span>(order_id: str) -> str:
+    <span class="s">"""Fetch real-time order status from OMS"""</span>
+    <span class="k">return</span> <span class="s">f"Order {order_id}: Shipped, ETA 2 days"</span>
+
+model = BedrockModel(model_id=<span class="s">"us.anthropic.claude-3-5-sonnet-20241022-v2:0"</span>)
+agent = Agent(model=model, tools=[get_order_status])
+response = agent(<span class="s">"What's the status of order ORD-2024-001?"</span>)
+print(response)</pre>
+    </div>
+  </div>
+
+  <!-- 18. openai -->
+  <div id="lib-openai" class="card">
+    <div class="card-header">
+      <span class="lib-num">18</span>
+      <div class="lib-info">
+        <div class="lib-name">OpenAI Python SDK</div>
+        <div class="lib-tags"><span class="tag tag-ai">LLM</span><span class="tag tag-ai">Structured Output</span><span class="tag tag-ai">Embeddings</span></div>
+      </div>
+      <span class="lib-install">pip install openai</span>
+    </div>
+    <p class="lib-desc">
+      Official Python client for OpenAI's API — GPT-4o, o1, embeddings, assistants, and Realtime API. The v2 SDK introduced Pydantic-integrated structured outputs (.parse()), async streaming, and the Responses API. Anthropic's SDK mirrors this API design, making switching between providers straightforward.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">GPT-4o / o3 completions</span>
+      <span class="use-case">Structured output parsing</span>
+      <span class="use-case">Embeddings (ada-3)</span>
+      <span class="use-case">Vision / multimodal</span>
+      <span class="use-case">Streaming</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">llm_client.py</span></div>
+<pre><span class="k">from</span> <span class="m">openai</span> <span class="k">import</span> AsyncOpenAI
+<span class="k">from</span> <span class="m">pydantic</span> <span class="k">import</span> BaseModel
+
+client = AsyncOpenAI()
+
+<span class="c"># Structured output — Pydantic model enforced by API</span>
+<span class="k">class</span> <span class="m">ProductExtract</span>(BaseModel):
+    name: str
+    price: <span class="m">float</span>
+    category: str
+    in_stock: <span class="m">bool</span>
+
+<span class="k">async def</span> <span class="f">extract_product</span>(text: str) -> ProductExtract:
+    response = <span class="k">await</span> client.beta.chat.completions.parse(
+        model=<span class="s">"gpt-4o"</span>,
+        messages=[
+            {<span class="s">"role"</span>: <span class="s">"system"</span>, <span class="s">"content"</span>: <span class="s">"Extract product info as JSON"</span>},
+            {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: text}
+        ],
+        response_format=ProductExtract
+    )
+    <span class="k">return</span> response.choices[<span class="n">0</span>].message.parsed  <span class="c"># typed ProductExtract</span>
+
+<span class="c"># Streaming response</span>
+<span class="k">async def</span> <span class="f">stream_answer</span>(question: str):
+    <span class="k">async with</span> client.chat.completions.stream(
+        model=<span class="s">"gpt-4o"</span>,
+        messages=[{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: question}]
+    ) <span class="k">as</span> stream:
+        <span class="k">async for</span> chunk <span class="k">in</span> stream:
+            <span class="k">if</span> chunk.choices[<span class="n">0</span>].delta.content:
+                print(chunk.choices[<span class="n">0</span>].delta.content, end=<span class="s">""</span>, flush=<span class="k">True</span>)</pre>
+    </div>
+  </div>
+
+  <!-- 19. ChromaDB -->
+  <div id="lib-chromadb" class="card">
+    <div class="card-header">
+      <span class="lib-num">19</span>
+      <div class="lib-info">
+        <div class="lib-name">ChromaDB</div>
+        <div class="lib-tags"><span class="tag tag-ai">Vector DB</span><span class="tag tag-ai">RAG</span></div>
+      </div>
+      <span class="lib-install">pip install chromadb</span>
+    </div>
+    <p class="lib-desc">
+      The most popular open-source vector database for building RAG systems. ChromaDB handles embedding storage, ANN (approximate nearest neighbor) similarity search, and metadata filtering — all in-process (SQLite) or as a server. Ideal for local development, prototypes, and small-to-medium RAG apps before moving to managed stores like Pinecone, OpenSearch, or pgvector.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Local RAG prototyping</span>
+      <span class="use-case">Semantic search</span>
+      <span class="use-case">Embedding store</span>
+      <span class="use-case">Multi-collection KB</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">vector_store.py</span></div>
+<pre><span class="k">import</span> chromadb
+<span class="k">from</span> <span class="m">chromadb.utils</span> <span class="k">import</span> embedding_functions
+
+client = chromadb.PersistentClient(path=<span class="s">"./chroma_db"</span>)
+
+<span class="c"># Use OpenAI embeddings or local (sentence-transformers)</span>
+ef = embedding_functions.OpenAIEmbeddingFunction(
+    model_name=<span class="s">"text-embedding-3-small"</span>
+)
+
+collection = client.get_or_create_collection(
+    name=<span class="s">"product_catalog"</span>,
+    embedding_function=ef,
+    metadata={<span class="s">"hnsw:space"</span>: <span class="s">"cosine"</span>}
+)
+
+<span class="c"># Upsert documents</span>
+collection.upsert(
+    ids=[<span class="s">"p001"</span>, <span class="s">"p002"</span>],
+    documents=[<span class="s">"Air Max 90, classic runner, Nike"</span>, <span class="s">"Jordan 1 High, basketball, Nike"</span>],
+    metadatas=[{<span class="s">"category"</span>: <span class="s">"running"</span>}, {<span class="s">"category"</span>: <span class="s">"basketball"</span>}]
+)
+
+<span class="c"># Semantic search with metadata filter</span>
+results = collection.query(
+    query_texts=[<span class="s">"comfortable everyday sneaker"</span>],
+    n_results=<span class="n">3</span>,
+    where={<span class="s">"category"</span>: <span class="s">"running"</span>}
+)
+print(results[<span class="s">"documents"</span>])</pre>
+    </div>
+  </div>
+
+  <!-- 20. Transformers -->
+  <div id="lib-transformers" class="card">
+    <div class="card-header">
+      <span class="lib-num">20</span>
+      <div class="lib-info">
+        <div class="lib-name">Hugging Face Transformers</div>
+        <div class="lib-tags"><span class="tag tag-ai">LLM</span><span class="tag tag-ai">Embeddings</span><span class="tag tag-ai">Fine-tuning</span></div>
+      </div>
+      <span class="lib-install">pip install transformers torch sentence-transformers</span>
+    </div>
+    <p class="lib-desc">
+      The universal hub for open-source transformer models — BERT, LLaMA 3, Mistral, Phi-3, BGE embeddings, Whisper, and thousands more. Provides the Pipeline API for zero-code inference, and Trainer API for fine-tuning. The sentence-transformers library wraps it for state-of-the-art dense embeddings used in RAG retrieval. Central to any on-premise or cost-sensitive AI deployment.
+    </p>
+    <div class="use-cases">
+      <span class="use-case">Local LLM inference</span>
+      <span class="use-case">Dense embeddings (BGE, E5)</span>
+      <span class="use-case">Fine-tuning / LoRA</span>
+      <span class="use-case">NER / classification</span>
+      <span class="use-case">Whisper ASR</span>
+    </div>
+    <div class="code-wrap">
+      <div class="code-bar"><div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div><span class="code-filename">embeddings.py</span></div>
+<pre><span class="k">from</span> <span class="m">sentence_transformers</span> <span class="k">import</span> SentenceTransformer
+<span class="k">from</span> <span class="m">transformers</span> <span class="k">import</span> pipeline
+<span class="k">import</span> numpy <span class="k">as</span> np
+
+<span class="c"># State-of-the-art dense embeddings for RAG</span>
+embed_model = SentenceTransformer(<span class="s">"BAAI/bge-large-en-v1.5"</span>)
+
+docs = [
+    <span class="s">"Nike Air Max is designed for maximum cushioning"</span>,
+    <span class="s">"Jordan 1 Retro is an iconic basketball shoe"</span>,
+]
+doc_embeddings = embed_model.encode(docs, normalize_embeddings=<span class="k">True</span>)
+
+query = embed_model.encode(<span class="s">"best running shoes for long distance"</span>, normalize_embeddings=<span class="k">True</span>)
+scores = doc_embeddings @ query  <span class="c"># cosine sim (normalized)</span>
+best_idx = np.argmax(scores)
+print(<span class="s">f"Best match: {docs[best_idx]} (score: {scores[best_idx]:.3f})"</span>)
+
+<span class="c"># Zero-shot text classification pipeline</span>
+classifier = pipeline(<span class="s">"zero-shot-classification"</span>, model=<span class="s">"facebook/bart-large-mnli"</span>)
+result = classifier(
+    <span class="s">"This product has great support and comfort"</span>,
+    candidate_labels=[<span class="s">"positive review"</span>, <span class="s">"negative review"</span>, <span class="s">"neutral"</span>]
+)
+print(result[<span class="s">"labels"</span>][<span class="n">0</span>])  <span class="c"># "positive review"</span></pre>
+    </div>
+  </div>
+</section>
+
+<div class="divider" style="margin-bottom:0;"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <p style="font-size:13px; color: var(--text); margin-bottom:4px;">Top 20 Python Libraries · Modern App Development</p>
+    <p>Sunil Kumar · AWS Solutions Architect · Nike CP&I · Portland, OR · 2025</p>
+  </div>
+  <div style="text-align:right;">
+    <p>FastAPI · Pydantic · SQLAlchemy · Celery · Kafka</p>
+    <p>Pandas · Polars · PySpark · LangChain · Bedrock · Transformers</p>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top Coding Interview Questions</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #18181f;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.15);
+    --accent: #7c6cfc;
+    --accent-glow: rgba(124,108,252,0.15);
+    --text: #f0eeff;
+    --text-muted: #888899;
+    --text-dim: #555566;
+    --easy: #4ade80;
+    --easy-bg: rgba(74,222,128,0.1);
+    --medium: #fb923c;
+    --medium-bg: rgba(251,146,60,0.1);
+    --hard: #f87171;
+    --hard-bg: rgba(248,113,113,0.1);
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-head);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,108,252,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,108,252,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 3rem 1.5rem 5rem; }
+
+  /* Header */
+  header { margin-bottom: 3rem; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--accent);
+  }
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    gap: 2rem;
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 2.5rem;
+  }
+  .filter-btn {
+    padding: 7px 18px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+  }
+  .filter-btn:hover { border-color: var(--border-hover); color: var(--text); }
+  .filter-btn.active {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Section */
+  .section { margin-bottom: 2.5rem; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    width: 20px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    flex: 1;
+  }
+  .section-count {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 99px;
+  }
+
+  /* Question rows */
+  .questions { display: flex; flex-direction: column; gap: 3px; }
+  .q-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    color: inherit;
+  }
+  .q-row:hover {
+    background: var(--surface2);
+    border-color: var(--border-hover);
+    transform: translateX(3px);
+  }
+  .rank {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 16px;
+    text-align: center;
+  }
+  .q-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .easy  { color: var(--easy);   background: var(--easy-bg); }
+  .medium{ color: var(--medium); background: var(--medium-bg); }
+  .hard  { color: var(--hard);   background: var(--hard-bg); }
+
+  .arrow {
+    font-size: 12px;
+    color: var(--text-dim);
+    transition: color 0.15s, transform 0.15s;
+  }
+  .q-row:hover .arrow { color: var(--accent); transform: translateX(2px); }
+
+  /* Empty state */
+  .empty {
+    text-align: center;
+    padding: 3rem;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .section { animation: fadeUp 0.3s ease both; }
+
+  @media (max-width: 600px) {
+    .stats { gap: 1rem; }
+    .tag { display: none; }
+    h1 { font-size: 2rem; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+<div class="wrapper">
+
+  <header>
+    <p class="eyebrow">Interview Prep</p>
+    <h1>Top Coding<br><span>Interview Questions</span></h1>
+    <p class="subtitle">55 must-know problems across 11 topics.<br>Ranked by frequency in real technical interviews.</p>
+    <div class="stats">
+      <div class="stat-item"><span class="stat-num" id="total-count">55</span><span class="stat-label">Questions</span></div>
+      <div class="stat-item"><span class="stat-num">11</span><span class="stat-label">Topics</span></div>
+      <div class="stat-item"><span class="stat-num easy">13</span><span class="stat-label">Easy</span></div>
+      <div class="stat-item"><span class="stat-num medium">32</span><span class="stat-label">Medium</span></div>
+      <div class="stat-item"><span class="stat-num hard">10</span><span class="stat-label">Hard</span></div>
+    </div>
+  </header>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filter('all', this)">All</button>
+    <button class="filter-btn" onclick="filter('easy', this)">Easy</button>
+    <button class="filter-btn" onclick="filter('medium', this)">Medium</button>
+    <button class="filter-btn" onclick="filter('hard', this)">Hard</button>
+  </div>
+
+  <div id="list"></div>
+
+  <footer>
+    <span>Top 5 per section · 55 questions total</span>
+    <span>Click any question to search on LeetCode</span>
+  </footer>
+</div>
+
+<script>
+const data = [
+  { topic: "Arrays & Hashing", questions: [
+    { name: "Two Sum", diff: "easy", tag: "HashMap" },
+    { name: "Contains Duplicate", diff: "easy", tag: "HashSet" },
+    { name: "Product of Array Except Self", diff: "medium", tag: "Prefix" },
+    { name: "Top K Frequent Elements", diff: "medium", tag: "Bucket Sort" },
+    { name: "Longest Consecutive Sequence", diff: "medium", tag: "HashSet" },
+  ]},
+  { topic: "Sliding Window", questions: [
+    { name: "Best Time to Buy & Sell Stock", diff: "easy", tag: "Window" },
+    { name: "Longest Substring Without Repeating", diff: "medium", tag: "Window" },
+    { name: "Longest Repeating Char Replacement", diff: "medium", tag: "Window + Map" },
+    { name: "Minimum Window Substring", diff: "hard", tag: "Window + Map" },
+    { name: "Sliding Window Maximum", diff: "hard", tag: "Deque" },
+  ]},
+  { topic: "Two Pointers", questions: [
+    { name: "Valid Palindrome", diff: "easy", tag: "Two Pointers" },
+    { name: "Two Sum II (Sorted)", diff: "medium", tag: "Two Pointers" },
+    { name: "3Sum", diff: "medium", tag: "Sort + Pointers" },
+    { name: "Container With Most Water", diff: "medium", tag: "Two Pointers" },
+    { name: "Trapping Rain Water", diff: "hard", tag: "Two Pointers" },
+  ]},
+  { topic: "Binary Search", questions: [
+    { name: "Binary Search", diff: "easy", tag: "O(log n)" },
+    { name: "Search in Rotated Sorted Array", diff: "medium", tag: "Binary Search" },
+    { name: "Find Minimum in Rotated Array", diff: "medium", tag: "Binary Search" },
+    { name: "Koko Eating Bananas", diff: "medium", tag: "Search on Answer" },
+    { name: "Median of Two Sorted Arrays", diff: "hard", tag: "Binary Search" },
+  ]},
+  { topic: "Stack & Queue", questions: [
+    { name: "Valid Parentheses", diff: "easy", tag: "Stack" },
+    { name: "Min Stack", diff: "medium", tag: "Stack" },
+    { name: "Evaluate Reverse Polish Notation", diff: "medium", tag: "Stack" },
+    { name: "Daily Temperatures", diff: "medium", tag: "Monotonic Stack" },
+    { name: "Largest Rectangle in Histogram", diff: "hard", tag: "Monotonic Stack" },
+  ]},
+  { topic: "Linked List", questions: [
+    { name: "Reverse Linked List", diff: "easy", tag: "Pointers" },
+    { name: "Detect Cycle", diff: "easy", tag: "Fast & Slow" },
+    { name: "Merge Two Sorted Lists", diff: "easy", tag: "Pointers" },
+    { name: "Reorder List", diff: "medium", tag: "Fast & Slow" },
+    { name: "LRU Cache", diff: "medium", tag: "HashMap + DLL" },
+  ]},
+  { topic: "Trees", questions: [
+    { name: "Invert Binary Tree", diff: "easy", tag: "DFS" },
+    { name: "Maximum Depth of Binary Tree", diff: "easy", tag: "DFS" },
+    { name: "Validate Binary Search Tree", diff: "medium", tag: "DFS" },
+    { name: "Level Order Traversal", diff: "medium", tag: "BFS" },
+    { name: "Binary Tree Maximum Path Sum", diff: "hard", tag: "DFS" },
+  ]},
+  { topic: "Graphs", questions: [
+    { name: "Number of Islands", diff: "medium", tag: "DFS/BFS" },
+    { name: "Clone Graph", diff: "medium", tag: "DFS + HashMap" },
+    { name: "Course Schedule", diff: "medium", tag: "Topological Sort" },
+    { name: "Pacific Atlantic Water Flow", diff: "medium", tag: "BFS" },
+    { name: "Word Ladder", diff: "hard", tag: "BFS" },
+  ]},
+  { topic: "Dynamic Programming", questions: [
+    { name: "Climbing Stairs", diff: "easy", tag: "DP" },
+    { name: "Coin Change", diff: "medium", tag: "DP" },
+    { name: "Longest Increasing Subsequence", diff: "medium", tag: "DP" },
+    { name: "Word Break", diff: "medium", tag: "DP" },
+    { name: "Edit Distance", diff: "hard", tag: "2D DP" },
+  ]},
+  { topic: "Backtracking", questions: [
+    { name: "Subsets", diff: "medium", tag: "Backtrack" },
+    { name: "Permutations", diff: "medium", tag: "Backtrack" },
+    { name: "Combination Sum", diff: "medium", tag: "Backtrack" },
+    { name: "Word Search", diff: "medium", tag: "Backtrack + DFS" },
+    { name: "N-Queens", diff: "hard", tag: "Backtrack" },
+  ]},
+  { topic: "Heap / Priority Queue", questions: [
+    { name: "Kth Largest Element", diff: "medium", tag: "Min Heap" },
+    { name: "K Closest Points to Origin", diff: "medium", tag: "Max Heap" },
+    { name: "Task Scheduler", diff: "medium", tag: "Max Heap" },
+    { name: "Design Twitter Feed", diff: "medium", tag: "Min Heap" },
+    { name: "Find Median from Data Stream", diff: "hard", tag: "Two Heaps" },
+  ]},
+];
+
+let currentFilter = 'all';
+
+function filter(diff, btn) {
+  currentFilter = diff;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+function slugify(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function render() {
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  let total = 0;
+
+  data.forEach((section, si) => {
+    const qs = currentFilter === 'all'
+      ? section.questions
+      : section.questions.filter(q => q.diff === currentFilter);
+    if (qs.length === 0) return;
+    total += qs.length;
+
+    const sec = document.createElement('div');
+    sec.className = 'section';
+    sec.style.animationDelay = `${si * 0.04}s`;
+
+    sec.innerHTML = `
+      <div class="section-header">
+        <span class="section-num">${String(si + 1).padStart(2, '0')}</span>
+        <span class="section-title">${section.topic}</span>
+        <span class="section-count">${qs.length}</span>
+      </div>
+      <div class="questions">
+        ${qs.map((q, i) => `
+          <a class="q-row" href="https://leetcode.com/problems/${slugify(q.name)}/" target="_blank" rel="noopener">
+            <span class="rank">${i + 1}</span>
+            <span class="q-name">${q.name}</span>
+            <span class="tag">${q.tag}</span>
+            <span class="badge ${q.diff}">${q.diff}</span>
+            <span class="arrow">→</span>
+          </a>`).join('')}
+      </div>`;
+    list.appendChild(sec);
+  });
+
+  document.getElementById('total-count').textContent = total;
+
+  if (total === 0) {
+    list.innerHTML = '<div class="empty">No questions found for this filter.</div>';
+  }
+}
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLM RAG / AWS Bedrock — Implementation Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0c10; --bg2:#111318; --bg3:#181c24;
+    --border:#1e2330; --border2:#2a3040;
+    --text:#e8eaf0; --text2:#8a92a8; --text3:#555e78;
+    --accent:#4f8ef7; --teal:#2dd4a0; --amber:#f5a623;
+    --coral:#f06060; --green:#4ade80; --purple:#a78bfa;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:15px;}
+
+  /* HEADER */
+  header{border-bottom:1px solid var(--border);padding:40px 60px 32px;position:relative;overflow:hidden;}
+  header::before{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(79,142,247,.08) 0%,transparent 70%);pointer-events:none;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px;}
+  h1{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-bottom:10px;}
+  h1 span{color:var(--accent);}
+  .header-sub{font-size:14px;color:var(--text2);font-weight:300;max-width:640px;}
+  .chips{display:flex;gap:7px;margin-top:20px;flex-wrap:wrap;}
+  .chip{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--text2);background:var(--bg2);}
+  .chip.ca{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,.07);}
+  .chip.cp{border-color:rgba(167,139,250,.5);color:var(--purple);background:rgba(167,139,250,.06);}
+  .chip.ct{border-color:rgba(45,212,160,.5);color:var(--teal);background:rgba(45,212,160,.06);}
+  .chip.cam{border-color:rgba(245,166,35,.5);color:var(--amber);background:rgba(245,166,35,.06);}
+  .chip.cg{border-color:rgba(74,222,128,.5);color:var(--green);background:rgba(74,222,128,.06);}
+
+  /* LAYOUT */
+  main{padding:48px 60px;max-width:1120px;}
+  section{margin-bottom:60px;}
+  .slabel{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+  .slabel::after{content:'';flex:1;height:1px;background:var(--border);}
+  h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text);margin-bottom:24px;letter-spacing:-.01em;}
+
+  /* STACK TILES */
+  .stack-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:32px;}
+  @media(max-width:800px){.stack-grid{grid-template-columns:1fr 1fr;}}
+  .stile{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;}
+  .stile::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:10px 10px 0 0;}
+  .stile.tp::before{background:var(--purple);}
+  .stile.tt::before{background:var(--teal);}
+  .stile.ta::before{background:var(--amber);}
+  .stile.tb::before{background:var(--accent);}
+  .stile.tg::before{background:var(--green);}
+  .stile-cat{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+  .stile-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px;}
+  .stile.tp .stile-name{color:var(--purple);}
+  .stile.tt .stile-name{color:var(--teal);}
+  .stile.ta .stile-name{color:var(--amber);}
+  .stile.tb .stile-name{color:var(--accent);}
+  .stile.tg .stile-name{color:var(--green);}
+  .stile-sub{font-size:11px;color:var(--text2);font-family:'IBM Plex Mono',monospace;line-height:1.55;}
+
+  /* ARCH DIAGRAM */
+  .arch-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:34px 24px 26px;position:relative;overflow:hidden;}
+  .arch-box::before{content:'';position:absolute;bottom:-60px;left:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(124,92,191,.05) 0%,transparent 70%);pointer-events:none;}
+  .arch-flow{display:flex;align-items:stretch;overflow-x:auto;padding-bottom:8px;}
+  .anode-wrap{display:flex;flex-direction:column;align-items:center;flex:1;min-width:118px;}
+  .aconn{display:flex;align-items:center;justify-content:center;width:30px;flex-shrink:0;padding-top:26px;}
+  .aconn-line{width:100%;height:1px;background:linear-gradient(to right,var(--border2),var(--accent),var(--border2));position:relative;}
+  .aconn-line::after{content:'›';position:absolute;right:-6px;top:-9px;color:var(--accent);font-size:16px;}
+  .anode{width:100%;border-radius:10px;padding:13px 10px;text-align:center;border:1px solid var(--border2);background:var(--bg3);transition:border-color .2s,transform .2s;cursor:default;}
+  .anode:hover{transform:translateY(-2px);}
+  .anode.cb {border-color:rgba(79,142,247,.4); background:rgba(79,142,247,.06);}
+  .anode.cp {border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.06);}
+  .anode.ct {border-color:rgba(45,212,160,.4); background:rgba(45,212,160,.06);}
+  .anode.cam{border-color:rgba(245,166,35,.4); background:rgba(245,166,35,.06);}
+  .anode.cco{border-color:rgba(240,96,96,.4);  background:rgba(240,96,96,.06);}
+  .anode:hover.cb {border-color:rgba(79,142,247,.85);}
+  .anode:hover.cp {border-color:rgba(167,139,250,.85);}
+  .anode:hover.ct {border-color:rgba(45,212,160,.85);}
+  .anode:hover.cam{border-color:rgba(245,166,35,.85);}
+  .anode:hover.cco{border-color:rgba(240,96,96,.85);}
+  .ni{font-size:18px;margin-bottom:5px;display:block;}
+  .nt{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3;}
+  .ns{font-size:9px;color:var(--text2);font-family:'IBM Plex Mono',monospace;line-height:1.4;}
+  .ntags{margin-top:7px;display:flex;flex-wrap:wrap;gap:3px;justify-content:center;}
+  .ntag{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(255,255,255,.04);color:var(--text2);border:1px solid var(--border2);}
+  .ntag.aws{color:var(--amber);border-color:rgba(245,166,35,.3);background:rgba(245,166,35,.04);}
+  .ntag.ai {color:var(--purple);border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.04);}
+  .ntag.cd {color:var(--green);border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.04);}
+  .ntag.cu {color:var(--teal);border-color:rgba(45,212,160,.3);background:rgba(45,212,160,.04);}
+  .astep-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text3);margin-top:7px;text-align:center;}
+
+  /* RAG LOOP */
+  .rag-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:26px 30px;margin-top:20px;}
+  .rag-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:18px;}
+  .rstep{display:flex;align-items:flex-start;gap:14px;}
+  .rnum{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);background:rgba(79,142,247,.1);border:1px solid rgba(79,142,247,.3);border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+  .rcontent{flex:1;padding-bottom:14px;}
+  .rname{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+  .rdesc{font-size:12px;color:var(--text2);line-height:1.5;}
+  .rtool{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(45,212,160,.07);border:1px solid rgba(45,212,160,.25);color:var(--teal);margin-top:5px;}
+  .rvline{width:1px;background:var(--border);margin-left:10px;height:14px;flex-shrink:0;}
+
+  /* PHASES */
+  .pg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:700px){.pg{grid-template-columns:1fr;}}
+  .pcard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;transition:border-color .2s;}
+  .pcard:hover{border-color:var(--border2);}
+  .pcard-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .pnum{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:2px 8px;}
+  .ptitle{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);}
+  .pbody{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:12px;}
+  .ptools{display:flex;flex-wrap:wrap;gap:5px;}
+  .pt{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 9px;border-radius:10px;border:1px solid var(--border2);color:var(--text2);}
+  .pt.aws {color:var(--amber);border-color:rgba(245,166,35,.35);background:rgba(245,166,35,.04);}
+  .pt.ai  {color:var(--purple);border-color:rgba(167,139,250,.35);background:rgba(167,139,250,.04);}
+  .pt.cu  {color:var(--teal);border-color:rgba(45,212,160,.35);background:rgba(45,212,160,.04);}
+  .pt.code{color:var(--green);border-color:rgba(74,222,128,.35);background:rgba(74,222,128,.04);}
+
+  /* CODE CARDS */
+  .dg{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:700px){.dg{grid-template-columns:1fr;}}
+  .dcard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px 22px;}
+  .dcard-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .dp{background:var(--purple);} .dt{background:var(--teal);} .da{background:var(--amber);} .db{background:var(--accent);} .dg2{background:var(--green);}
+  .dbody{font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:12px;}
+  .mono{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);}
+  .snippet{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:12px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);line-height:1.8;overflow-x:auto;}
+  .kw{color:var(--accent);} .cm{color:var(--text3);font-style:italic;} .str{color:var(--amber);} .fn{color:var(--purple);}
+  .dtools{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;}
+
+  /* PIPELINE FLOW */
+  .pipeline{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px 32px;margin-bottom:24px;}
+  .pipeline-title{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:20px;}
+  .pipe-steps{display:flex;align-items:center;flex-wrap:wrap;gap:0;}
+  .pipe-step{display:flex;flex-direction:column;align-items:center;min-width:100px;flex:1;}
+  .pipe-node{background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;text-align:center;width:100%;}
+  .pipe-node.active{border-color:rgba(79,142,247,.5);background:rgba(79,142,247,.07);}
+  .pipe-node.cfm{border-color:rgba(245,166,35,.5);background:rgba(245,166,35,.06);}
+  .pipe-node.lmb{border-color:rgba(45,212,160,.5);background:rgba(45,212,160,.06);}
+  .pipe-icon{font-size:16px;margin-bottom:3px;display:block;}
+  .pipe-label{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:var(--text);line-height:1.2;}
+  .pipe-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text2);margin-top:2px;}
+  .pipe-arr{display:flex;align-items:center;justify-content:center;width:28px;flex-shrink:0;color:var(--text3);font-size:14px;margin-bottom:4px;}
+
+  /* DECISIONS */
+  .dec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  @media(max-width:750px){.dec-grid{grid-template-columns:1fr;}}
+  .dcard2{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;}
+  .dvs{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--text3);margin-bottom:5px;text-transform:uppercase;}
+  .dch{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--teal);margin-bottom:2px;}
+  .drej{font-size:11px;color:var(--text3);margin-bottom:10px;font-family:'IBM Plex Mono',monospace;}
+  .dbody2{font-size:12px;color:var(--text2);line-height:1.6;}
+
+  /* SCRIPT */
+  .sblock{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:22px 24px;margin-bottom:14px;}
+  .sblock-hdr{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .stag{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 10px;border-radius:4px;letter-spacing:.05em;}
+  .stag.s{background:rgba(79,142,247,.1);color:var(--accent);border:1px solid rgba(79,142,247,.3);}
+  .stag.t{background:rgba(167,139,250,.1);color:var(--purple);border:1px solid rgba(167,139,250,.3);}
+  .stag.a{background:rgba(45,212,160,.1);color:var(--teal);border:1px solid rgba(45,212,160,.3);}
+  .stag.r{background:rgba(245,166,35,.1);color:var(--amber);border:1px solid rgba(245,166,35,.3);}
+  .slbl{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text);}
+  .squote{font-size:13px;color:var(--text);font-style:italic;line-height:1.75;padding-left:16px;border-left:2px solid var(--border2);font-weight:300;}
+
+  /* Q&A */
+  .qa-item{border-bottom:1px solid var(--border);padding:16px 0;}
+  .qa-item:last-child{border-bottom:none;}
+  .qa-q{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;display:flex;gap:8px;align-items:flex-start;}
+  .qa-q::before{content:'Q';font-family:'IBM Plex Mono',monospace;font-size:10px;margin-top:2px;opacity:.6;flex-shrink:0;}
+  .qa-a{font-size:13px;color:var(--text2);line-height:1.65;padding-left:18px;font-weight:300;}
+
+  /* CALLOUT */
+  .callout{background:rgba(245,166,35,.05);border:1px solid rgba(245,166,35,.25);border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--text2);line-height:1.6;}
+  .callout strong{color:var(--amber);font-weight:500;}
+
+  footer{border-top:1px solid var(--border);padding:22px 60px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3);}
+
+  @media print{
+    body{background:#fff;color:#111;}
+    header,main,footer{padding-left:30px;padding-right:30px;}
+    .arch-box,.rag-box,.pcard,.sblock,.dcard,.dcard2,.stile,.pipeline{background:#f8f8f8;border-color:#ddd;}
+    .snippet{background:#f0f0f0;color:#1a6644;}
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<header>
+  <div class="eyebrow">AWS Solutions Architect · Interview Reference</div>
+  <h1>PLM <span>RAG</span> / Bedrock<br>Implementation Guide</h1>
+  <p class="header-sub">Complete reference — LLM, vector DB, FastAPI on Lambda (Mangum), CloudFormation IaC, and Jenkins CI/CD pipeline.</p>
+  <div class="chips">
+    <span class="chip ca">19+ yrs · AWS SA</span>
+    <span class="chip cp">Claude 3 on Bedrock</span>
+    <span class="chip ct">Amazon OpenSearch (vector DB)</span>
+    <span class="chip cam">Python · FastAPI · Mangum</span>
+    <span class="chip cg">AWS Lambda (serverless)</span>
+    <span class="chip cg">CloudFormation IaC</span>
+    <span class="chip cg">Jenkins CI/CD</span>
+    <span class="chip">PLM App</span>
+    <span class="chip">RAG Architecture</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- 00 STACK -->
+  <section>
+    <div class="slabel">00 · Tech Stack at a Glance</div>
+    <h2>Core technology choices</h2>
+    <div class="stack-grid" style="grid-template-columns:repeat(5,1fr);">
+
+      <div class="stile tp">
+        <div class="stile-cat">LLM · Foundation Model</div>
+        <div class="stile-name">Claude 3</div>
+        <div class="stile-sub">AWS Bedrock<br>Fine-tuned on PLM<br>Titan Embeddings</div>
+      </div>
+
+      <div class="stile tt">
+        <div class="stile-cat">Vector Database</div>
+        <div class="stile-name">Amazon OpenSearch</div>
+        <div class="stile-sub">k-NN vector index<br>Hybrid k-NN + BM25<br>Within AWS boundary</div>
+      </div>
+
+      <div class="stile ta">
+        <div class="stile-cat">API Framework</div>
+        <div class="stile-name">FastAPI + Mangum</div>
+        <div class="stile-sub">Python async REST<br>Mangum ASGI adapter<br>Runs on AWS Lambda</div>
+      </div>
+
+      <div class="stile tg">
+        <div class="stile-cat">IaC · Infrastructure</div>
+        <div class="stile-name">CloudFormation</div>
+        <div class="stile-sub">Lambda + API GW<br>OpenSearch domain<br>IAM roles · S3</div>
+      </div>
+
+      <div class="stile tb">
+        <div class="stile-cat">CI/CD Pipeline</div>
+        <div class="stile-name">Jenkins</div>
+        <div class="stile-sub">Test → package<br>cfn deploy → Lambda<br>Provisioned concurrency</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 01 ARCHITECTURE -->
+  <section>
+    <div class="slabel">01 · Architecture Overview</div>
+    <h2>End-to-end system architecture</h2>
+
+    <div class="arch-box">
+      <div class="arch-flow">
+
+        <div class="anode-wrap">
+          <div class="anode cb">
+            <span class="ni">📄</span>
+            <div class="nt">Data sources</div>
+            <div class="ns">PLM docs +<br>incident history</div>
+            <div class="ntags">
+              <span class="ntag aws">S3</span>
+              <span class="ntag cu">PLM KB</span>
+            </div>
+          </div>
+          <div class="astep-label">PHASE 1</div>
+        </div>
+
+        <div class="aconn"><div class="aconn-line"></div></div>
+
+        <div class="anode-wrap">
+          <div class="anode cp">
+            <span class="ni">🧮</span>
+            <div class="nt">Embeddings</div>
+            <div class="ns">Vectorise → index<br>in OpenSearch</div>
+            <div class="ntags">
+              <span class="ntag aws">Titan Embeddings</span>
+              <span class="ntag aws">OpenSearch k-NN</span>
+            </div>
+          </div>
+          <div class="astep-label">PHASE 2</div>
+        </div>
+
+        <div class="aconn"><div class="aconn-line"></div></div>
+
+        <div class="anode-wrap">
+          <div class="anode cp">
+            <span class="ni">🤖</span>
+            <div class="nt">Claude 3 (fine-tuned)</div>
+            <div class="ns">Domain-tuned on<br>PLM content</div>
+            <div class="ntags">
+              <span class="ntag ai">Claude 3</span>
+              <span class="ntag aws">Bedrock</span>
+            </div>
+          </div>
+          <div class="astep-label">PHASE 3</div>
+        </div>
+
+        <div class="aconn"><div class="aconn-line"></div></div>
+
+        <div class="anode-wrap">
+          <div class="anode ct">
+            <span class="ni">🔍</span>
+            <div class="nt">RAG pipeline</div>
+            <div class="ns">Retrieve → prompt<br>→ generate</div>
+            <div class="ntags">
+              <span class="ntag aws">Bedrock KB</span>
+              <span class="ntag cd">Python</span>
+            </div>
+          </div>
+          <div class="astep-label">PHASE 4</div>
+        </div>
+
+        <div class="aconn"><div class="aconn-line"></div></div>
+
+        <div class="anode-wrap">
+          <div class="anode cam">
+            <span class="ni">⚡</span>
+            <div class="nt">FastAPI + Lambda</div>
+            <div class="ns">Mangum adapter<br>API Gateway trigger</div>
+            <div class="ntags">
+              <span class="ntag cd">FastAPI</span>
+              <span class="ntag cd">Mangum</span>
+              <span class="ntag aws">Lambda</span>
+              <span class="ntag aws">API Gateway</span>
+            </div>
+          </div>
+          <div class="astep-label">PHASE 5</div>
+        </div>
+
+        <div class="aconn"><div class="aconn-line"></div></div>
+
+        <div class="anode-wrap">
+          <div class="anode cco">
+            <span class="ni">💬</span>
+            <div class="nt">PLM chatbot</div>
+            <div class="ns">In-app AI<br>assistant (real-time)</div>
+            <div class="ntags">
+              <span class="ntag cu">PLM app</span>
+              <span class="ntag cu">Real-time</span>
+            </div>
+          </div>
+          <div class="astep-label">PHASE 6</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RAG Loop -->
+    <div class="rag-box">
+      <div class="rag-title">RAG query loop — what happens at runtime</div>
+      <div>
+
+        <div class="rstep">
+          <div class="rnum">1</div>
+          <div class="rcontent">
+            <div class="rname">User submits query via PLM app</div>
+            <div class="rdesc">PLM frontend posts to the API Gateway endpoint. API Gateway triggers the Lambda function with a proxy event payload.</div>
+            <span class="rtool">PLM app → API Gateway (HTTP API) → Lambda trigger</span>
+          </div>
+        </div>
+        <div class="rvline"></div>
+
+        <div class="rstep">
+          <div class="rnum">2</div>
+          <div class="rcontent">
+            <div class="rname">Mangum translates event → FastAPI request</div>
+            <div class="rdesc">Mangum adapter converts the Lambda event dict into an ASGI-compatible request. FastAPI routes it to the correct endpoint and validates via Pydantic.</div>
+            <span class="rtool">Mangum (ASGI adapter) → FastAPI router → Pydantic model</span>
+          </div>
+        </div>
+        <div class="rvline"></div>
+
+        <div class="rstep">
+          <div class="rnum">3</div>
+          <div class="rcontent">
+            <div class="rname">Query embedded with Titan Embeddings</div>
+            <div class="rdesc">FastAPI service calls Bedrock Titan Embeddings via boto3 to convert query text to a dense vector — same model used at ingestion time for consistent vector space.</div>
+            <span class="rtool">Amazon Bedrock · Titan Embeddings · boto3</span>
+          </div>
+        </div>
+        <div class="rvline"></div>
+
+        <div class="rstep">
+          <div class="rnum">4</div>
+          <div class="rcontent">
+            <div class="rname">k-NN retrieval from Amazon OpenSearch</div>
+            <div class="rdesc">Query vector is used for k-NN similarity search on the OpenSearch vector index. Top-K most relevant PLM support documents and incident records are returned.</div>
+            <span class="rtool">Amazon OpenSearch · k-NN index · opensearch-py</span>
+          </div>
+        </div>
+        <div class="rvline"></div>
+
+        <div class="rstep">
+          <div class="rnum">5</div>
+          <div class="rcontent">
+            <div class="rname">Grounded prompt constructed, Claude 3 invoked</div>
+            <div class="rdesc">Retrieved documents injected into structured prompt template. Claude 3 (fine-tuned, on Bedrock) generates a grounded answer via InvokeModel API. Answer is traceable to retrieved source material.</div>
+            <span class="rtool">Python prompt template → Bedrock InvokeModel → Claude 3 Sonnet</span>
+          </div>
+        </div>
+        <div class="rvline"></div>
+
+        <div class="rstep">
+          <div class="rnum">6</div>
+          <div class="rcontent">
+            <div class="rname">Mangum returns response → API Gateway → PLM app</div>
+            <div class="rdesc">FastAPI returns JSON. Mangum converts it back to a Lambda response dict. API Gateway translates to HTTP and returns to the PLM app chatbot UI.</div>
+            <span class="rtool">FastAPI JSON → Mangum → Lambda response → API Gateway → PLM UI</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 PHASES -->
+  <section>
+    <div class="slabel">02 · Implementation Phases</div>
+    <h2>What you built, phase by phase</h2>
+    <div class="pg">
+
+      <div class="pcard">
+        <div class="pcard-hdr"><span class="pnum">Phase 1</span><span class="ptitle">Problem & business context</span></div>
+        <p class="pbody">The PLM app had no self-serve support layer. Engineers and product teams filed tickets or hunted through scattered docs. High support volume, slow resolution times.</p>
+        <div class="ptools"><span class="pt cu">Business problem</span><span class="pt cu">PLM app</span></div>
+      </div>
+
+      <div class="pcard">
+        <div class="pcard-hdr"><span class="pnum">Phase 2</span><span class="ptitle">Data ingestion & vector index</span></div>
+        <p class="pbody">Ingested PLM support docs and incident records into S3. Used Bedrock Titan Embeddings (boto3) to generate vectors. Indexed in Amazon OpenSearch k-NN index. CloudFormation provisions the OpenSearch domain and S3 buckets.</p>
+        <div class="ptools"><span class="pt aws">Amazon S3</span><span class="pt aws">Titan Embeddings</span><span class="pt aws">Amazon OpenSearch</span><span class="pt code">Python · boto3</span><span class="pt code">CloudFormation</span></div>
+      </div>
+
+      <div class="pcard">
+        <div class="pcard-hdr"><span class="pnum">Phase 3</span><span class="ptitle">Claude 3 domain fine-tuning</span></div>
+        <p class="pbody">Selected Claude 3 on AWS Bedrock. Fine-tuned on PLM documentation and incident history. Validated against eval sets from real historical queries to ensure domain accuracy before deployment.</p>
+        <div class="ptools"><span class="pt ai">Claude 3 (Anthropic)</span><span class="pt aws">Amazon Bedrock</span><span class="pt cu">Domain fine-tuning</span><span class="pt code">Python eval sets</span></div>
+      </div>
+
+      <div class="pcard">
+        <div class="pcard-hdr"><span class="pnum">Phase 4</span><span class="ptitle">RAG pipeline (Python)</span></div>
+        <p class="pbody">Core RAG loop in Python: embed query (Titan) → k-NN search in OpenSearch → build grounded prompt → invoke Claude 3 via Bedrock InvokeModel API. Pydantic models enforce contracts throughout.</p>
+        <div class="ptools"><span class="pt code">Python</span><span class="pt aws">Bedrock InvokeModel</span><span class="pt aws">OpenSearch k-NN</span><span class="pt code">Pydantic</span><span class="pt code">boto3</span></div>
+      </div>
+
+      <div class="pcard">
+        <div class="pcard-hdr"><span class="pnum">Phase 5</span><span class="ptitle">FastAPI on Lambda (Mangum)</span></div>
+        <p class="pbody">FastAPI app wrapped with Mangum ASGI adapter so it runs as a Lambda handler. Deployed as a Lambda container image. API Gateway (HTTP API) sits in front. Provisioned Concurrency eliminates cold starts. CloudFormation defines all Lambda, API GW, and IAM resources.</p>
+        <div class="ptools"><span class="pt code">FastAPI · Mangum</span><span class="pt aws">AWS Lambda</span><span class="pt aws">API Gateway (HTTP)</span><span class="pt aws">ECR (container image)</span><span class="pt code">CloudFormation</span><span class="pt aws">IAM · OAuth 2.0</span></div>
+      </div>
+
+      <div class="pcard">
+        <div class="pcard-hdr"><span class="pnum">Phase 6</span><span class="ptitle">Jenkins CI/CD · CloudFormation deploy</span></div>
+        <p class="pbody">Jenkins pipeline: run pytest → build Lambda container image → push to ECR → run CloudFormation changeset → deploy Lambda update → run smoke tests. CloudFormation manages all infrastructure as version-controlled YAML templates.</p>
+        <div class="ptools"><span class="pt code">Jenkins</span><span class="pt code">CloudFormation</span><span class="pt aws">ECR</span><span class="pt code">pytest</span><span class="pt cu">Smoke tests</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 03 CODE -->
+  <section>
+    <div class="slabel">03 · Code</div>
+    <h2>FastAPI + Mangum on Lambda</h2>
+
+    <div class="callout">
+      <strong>Key insight:</strong> Mangum is a single-line addition to a standard FastAPI app. Your application code is identical to what you'd write for any other deployment target — Mangum just handles the Lambda ↔ ASGI translation at the boundary.
+    </div>
+
+    <div class="dg">
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot da"></span>FastAPI app + Mangum adapter</div>
+        <div class="dbody">Standard FastAPI application with Pydantic request/response models. The only Lambda-specific line is <span class="mono">handler = Mangum(app)</span> at the bottom — Lambda invokes this function.</div>
+        <div class="snippet">
+<span class="cm"># main.py</span>
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, Depends, HTTPException
+<span class="kw">from</span> fastapi.security <span class="kw">import</span> OAuth2PasswordBearer
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> mangum <span class="kw">import</span> Mangum
+<span class="kw">from</span> rag <span class="kw">import</span> retrieve, invoke_claude3
+<span class="kw">from</span> auth <span class="kw">import</span> verify_token
+
+app = <span class="fn">FastAPI</span>()
+oauth2 = <span class="fn">OAuth2PasswordBearer</span>(tokenUrl=<span class="str">"/token"</span>)
+
+<span class="kw">class</span> <span class="fn">QueryRequest</span>(BaseModel):
+    question: str
+
+<span class="kw">class</span> <span class="fn">QueryResponse</span>(BaseModel):
+    answer:  str
+    sources: list[str]
+
+<span class="kw">@</span>app.<span class="fn">post</span>(<span class="str">"/query"</span>, response_model=QueryResponse)
+<span class="kw">async def</span> <span class="fn">query_plm</span>(req: QueryRequest,
+    token: str = <span class="fn">Depends</span>(oauth2)):
+    <span class="fn">verify_token</span>(token)  <span class="cm"># validate Bearer token</span>
+    chunks = <span class="fn">retrieve</span>(req.question)
+    answer = <span class="fn">invoke_claude3</span>(req.question, chunks)
+    <span class="kw">return</span> QueryResponse(answer=answer,
+                          sources=chunks)
+
+<span class="cm"># Lambda entry point — one line</span>
+handler = <span class="fn">Mangum</span>(app)
+        </div>
+        <div class="dtools">
+          <span class="pt code">Python 3.12</span>
+          <span class="pt code">FastAPI</span>
+          <span class="pt code">Mangum</span>
+          <span class="pt code">Pydantic v2</span>
+        </div>
+      </div>
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot dp"></span>RAG core — OpenSearch + Claude 3</div>
+        <div class="dbody">Titan Embeddings vectorises the query. OpenSearch k-NN returns top-K neighbours. Claude 3 InvokeModel generates a grounded answer from the retrieved context.</div>
+        <div class="snippet">
+<span class="cm"># rag.py</span>
+<span class="kw">import</span> boto3, json
+<span class="kw">from</span> opensearchpy <span class="kw">import</span> OpenSearch
+
+bedrock = boto3.<span class="fn">client</span>(<span class="str">"bedrock-runtime"</span>)
+os_client = <span class="fn">OpenSearch</span>(os_endpoint)
+
+<span class="kw">def</span> <span class="fn">retrieve</span>(query: str) -> list:
+    vec = <span class="fn">titan_embed</span>(query)
+    resp = os_client.<span class="fn">search</span>(
+        index=<span class="str">"plm-vectors"</span>,
+        body={<span class="str">"knn"</span>: {<span class="str">"vector"</span>: vec, <span class="str">"k"</span>: 5}}
+    )
+    <span class="kw">return</span> [h[<span class="str">"_source"</span>][<span class="str">"text"</span>]
+            <span class="kw">for</span> h <span class="kw">in</span> resp[<span class="str">"hits"</span>][<span class="str">"hits"</span>]]
+
+<span class="kw">def</span> <span class="fn">invoke_claude3</span>(q, chunks) -> str:
+    prompt = <span class="fn">build_prompt</span>(q, chunks)
+    r = bedrock.<span class="fn">invoke_model</span>(
+        modelId=<span class="str">"anthropic.claude-3-sonnet"</span>,
+        body=<span class="fn">json.dumps</span>({<span class="str">"prompt"</span>: prompt,
+                              <span class="str">"max_tokens"</span>: 1024})
+    )
+    <span class="kw">return</span> <span class="fn">json.loads</span>(r[<span class="str">"body"</span>].<span class="fn">read</span>())
+        </div>
+        <div class="dtools">
+          <span class="pt aws">Bedrock InvokeModel</span>
+          <span class="pt ai">Claude 3 Sonnet</span>
+          <span class="pt aws">OpenSearch k-NN</span>
+          <span class="pt code">boto3</span>
+          <span class="pt code">opensearch-py</span>
+        </div>
+      </div>
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot dt"></span>Lambda container image (Dockerfile)</div>
+        <div class="dbody">Lambda runs FastAPI as a container image. AWS provides a base image with the Lambda runtime. The image is pushed to ECR and referenced in the CloudFormation template.</div>
+        <div class="snippet">
+<span class="cm"># Dockerfile</span>
+<span class="kw">FROM</span> public.ecr.aws/lambda/python:<span class="str">3.12</span>
+
+<span class="kw">COPY</span> requirements.txt .
+<span class="kw">RUN</span>  pip install -r requirements.txt \
+     --target <span class="str">"${LAMBDA_TASK_ROOT}"</span>
+
+<span class="kw">COPY</span> main.py rag.py <span class="str">${LAMBDA_TASK_ROOT}</span>/
+
+<span class="cm"># Lambda looks for module.handler</span>
+<span class="kw">CMD</span> [<span class="str">"main.handler"</span>]
+
+<span class="cm">---</span>
+<span class="cm"># requirements.txt</span>
+fastapi==0.111.0
+mangum==0.17.0
+pydantic==2.7.0
+boto3==1.34.0
+opensearch-py==2.6.0
+        </div>
+        <div class="dtools">
+          <span class="pt code">Docker</span>
+          <span class="pt aws">Lambda container image</span>
+          <span class="pt aws">Amazon ECR</span>
+          <span class="pt code">AWS Lambda base image</span>
+        </div>
+      </div>
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot db"></span>Provisioned Concurrency (cold start fix)</div>
+        <div class="dbody">RAG pipeline has init overhead — boto3 clients, OpenSearch connection. Provisioned Concurrency keeps N Lambda containers pre-warmed, eliminating cold starts for PLM users. Defined in CloudFormation.</div>
+        <div class="snippet">
+<span class="cm"># CloudFormation snippet</span>
+<span class="fn">RagLambdaAlias</span>:
+  Type: AWS::Lambda::Alias
+  Properties:
+    FunctionName: !Ref <span class="fn">RagFunction</span>
+    Name: <span class="str">live</span>
+    FunctionVersion: !GetAtt
+      - <span class="fn">RagFunctionVersion</span>
+      - Version
+
+<span class="fn">ProvisionedConcurrency</span>:
+  Type: AWS::Lambda::ProvisionedConcurrencyConfig
+  Properties:
+    FunctionName: !Ref <span class="fn">RagFunction</span>
+    Qualifier: !Ref <span class="fn">RagLambdaAlias</span>
+    ProvisionedConcurrentExecutions: <span class="str">3</span>
+        </div>
+        <div class="dtools">
+          <span class="pt aws">Lambda Provisioned Concurrency</span>
+          <span class="pt code">CloudFormation</span>
+          <span class="pt aws">Lambda Alias</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 04 CLOUDFORMATION -->
+  <section>
+    <div class="slabel">04 · Infrastructure as Code</div>
+    <h2>AWS CloudFormation stack</h2>
+
+    <div class="callout">
+      <strong>All infrastructure is defined in CloudFormation YAML templates.</strong> This means every resource — Lambda, API Gateway, OpenSearch domain, S3 buckets, IAM roles, and Provisioned Concurrency — is version-controlled, repeatable, and deployable via a single stack update from Jenkins.
+    </div>
+
+    <div class="dg">
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot da"></span>Lambda + API Gateway resources</div>
+        <div class="dbody">Lambda function defined with container image URI from ECR. API Gateway HTTP API with Lambda proxy integration. IAM execution role grants Bedrock and OpenSearch access.</div>
+        <div class="snippet">
+<span class="cm"># cfn/lambda.yaml (excerpt)</span>
+<span class="fn">RagFunction</span>:
+  Type: AWS::Lambda::Function
+  Properties:
+    FunctionName: plm-rag
+    PackageType: Image
+    Code:
+      ImageUri: !Sub
+        <span class="str">"${ECRRepo}:${ImageTag}"</span>
+    MemorySize: <span class="str">3008</span>
+    Timeout: <span class="str">30</span>
+    Role: !GetAtt <span class="fn">RagExecutionRole</span>.Arn
+    Environment:
+      Variables:
+        OS_ENDPOINT: !GetAtt
+          <span class="fn">OpenSearchDomain</span>.DomainEndpoint
+
+<span class="fn">OAuth2Authorizer</span>:
+  Type: AWS::ApiGatewayV2::Authorizer
+  Properties:
+    ApiId: !Ref <span class="fn">RagHttpApi</span>
+    AuthorizerType: JWT
+    IdentitySource: [<span class="str">"$request.header.Authorization"</span>]
+    JwtConfiguration:
+      Audience: [<span class="str">"plm-rag-api"</span>]
+      Issuer: !Sub <span class="str">"https://auth.${Domain}"</span>
+        </div>
+        <div class="dtools">
+          <span class="pt aws">AWS::Lambda::Function</span>
+          <span class="pt aws">AWS::ApiGatewayV2::Api</span>
+          <span class="pt aws">AWS::IAM::Role</span>
+          <span class="pt code">CloudFormation</span>
+        </div>
+      </div>
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot dt"></span>OpenSearch + S3 resources</div>
+        <div class="dbody">OpenSearch domain for the k-NN vector index. S3 bucket for source documents. Both provisioned via CloudFormation so infra is reproducible across environments (dev, staging, prod).</div>
+        <div class="snippet">
+<span class="cm"># cfn/data.yaml (excerpt)</span>
+<span class="fn">OpenSearchDomain</span>:
+  Type: AWS::OpenSearchService::Domain
+  Properties:
+    DomainName: plm-vectors
+    EngineVersion: <span class="str">OpenSearch_2.11</span>
+    ClusterConfig:
+      InstanceType: r6g.large.search
+      InstanceCount: <span class="str">2</span>
+    EBSOptions:
+      EBSEnabled: <span class="kw">true</span>
+      VolumeSize: <span class="str">100</span>
+
+<span class="fn">PLMDocsBucket</span>:
+  Type: AWS::S3::Bucket
+  Properties:
+    BucketName: !Sub
+      <span class="str">"plm-docs-${AWS::AccountId}"</span>
+        </div>
+        <div class="dtools">
+          <span class="pt aws">AWS::OpenSearchService::Domain</span>
+          <span class="pt aws">AWS::S3::Bucket</span>
+          <span class="pt code">CloudFormation</span>
+        </div>
+      </div>
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot db"></span>IAM execution role</div>
+        <div class="dbody">Lambda execution role grants least-privilege access: Bedrock InvokeModel for Claude 3 and Titan Embeddings, OpenSearch HTTP access, S3 read for source documents, and CloudWatch Logs.</div>
+        <div class="snippet">
+<span class="cm"># cfn/iam.yaml (excerpt)</span>
+<span class="fn">RagExecutionRole</span>:
+  Type: AWS::IAM::Role
+  Properties:
+    Policies:
+      - PolicyDocument:
+          Statement:
+            - Effect: Allow
+              Action:
+                - <span class="str">bedrock:InvokeModel</span>
+              Resource:
+                - <span class="str">"arn:aws:bedrock:*::foundation-model/anthropic.claude-3-sonnet*"</span>
+                - <span class="str">"arn:aws:bedrock:*::foundation-model/amazon.titan-embed*"</span>
+            - Effect: Allow
+              Action: [<span class="str">es:ESHttp*</span>]
+              Resource: !GetAtt
+                <span class="fn">OpenSearchDomain</span>.Arn
+        </div>
+        <div class="dtools">
+          <span class="pt aws">AWS::IAM::Role</span>
+          <span class="pt aws">Bedrock InvokeModel</span>
+          <span class="pt aws">OpenSearch ESHttp*</span>
+          <span class="pt code">Least-privilege</span>
+        </div>
+      </div>
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot dg2"></span>Stack organisation</div>
+        <div class="dbody">CloudFormation templates are split into nested stacks by concern — data layer, compute layer, API layer, IAM. A root stack references each nested stack, enabling independent updates to individual layers.</div>
+        <div class="snippet">
+<span class="cm"># cfn/ directory structure</span>
+cfn/
+  root.yaml          <span class="cm"># master stack</span>
+  stacks/
+    data.yaml        <span class="cm"># S3 + OpenSearch</span>
+    compute.yaml     <span class="cm"># Lambda + concurrency</span>
+    api.yaml         <span class="cm"># API Gateway + routes</span>
+    iam.yaml         <span class="cm"># roles + policies</span>
+
+<span class="cm"># Jenkins deploys via:</span>
+aws cloudformation deploy \
+  --template-file cfn/root.yaml \
+  --stack-name plm-rag \
+  --capabilities CAPABILITY_IAM \
+  --parameter-overrides \
+    ImageTag=$IMAGE_TAG
+        </div>
+        <div class="dtools">
+          <span class="pt code">Nested stacks</span>
+          <span class="pt code">CloudFormation</span>
+          <span class="pt code">CAPABILITY_IAM</span>
+          <span class="pt code">Parameter overrides</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 05 JENKINS -->
+  <section>
+    <div class="slabel">05 · CI/CD Pipeline</div>
+    <h2>Jenkins deployment pipeline</h2>
+
+    <div class="pipeline">
+      <div class="pipeline-title">Jenkins pipeline stages — triggered on merge to main</div>
+      <div class="pipe-steps">
+
+        <div class="pipe-step">
+          <div class="pipe-node active">
+            <span class="pipe-icon">🧪</span>
+            <div class="pipe-label">Test</div>
+            <div class="pipe-sub">pytest · coverage</div>
+          </div>
+        </div>
+        <div class="pipe-arr">›</div>
+
+        <div class="pipe-step">
+          <div class="pipe-node active">
+            <span class="pipe-icon">🐳</span>
+            <div class="pipe-label">Build image</div>
+            <div class="pipe-sub">Docker build</div>
+          </div>
+        </div>
+        <div class="pipe-arr">›</div>
+
+        <div class="pipe-step">
+          <div class="pipe-node active">
+            <span class="pipe-icon">📦</span>
+            <div class="pipe-label">Push to ECR</div>
+            <div class="pipe-sub">tag + push</div>
+          </div>
+        </div>
+        <div class="pipe-arr">›</div>
+
+        <div class="pipe-step">
+          <div class="pipe-node cfm">
+            <span class="pipe-icon">☁️</span>
+            <div class="pipe-label">CFN changeset</div>
+            <div class="pipe-sub">create + review</div>
+          </div>
+        </div>
+        <div class="pipe-arr">›</div>
+
+        <div class="pipe-step">
+          <div class="pipe-node cfm">
+            <span class="pipe-icon">🚀</span>
+            <div class="pipe-label">CFN deploy</div>
+            <div class="pipe-sub">execute changeset</div>
+          </div>
+        </div>
+        <div class="pipe-arr">›</div>
+
+        <div class="pipe-step">
+          <div class="pipe-node lmb">
+            <span class="pipe-icon">⚡</span>
+            <div class="pipe-label">Lambda update</div>
+            <div class="pipe-sub">new image tag</div>
+          </div>
+        </div>
+        <div class="pipe-arr">›</div>
+
+        <div class="pipe-step">
+          <div class="pipe-node lmb">
+            <span class="pipe-icon">✅</span>
+            <div class="pipe-label">Smoke tests</div>
+            <div class="pipe-sub">API health check</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="dg">
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot db"></span>Jenkinsfile</div>
+        <div class="dbody">Declarative Jenkins pipeline defined as code in the repo. AWS credentials stored in Jenkins credential store. CloudFormation deploy step passes the new ECR image tag as a parameter override.</div>
+        <div class="snippet">
+<span class="cm">// Jenkinsfile</span>
+pipeline {
+  agent any
+  environment {
+    IMAGE_TAG = <span class="str">"${BUILD_NUMBER}"</span>
+    ECR_REPO  = <span class="str">"123456.dkr.ecr.us-east-1.amazonaws.com/plm-rag"</span>
+  }
+  stages {
+    stage(<span class="str">'Test'</span>) {
+      steps { sh <span class="str">'pytest tests/ --cov'</span> }
+    }
+    stage(<span class="str">'Build & Push'</span>) {
+      steps {
+        sh <span class="str">'docker build -t plm-rag .'</span>
+        sh <span class="str">'docker tag plm-rag $ECR_REPO:$IMAGE_TAG'</span>
+        sh <span class="str">'docker push $ECR_REPO:$IMAGE_TAG'</span>
+      }
+    }
+    stage(<span class="str">'Deploy CFN'</span>) {
+      steps {
+        sh <span class="str">'''aws cloudformation deploy \
+          --template-file cfn/root.yaml \
+          --stack-name plm-rag \
+          --capabilities CAPABILITY_IAM \
+          --parameter-overrides \
+            ImageTag=$IMAGE_TAG'''</span>
+      }
+    }
+    stage(<span class="str">'Smoke Test'</span>) {
+      steps { sh <span class="str">'python smoke_tests.py'</span> }
+    }
+  }
+}
+        </div>
+        <div class="dtools">
+          <span class="pt code">Jenkins Declarative Pipeline</span>
+          <span class="pt code">Jenkinsfile</span>
+          <span class="pt aws">CloudFormation deploy</span>
+          <span class="pt code">pytest · smoke tests</span>
+        </div>
+      </div>
+
+      <div class="dcard">
+        <div class="dcard-title"><span class="dot dg2"></span>Rollback strategy</div>
+        <div class="dbody">CloudFormation automatically rolls back a stack if the changeset fails. For Lambda-specific rollbacks, re-run the Jenkins job with a previous <span class="mono">BUILD_NUMBER</span> (previous ECR image tag) as a parameter override.</div>
+        <div class="snippet">
+<span class="cm"># Manual rollback — re-deploy previous build</span>
+aws cloudformation deploy \
+  --template-file cfn/root.yaml \
+  --stack-name plm-rag \
+  --capabilities CAPABILITY_IAM \
+  --parameter-overrides \
+    ImageTag=<span class="str">$PREVIOUS_BUILD_NUMBER</span>
+
+<span class="cm"># Or: update Lambda directly to prev image</span>
+aws lambda update-function-code \
+  --function-name plm-rag \
+  --image-uri <span class="str">"$ECR_REPO:$PREVIOUS_BUILD_NUMBER"</span>
+
+<span class="cm"># CloudFormation auto-rollback on failure:</span>
+<span class="cm"># --on-failure ROLLBACK (default behaviour)</span>
+        </div>
+        <div class="dtools">
+          <span class="pt code">CloudFormation rollback</span>
+          <span class="pt aws">Lambda update-function-code</span>
+          <span class="pt code">ECR image versioning</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 06 DECISIONS -->
+  <section>
+    <div class="slabel">06 · Key Decisions</div>
+    <h2>Architectural choices &amp; rationale</h2>
+    <div class="dec-grid">
+
+      <div class="dcard2">
+        <div class="dvs">chose</div>
+        <div class="dch">FastAPI + Mangum on Lambda</div>
+        <div class="drej">over ECS Fargate or EC2</div>
+        <div class="dbody2">Serverless — no containers to manage or pay for when idle. Mangum makes it a one-line change from a standard FastAPI app. Provisioned Concurrency removes cold starts for the PLM use case.</div>
+      </div>
+
+      <div class="dcard2">
+        <div class="dvs">chose</div>
+        <div class="dch">CloudFormation IaC</div>
+        <div class="drej">over manual console / Terraform</div>
+        <div class="dbody2">Native AWS — no third-party state management. All infra (Lambda, API GW, OpenSearch, IAM) is version-controlled YAML. Nested stacks let you update individual layers independently without touching the whole stack.</div>
+      </div>
+
+      <div class="dcard2">
+        <div class="dvs">chose</div>
+        <div class="dch">Jenkins pipeline</div>
+        <div class="drej">over GitHub Actions / CodePipeline</div>
+        <div class="dbody2">The organisation already runs Jenkins on-premise. Using the existing CI platform means no new tooling, no additional cost, and no changes to developer workflow. Jenkinsfile-as-code keeps pipeline logic in the repo.</div>
+      </div>
+
+      <div class="dcard2">
+        <div class="dvs">chose</div>
+        <div class="dch">Claude 3 on Bedrock</div>
+        <div class="drej">over self-hosted open-source LLMs</div>
+        <div class="dbody2">Best reasoning quality for complex PLM support scenarios. Bedrock = no GPU infra, enterprise SLA, data stays within the AWS boundary. Lambda + Bedrock both serverless — consistent cost model.</div>
+      </div>
+
+      <div class="dcard2">
+        <div class="dvs">chose</div>
+        <div class="dch">Amazon OpenSearch</div>
+        <div class="drej">over Pinecone / external vector DBs</div>
+        <div class="dbody2">Data stays within the AWS environment. k-NN + BM25 hybrid retrieval in one service. CloudFormation can provision the domain directly — no external API keys or accounts to manage.</div>
+      </div>
+
+      <div class="dcard2">
+        <div class="dvs">chose</div>
+        <div class="dch">Provisioned Concurrency</div>
+        <div class="drej">over accepting Lambda cold starts</div>
+        <div class="dbody2">RAG pipeline initialises boto3 clients and OpenSearch connections — 2-5s cold start is unacceptable for an in-app chatbot. Provisioned Concurrency keeps 3 containers warm at a fixed hourly cost, giving consistent response times.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 07 SCRIPT -->
+  <section>
+    <div class="slabel">07 · Interview Script (STAR)</div>
+    <h2>What to say — in order</h2>
+
+    <div class="sblock">
+      <div class="sblock-hdr"><span class="stag s">S</span><span class="slbl">Situation — set the scene</span></div>
+      <p class="squote">"The PLM application had no self-serve support layer. Engineers and product teams were hitting the same questions and incident patterns repeatedly with no way to surface answers in context. Support load was high, resolution was slow, and there was no institutional memory of past incidents."</p>
+    </div>
+
+    <div class="sblock">
+      <div class="sblock-hdr"><span class="stag t">T</span><span class="slbl">Task — your ownership</span></div>
+      <p class="squote">"I was the solutions architect responsible for the end-to-end design — model selection, vector database architecture, serverless API strategy, infrastructure-as-code design, and CI/CD pipeline. I owned the full technical delivery."</p>
+    </div>
+
+    <div class="sblock">
+      <div class="sblock-hdr"><span class="stag a">A</span><span class="slbl">Action — the technical approach</span></div>
+      <p class="squote">"I selected Claude 3 on AWS Bedrock — best reasoning quality for complex PLM scenarios, fully managed, no GPU ops, data stays within the AWS boundary. For the vector database I chose Amazon OpenSearch with a k-NN index — keeps data inside AWS, and supports hybrid semantic and keyword retrieval in one service. I ingested PLM support docs and incident records into S3, vectorised them with Titan Embeddings, and indexed them in OpenSearch. The model was fine-tuned on that domain content so it understands PLM-specific terminology and known failure patterns. The runtime query flow is RAG — embed the query with Titan, k-NN search OpenSearch for top-K relevant docs, inject them into a structured prompt, invoke Claude 3 via Bedrock InvokeModel. The API layer is FastAPI with Mangum as the ASGI adapter, running on AWS Lambda — so it's completely serverless. I added Provisioned Concurrency to keep three Lambda containers pre-warmed, eliminating cold starts for PLM app users. All infrastructure — Lambda, API Gateway, OpenSearch domain, IAM roles — is defined as CloudFormation nested stacks, version-controlled YAML templates deployed from a Jenkins pipeline. The Jenkins pipeline runs pytest, builds a Lambda container image, pushes to ECR, runs a CloudFormation changeset, and finishes with smoke tests against the live endpoint."</p>
+    </div>
+
+    <div class="sblock">
+      <div class="sblock-hdr"><span class="stag r">R</span><span class="slbl">Result — the business impact</span></div>
+      <p class="squote">"The result was an AI chatbot embedded directly inside the PLM app delivering real-time, grounded answers — no ticket filing, no context switching. Support load reduced, resolution times improved, and the knowledge base can be kept current without retraining the model. The serverless architecture means we pay only for actual usage, and the entire infrastructure can be re-provisioned from scratch in a single CloudFormation deploy."</p>
+    </div>
+  </section>
+
+  <!-- 08 Q&A -->
+  <section>
+    <div class="slabel">08 · Likely Follow-Up Questions</div>
+    <h2>Be ready for these</h2>
+
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:8px 24px;">
+
+      <div class="qa-item">
+        <div class="qa-q">How does Mangum work with FastAPI on Lambda?</div>
+        <div class="qa-a">Mangum is an ASGI adapter — it translates the Lambda event payload (which comes from API Gateway) into the ASGI interface that FastAPI expects, and translates the ASGI response back into the Lambda response format. Your FastAPI code is completely unchanged. The only Lambda-specific line is <span class="mono" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal)">handler = Mangum(app)</span> at the bottom of the file, which is what Lambda invokes.</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q">How did you solve Lambda cold starts for the RAG pipeline?</div>
+        <div class="qa-a">The RAG pipeline has meaningful init overhead — importing boto3, FastAPI, and establishing the OpenSearch connection takes 2-5 seconds in a cold container. I used Lambda Provisioned Concurrency to keep 3 containers pre-warmed at all times. Those 3 containers handle the PLM chatbot's concurrent load without ever going cold. The tradeoff is a fixed hourly cost for those 3 containers, but for a real-time in-app experience that's the right call.</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q">Why CloudFormation over Terraform?</div>
+        <div class="qa-a">The organisation is all-in on AWS. CloudFormation is native — no third-party state management, no backend S3 state file to maintain, and no drift between the IaC tool's state and AWS's actual state. It integrates directly with the Jenkins pipeline via <span class="mono" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal)">aws cloudformation deploy</span>. Terraform would have been a valid choice too — the decision was largely about what the team already knew and what reduced operational overhead.</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q">Why Jenkins over GitHub Actions or CodePipeline?</div>
+        <div class="qa-a">The team already operates a Jenkins infrastructure. Reusing the existing CI platform meant no new tooling, no new access management, and no changes to developer workflow. The Jenkinsfile is committed to the repo, so the pipeline is version-controlled and reviewable like any other code. GitHub Actions would have worked equally well technically — it was an organisational fit decision.</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q">How do you handle Lambda's 15-minute timeout for long RAG queries?</div>
+        <div class="qa-a">The RAG pipeline — embed, retrieve, generate — typically completes in 3-8 seconds end-to-end. Lambda's 15-minute timeout is not a practical constraint here. The timeout is set to 30 seconds in CloudFormation to give generous headroom while failing fast on any genuine hang. If we ever needed streaming responses, API Gateway supports Lambda response streaming from Python 3.12 onwards.</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q">How do you roll back a bad deployment?</div>
+        <div class="qa-a">Two layers. First, CloudFormation automatically rolls back a stack if the changeset execution fails — the infrastructure never lands in a broken state. Second, for an application-level regression that passes deployment but fails smoke tests, the Jenkins pipeline is re-run with the previous <span class="mono" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal)">BUILD_NUMBER</span> as a parameter override, which points the Lambda function at the previous ECR image tag. No manual console work required.</div>
+      </div>
+
+      <div class="qa-item">
+        <div class="qa-q">Why RAG instead of just fine-tuning?</div>
+        <div class="qa-a">Fine-tuning alone bakes knowledge into model weights — expensive to update and the model can hallucinate PLM-specific facts it wasn't trained on. RAG keeps answers grounded in retrieved source documents — traceable and auditable. When new support docs or incidents come in, we update the OpenSearch index, not the model. Much faster and cheaper update cycle for a knowledge base that changes regularly.</div>
+      </div>
+
+      <div class="qa-item" style="border-bottom:none;">
+        <div class="qa-q">What would you do differently if you rebuilt it today?</div>
+        <div class="qa-a">Tighter feedback loops — thumbs up/down in the chatbot UI feeding a continuous eval dataset for model improvement. Hybrid OpenSearch retrieval combining k-NN vector search with BM25 keyword search for better recall on specific PLM error codes. Bedrock Guardrails for out-of-scope query handling. Lambda response streaming for perceived latency improvement. And AWS CDK instead of raw CloudFormation YAML for a better developer experience on the IaC side.</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 09 API & USER FLOW DIAGRAMS -->
+  <section>
+    <div class="slabel">09 · API Architecture &amp; User Flow</div>
+    <h2>REST API diagram &amp; user journey</h2>
+
+    <p style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:24px;">
+      The first diagram shows every hop in the request and response path — PLM user → OAuth 2.0 → API Gateway → Lambda (FastAPI + Mangum) → OpenSearch → Claude 3 → back to user. The second diagram is a swimlane view of the same journey organised by layer.
+    </p>
+
+    <!-- ── DIAGRAM 1: REST API Architecture ── -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px 20px 20px;margin-bottom:24px;overflow-x:auto;">
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:20px;">REST API architecture — every hop</p>
+      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 740 500">
+        <defs>
+          <marker id="mArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#4f8ef7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="mArrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="mArrowTeal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#2dd4a0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="mArrowGray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#555e78" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <style>
+            .dn { font-family: 'IBM Plex Sans', sans-serif; }
+            .dt { font-size:12px; font-weight:600; fill:#e8eaf0; }
+            .ds { font-size:10px; fill:#8a92a8; }
+            .dl { font-size:10px; fill:#2dd4a0; }
+          </style>
+        </defs>
+
+        <!-- ── ROW 1: request chain ── -->
+        <!-- PLM User -->
+        <rect x="10" y="30" width="100" height="50" rx="8" fill="#1e2a3a" stroke="#378ADD" stroke-width="1"/>
+        <text class="dn dt" x="60" y="51" text-anchor="middle">PLM user</text>
+        <text class="dn ds" x="60" y="67" text-anchor="middle">PLM app</text>
+
+        <line x1="110" y1="55" x2="138" y2="55" stroke="#BA7517" stroke-width="1.5" marker-end="url(#mArrow)" style="marker-end:url(#mArrow);stroke:#BA7517"/>
+
+        <!-- OAuth 2.0 -->
+        <rect x="140" y="30" width="108" height="50" rx="8" fill="#1e2010" stroke="#BA7517" stroke-width="1"/>
+        <text class="dn dt" x="194" y="51" text-anchor="middle" fill="#f5a623">OAuth 2.0</text>
+        <text class="dn ds" x="194" y="67" text-anchor="middle">Bearer token</text>
+
+        <line x1="248" y1="55" x2="276" y2="55" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#mArrow)"/>
+
+        <!-- API Gateway -->
+        <rect x="278" y="30" width="118" height="50" rx="8" fill="#0d1e36" stroke="#4f8ef7" stroke-width="1"/>
+        <text class="dn dt" x="337" y="51" text-anchor="middle" fill="#4f8ef7">API Gateway</text>
+        <text class="dn ds" x="337" y="67" text-anchor="middle">HTTP API · POST /query</text>
+
+        <line x1="396" y1="55" x2="424" y2="55" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#mArrow)"/>
+
+        <!-- Lambda -->
+        <rect x="426" y="30" width="300" height="50" rx="8" fill="#0d1e36" stroke="#4f8ef7" stroke-width="1"/>
+        <text class="dn dt" x="576" y="51" text-anchor="middle" fill="#4f8ef7">AWS Lambda</text>
+        <text class="dn ds" x="576" y="67" text-anchor="middle">FastAPI + Mangum · Python · Pydantic</text>
+
+        <!-- ── LAMBDA INTERNALS BOX ── -->
+        <rect x="10" y="100" width="716" height="100" rx="10" fill="none" stroke="#2a3040" stroke-dasharray="6 4" stroke-width="1"/>
+        <text class="dn ds" x="26" y="116" fill="#555e78">Lambda container — Provisioned Concurrency (no cold start)</text>
+
+        <!-- Mangum -->
+        <rect x="24" y="122" width="130" height="44" rx="6" fill="#0d2920" stroke="#1D9E75" stroke-width="1"/>
+        <text class="dn dt" x="89" y="139" text-anchor="middle" fill="#2dd4a0">Mangum</text>
+        <text class="dn ds" x="89" y="155" text-anchor="middle">ASGI adapter</text>
+        <line x1="154" y1="144" x2="178" y2="144" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#mArrowTeal)" style="marker-end:url(#mArrowTeal);stroke:#1D9E75"/>
+
+        <!-- FastAPI router -->
+        <rect x="180" y="122" width="140" height="44" rx="6" fill="#0d2920" stroke="#1D9E75" stroke-width="1"/>
+        <text class="dn dt" x="250" y="139" text-anchor="middle" fill="#2dd4a0">FastAPI router</text>
+        <text class="dn ds" x="250" y="155" text-anchor="middle">Pydantic validation</text>
+        <line x1="320" y1="144" x2="344" y2="144" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#mArrowTeal)" style="marker-end:url(#mArrowTeal);stroke:#1D9E75"/>
+
+        <!-- RAG Orchestrator -->
+        <rect x="346" y="122" width="150" height="44" rx="6" fill="#0d2920" stroke="#1D9E75" stroke-width="1"/>
+        <text class="dn dt" x="421" y="139" text-anchor="middle" fill="#2dd4a0">RAG orchestrator</text>
+        <text class="dn ds" x="421" y="155" text-anchor="middle">embed · retrieve · generate</text>
+        <line x1="496" y1="144" x2="520" y2="144" stroke="#1D9E75" stroke-width="1.2" marker-end="url(#mArrowTeal)" style="marker-end:url(#mArrowTeal);stroke:#1D9E75"/>
+
+        <!-- Response builder -->
+        <rect x="522" y="122" width="138" height="44" rx="6" fill="#0d2920" stroke="#1D9E75" stroke-width="1"/>
+        <text class="dn dt" x="591" y="139" text-anchor="middle" fill="#2dd4a0">Response builder</text>
+        <text class="dn ds" x="591" y="155" text-anchor="middle">JSON · answer + sources</text>
+
+        <!-- ── ROW 3 label ── -->
+        <text class="dn ds" x="370" y="228" text-anchor="middle" fill="#555e78">AWS services called by RAG orchestrator</text>
+
+        <!-- Titan Embeddings -->
+        <rect x="10" y="240" width="175" height="50" rx="8" fill="#1a0f36" stroke="#7F77DD" stroke-width="1"/>
+        <text class="dn dt" x="97" y="261" text-anchor="middle" fill="#a78bfa">Titan Embeddings</text>
+        <text class="dn ds" x="97" y="278" text-anchor="middle">Vectorise query · Bedrock</text>
+
+        <!-- OpenSearch -->
+        <rect x="200" y="240" width="175" height="50" rx="8" fill="#1a0f36" stroke="#7F77DD" stroke-width="1"/>
+        <text class="dn dt" x="287" y="261" text-anchor="middle" fill="#a78bfa">Amazon OpenSearch</text>
+        <text class="dn ds" x="287" y="278" text-anchor="middle">k-NN vector retrieval</text>
+
+        <!-- Claude 3 -->
+        <rect x="390" y="240" width="175" height="50" rx="8" fill="#1a0f36" stroke="#7F77DD" stroke-width="1"/>
+        <text class="dn dt" x="477" y="261" text-anchor="middle" fill="#a78bfa">Claude 3 (Bedrock)</text>
+        <text class="dn ds" x="477" y="278" text-anchor="middle">Grounded generation</text>
+
+        <!-- S3 -->
+        <rect x="580" y="240" width="146" height="50" rx="8" fill="#1e2330" stroke="#555e78" stroke-width="1"/>
+        <text class="dn dt" x="653" y="261" text-anchor="middle" fill="#8a92a8">S3 (docs)</text>
+        <text class="dn ds" x="653" y="278" text-anchor="middle">PLM KB · incident logs</text>
+
+        <!-- Arrows orchestrator → services -->
+        <path d="M 330 200 L 330 230 L 97 230 L 97 240" fill="none" stroke="#7F77DD" stroke-width="1" marker-end="url(#mArrowPurple)"/>
+        <path d="M 380 200 L 380 230 L 287 230 L 287 240" fill="none" stroke="#7F77DD" stroke-width="1" marker-end="url(#mArrowPurple)"/>
+        <line x1="421" y1="166" x2="421" y2="240" stroke="#7F77DD" stroke-width="1" marker-end="url(#mArrowPurple)"/>
+
+        <!-- S3 → OpenSearch (ingestion, dashed) -->
+        <line x1="580" y1="268" x2="375" y2="268" stroke="#555e78" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#mArrowGray)"/>
+        <text class="dn ds" x="478" y="262" text-anchor="middle" fill="#555e78">indexed into (ingestion)</text>
+
+        <!-- ── RESPONSE PATH (dashed teal) ── -->
+        <path d="M 477 290 L 477 340 L 591 340 L 591 200" fill="none" stroke="#2dd4a0" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#mArrowTeal)"/>
+        <path d="M 390 340 L 337 340 L 337 80" fill="none" stroke="#2dd4a0" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#mArrowTeal)"/>
+        <path d="M 278 340 L 60 340 L 60 80" fill="none" stroke="#2dd4a0" stroke-width="1.2" stroke-dasharray="5 3" marker-end="url(#mArrowTeal)"/>
+        <text class="dn dl" x="14" y="335">response</text>
+
+        <!-- ── LEGEND ── -->
+        <rect x="10" y="368" width="716" height="60" rx="8" fill="none" stroke="#2a3040" stroke-dasharray="3 3" stroke-width="0.8"/>
+        <line x1="28" y1="392" x2="64" y2="392" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#mArrow)"/>
+        <text class="dn ds" x="70" y="396" fill="#8a92a8">Request flow</text>
+        <line x1="200" y1="392" x2="236" y2="392" stroke="#2dd4a0" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#mArrowTeal)"/>
+        <text class="dn ds" x="242" y="396" fill="#8a92a8">Response flow</text>
+        <line x1="390" y1="392" x2="426" y2="392" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#mArrowPurple)"/>
+        <text class="dn ds" x="432" y="396" fill="#8a92a8">Service calls</text>
+        <line x1="560" y1="392" x2="596" y2="392" stroke="#555e78" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#mArrowGray)"/>
+        <text class="dn ds" x="602" y="396" fill="#8a92a8">Data ingestion</text>
+        <text class="dn ds" x="370" y="418" text-anchor="middle" fill="#555e78">End-to-end latency: 2–4 s · Provisioned Concurrency eliminates cold start</text>
+      </svg>
+    </div>
+
+    <!-- ── DIAGRAM 2: User Flow Swimlane ── -->
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:28px 20px 20px;overflow-x:auto;">
+      <p style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:20px;">User flow — swimlane view</p>
+      <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 740 600">
+        <defs>
+          <marker id="sArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#4f8ef7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="sArrowAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#BA7517" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="sArrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <marker id="sArrowTeal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#2dd4a0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+          <style>
+            .sn { font-family: 'IBM Plex Sans', sans-serif; }
+            .st { font-size:11px; font-weight:600; fill:#e8eaf0; }
+            .ss { font-size:10px; fill:#8a92a8; }
+          </style>
+        </defs>
+
+        <!-- ── SWIMLANE HEADERS ── -->
+        <!-- Lane 1: User -->
+        <rect x="8" y="8" width="110" height="582" rx="6" fill="#111318" stroke="#2a3040" stroke-width="1"/>
+        <text class="sn st" x="63" y="36" text-anchor="middle">User</text>
+        <text class="sn ss" x="63" y="52" text-anchor="middle">PLM app</text>
+
+        <!-- Lane 2: API layer -->
+        <rect x="126" y="8" width="160" height="582" rx="6" fill="#111318" stroke="#2a3040" stroke-width="1"/>
+        <text class="sn st" x="206" y="36" text-anchor="middle">API layer</text>
+        <text class="sn ss" x="206" y="52" text-anchor="middle">OAuth 2.0 · APIGW · Lambda</text>
+
+        <!-- Lane 3: RAG pipeline -->
+        <rect x="294" y="8" width="192" height="582" rx="6" fill="#111318" stroke="#2a3040" stroke-width="1"/>
+        <text class="sn st" x="390" y="36" text-anchor="middle">RAG pipeline</text>
+        <text class="sn ss" x="390" y="52" text-anchor="middle">Embed · Retrieve · Generate</text>
+
+        <!-- Lane 4: AWS services -->
+        <rect x="494" y="8" width="238" height="582" rx="6" fill="#111318" stroke="#2a3040" stroke-width="1"/>
+        <text class="sn st" x="613" y="36" text-anchor="middle">AWS services</text>
+        <text class="sn ss" x="613" y="52" text-anchor="middle">Bedrock · OpenSearch</text>
+
+        <!-- ── STEP 1: Open PLM app ── -->
+        <rect x="20" y="72" width="86" height="44" rx="6" fill="#1e2330" stroke="#555e78" stroke-width="1"/>
+        <text class="sn st" x="63" y="90" text-anchor="middle" fill="#c2c0b6">Open PLM</text>
+        <text class="sn ss" x="63" y="106" text-anchor="middle">chatbot tab</text>
+        <!-- → OAuth 2.0 -->
+        <line x1="106" y1="94" x2="132" y2="94" stroke="#BA7517" stroke-width="1.5" marker-end="url(#sArrowAmber)"/>
+
+        <!-- ── STEP 2: OAuth 2.0 auth ── -->
+        <rect x="134" y="72" width="140" height="44" rx="6" fill="#1e2010" stroke="#BA7517" stroke-width="1"/>
+        <text class="sn st" x="204" y="90" text-anchor="middle" fill="#f5a623">OAuth 2.0 auth</text>
+        <text class="sn ss" x="204" y="106" text-anchor="middle">Bearer token issued</text>
+        <!-- auth ok back to user (dashed) -->
+        <path d="M 204 116 L 204 136 L 63 136 L 63 124" fill="none" stroke="#BA7517" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#sArrowAmber)"/>
+        <text class="sn ss" x="134" y="131" text-anchor="middle" fill="#BA7517">auth ok</text>
+
+        <!-- ── STEP 3: Type query ── -->
+        <rect x="20" y="152" width="86" height="44" rx="6" fill="#1e2330" stroke="#555e78" stroke-width="1"/>
+        <text class="sn st" x="63" y="170" text-anchor="middle" fill="#c2c0b6">Type query</text>
+        <text class="sn ss" x="63" y="186" text-anchor="middle">"Why BOM fails?"</text>
+        <!-- → API Gateway -->
+        <line x1="106" y1="174" x2="132" y2="174" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#sArrow)"/>
+
+        <!-- ── STEP 4: API Gateway ── -->
+        <rect x="134" y="152" width="140" height="44" rx="6" fill="#0d1e36" stroke="#4f8ef7" stroke-width="1"/>
+        <text class="sn st" x="204" y="170" text-anchor="middle" fill="#4f8ef7">API Gateway</text>
+        <text class="sn ss" x="204" y="186" text-anchor="middle">Validate token · route</text>
+        <!-- → Lambda -->
+        <line x1="274" y1="174" x2="302" y2="174" stroke="#4f8ef7" stroke-width="1.5" marker-end="url(#sArrow)"/>
+
+        <!-- ── STEP 5: Lambda / FastAPI ── -->
+        <rect x="304" y="152" width="170" height="44" rx="6" fill="#0d1e36" stroke="#4f8ef7" stroke-width="1"/>
+        <text class="sn st" x="389" y="170" text-anchor="middle" fill="#4f8ef7">Lambda / FastAPI</text>
+        <text class="sn ss" x="389" y="186" text-anchor="middle">Mangum · Pydantic parse</text>
+        <!-- → Titan Embeddings -->
+        <line x1="474" y1="174" x2="502" y2="174" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#sArrowPurple)"/>
+
+        <!-- ── STEP 6: Titan Embeddings ── -->
+        <rect x="504" y="152" width="218" height="44" rx="6" fill="#1a0f36" stroke="#7F77DD" stroke-width="1"/>
+        <text class="sn st" x="613" y="170" text-anchor="middle" fill="#a78bfa">Titan Embeddings</text>
+        <text class="sn ss" x="613" y="186" text-anchor="middle">Query → dense vector</text>
+        <!-- → OpenSearch -->
+        <path d="M 613 196 L 613 224 L 613 224 L 613 242" fill="none" stroke="#7F77DD" stroke-width="1.2" marker-end="url(#sArrowPurple)"/>
+
+        <!-- ── STEP 7: OpenSearch k-NN ── -->
+        <rect x="504" y="242" width="218" height="44" rx="6" fill="#1a0f36" stroke="#7F77DD" stroke-width="1"/>
+        <text class="sn st" x="613" y="260" text-anchor="middle" fill="#a78bfa">OpenSearch k-NN</text>
+        <text class="sn ss" x="613" y="277" text-anchor="middle">Top-5 PLM doc chunks</text>
+        <!-- chunks back to RAG orchestrator -->
+        <path d="M 504 265 L 474 265" fill="none" stroke="#7F77DD" stroke-width="1.2" marker-end="url(#sArrowPurple)"/>
+
+        <!-- ── STEP 8: Prompt builder ── -->
+        <rect x="304" y="242" width="170" height="44" rx="6" fill="#0d1e36" stroke="#4f8ef7" stroke-width="1"/>
+        <text class="sn st" x="389" y="260" text-anchor="middle" fill="#4f8ef7">Prompt builder</text>
+        <text class="sn ss" x="389" y="277" text-anchor="middle">Inject chunks + query</text>
+        <line x1="389" y1="286" x2="389" y2="322" stroke="#4f8ef7" stroke-width="1.2" marker-end="url(#sArrow)"/>
+
+        <!-- ── STEP 9: Bedrock invoke ── -->
+        <rect x="304" y="322" width="170" height="44" rx="6" fill="#0d1e36" stroke="#4f8ef7" stroke-width="1"/>
+        <text class="sn st" x="389" y="340" text-anchor="middle" fill="#4f8ef7">Bedrock invoke</text>
+        <text class="sn ss" x="389" y="357" text-anchor="middle">InvokeModel API call</text>
+        <!-- → Claude 3 -->
+        <line x1="474" y1="344" x2="502" y2="344" stroke="#7F77DD" stroke-width="1.5" marker-end="url(#sArrowPurple)"/>
+
+        <!-- ── STEP 10: Claude 3 ── -->
+        <rect x="504" y="322" width="218" height="44" rx="6" fill="#1a0f36" stroke="#7F77DD" stroke-width="1"/>
+        <text class="sn st" x="613" y="340" text-anchor="middle" fill="#a78bfa">Claude 3 (fine-tuned)</text>
+        <text class="sn ss" x="613" y="357" text-anchor="middle">Grounded answer generated</text>
+        <!-- answer back -->
+        <path d="M 504 344 L 474 344" fill="none" stroke="#2dd4a0" stroke-width="1.2" marker-end="url(#sArrowTeal)"/>
+
+        <!-- ── STEP 11: JSON response ── -->
+        <line x1="389" y1="366" x2="389" y2="402" stroke="#2dd4a0" stroke-width="1.2" marker-end="url(#sArrowTeal)"/>
+        <rect x="304" y="402" width="170" height="44" rx="6" fill="#0d2920" stroke="#1D9E75" stroke-width="1"/>
+        <text class="sn st" x="389" y="420" text-anchor="middle" fill="#2dd4a0">JSON response</text>
+        <text class="sn ss" x="389" y="436" text-anchor="middle">answer + source refs</text>
+        <!-- → API GW -->
+        <path d="M 304 424 L 274 424" fill="none" stroke="#2dd4a0" stroke-width="1.2" marker-end="url(#sArrowTeal)"/>
+
+        <!-- ── STEP 12: API Gateway return ── -->
+        <rect x="134" y="402" width="140" height="44" rx="6" fill="#0d2920" stroke="#1D9E75" stroke-width="1"/>
+        <text class="sn st" x="204" y="420" text-anchor="middle" fill="#2dd4a0">API Gateway</text>
+        <text class="sn ss" x="204" y="436" text-anchor="middle">HTTP 200 response</text>
+        <!-- → chatbot UI -->
+        <path d="M 134 424 L 106 424" fill="none" stroke="#2dd4a0" stroke-width="1.2" marker-end="url(#sArrowTeal)"/>
+
+        <!-- ── STEP 13: Chatbot renders answer ── -->
+        <rect x="20" y="402" width="86" height="44" rx="6" fill="#0d2920" stroke="#1D9E75" stroke-width="1"/>
+        <text class="sn st" x="63" y="420" text-anchor="middle" fill="#2dd4a0">Chatbot UI</text>
+        <text class="sn ss" x="63" y="436" text-anchor="middle">Answer shown</text>
+
+        <!-- ── FOOTER NOTE ── -->
+        <text class="sn ss" x="370" y="472" text-anchor="middle" fill="#555e78">Total latency: 2–4 s · Provisioned Concurrency keeps Lambda containers warm</text>
+
+        <!-- Step number badges -->
+        <circle cx="25" cy="76" r="8" fill="#185FA5"/>
+        <text class="sn" font-size="9" font-weight="600" x="25" y="79" text-anchor="middle" fill="#fff">1</text>
+        <circle cx="139" cy="76" r="8" fill="#854F0B"/>
+        <text class="sn" font-size="9" font-weight="600" x="139" y="79" text-anchor="middle" fill="#fff">2</text>
+        <circle cx="25" cy="156" r="8" fill="#185FA5"/>
+        <text class="sn" font-size="9" font-weight="600" x="25" y="159" text-anchor="middle" fill="#fff">3</text>
+        <circle cx="139" cy="156" r="8" fill="#185FA5"/>
+        <text class="sn" font-size="9" font-weight="600" x="139" y="159" text-anchor="middle" fill="#fff">4</text>
+        <circle cx="309" cy="156" r="8" fill="#185FA5"/>
+        <text class="sn" font-size="9" font-weight="600" x="309" y="159" text-anchor="middle" fill="#fff">5</text>
+        <circle cx="509" cy="156" r="8" fill="#534AB7"/>
+        <text class="sn" font-size="9" font-weight="600" x="509" y="159" text-anchor="middle" fill="#fff">6</text>
+        <circle cx="509" cy="246" r="8" fill="#534AB7"/>
+        <text class="sn" font-size="9" font-weight="600" x="509" y="249" text-anchor="middle" fill="#fff">7</text>
+        <circle cx="309" cy="246" r="8" fill="#185FA5"/>
+        <text class="sn" font-size="9" font-weight="600" x="309" y="249" text-anchor="middle" fill="#fff">8</text>
+        <circle cx="309" cy="326" r="8" fill="#185FA5"/>
+        <text class="sn" font-size="9" font-weight="600" x="309" y="329" text-anchor="middle" fill="#fff">9</text>
+        <circle cx="509" cy="326" r="8" fill="#534AB7"/>
+        <text class="sn" font-size="9" font-weight="600" x="509" y="329" text-anchor="middle" fill="#fff">10</text>
+        <circle cx="309" cy="406" r="8" fill="#0F6E56"/>
+        <text class="sn" font-size="9" font-weight="600" x="309" y="409" text-anchor="middle" fill="#fff">11</text>
+        <circle cx="25" cy="406" r="8" fill="#0F6E56"/>
+        <text class="sn" font-size="9" font-weight="600" x="25" y="409" text-anchor="middle" fill="#fff">12</text>
+      </svg>
+    </div>
+  </section>
+
+
+</main>
+
+<footer>
+  <span>PLM App · RAG / AWS Bedrock · Interview Reference</span>
+  <span>Claude 3 · OpenSearch · FastAPI + Mangum · Lambda · CloudFormation · Jenkins</span>
+  <span>19+ years · AWS Solutions Architect</span>
+</footer>
+
+</body>
+</html>

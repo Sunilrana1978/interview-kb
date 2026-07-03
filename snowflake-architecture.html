@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snowflake Data Lake & Warehouse Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ice: #e8f4fd;
+    --snow: #f0f8ff;
+    --flake: #29b5e8;
+    --deep: #0b2d4e;
+    --mid: #1a4a6e;
+    --accent: #00d4ff;
+    --gold: #f7c948;
+    --green: #2ecc71;
+    --border: rgba(41,181,232,0.25);
+    --glass: rgba(11,45,78,0.7);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--deep);
+    color: var(--ice);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated star/snowflake bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(41,181,232,0.12) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(0,212,255,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(11,45,78,1) 0%, #020d1a 100%);
+    z-index: -1;
+  }
+
+  /* Grid overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(41,181,232,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(41,181,232,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: -1;
+  }
+
+  header {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+
+  .snowflake-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 12px;
+    animation: spin 12s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  header h1 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 50%, var(--flake) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p {
+    margin-top: 12px;
+    color: rgba(232,244,253,0.6);
+    font-size: 1rem;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Tab Navigation */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 20px 30px;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 10px 24px;
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    background: transparent;
+    color: rgba(232,244,253,0.6);
+    font-family: 'Syne', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    letter-spacing: 0.5px;
+  }
+
+  .tab-btn:hover, .tab-btn.active {
+    background: var(--flake);
+    border-color: var(--flake);
+    color: var(--deep);
+  }
+
+  /* Main layout */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  /* ====== ARCHITECTURE DIAGRAM ====== */
+  .diagram-section {
+    display: none;
+  }
+  .diagram-section.active { display: block; }
+
+  .arch-diagram {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 30px;
+    backdrop-filter: blur(10px);
+    overflow-x: auto;
+  }
+
+  .diagram-title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 40px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* Flow diagram */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+    min-width: 600px;
+  }
+
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .flow-arrow-down {
+    display: flex;
+    justify-content: center;
+    padding: 6px 0;
+    color: var(--flake);
+    font-size: 1.4rem;
+    opacity: 0.7;
+  }
+
+  .layer {
+    flex: 1;
+    max-width: 200px;
+    border-radius: 14px;
+    padding: 16px 14px;
+    text-align: center;
+    border: 1.5px solid;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
+  }
+
+  .layer:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+  }
+
+  .layer .layer-icon { font-size: 1.6rem; margin-bottom: 6px; display: block; }
+  .layer .layer-name { font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .layer .layer-desc { font-size: 0.65rem; margin-top: 5px; opacity: 0.75; font-family: 'Space Mono', monospace; line-height: 1.4; }
+
+  /* Layer color themes */
+  .layer.source    { background: rgba(247,201,72,0.1); border-color: rgba(247,201,72,0.4); color: var(--gold); }
+  .layer.raw       { background: rgba(41,181,232,0.08); border-color: rgba(41,181,232,0.35); color: var(--flake); }
+  .layer.staging   { background: rgba(41,181,232,0.12); border-color: rgba(41,181,232,0.45); color: var(--accent); }
+  .layer.dw-stg    { background: rgba(0,212,255,0.1); border-color: rgba(0,212,255,0.4); color: #7de8ff; }
+  .layer.core      { background: rgba(46,204,113,0.1); border-color: rgba(46,204,113,0.4); color: var(--green); }
+  .layer.mart      { background: rgba(46,204,113,0.15); border-color: rgba(46,204,113,0.5); color: #5af0a0; }
+  .layer.bi        { background: rgba(155,89,182,0.12); border-color: rgba(155,89,182,0.4); color: #c39af7; }
+
+  /* Zone labels */
+  .zone-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 10px 6px;
+    border-radius: 8px;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .zone-lake  { background: rgba(41,181,232,0.08); color: var(--flake); border: 1px solid rgba(41,181,232,0.2); }
+  .zone-dw    { background: rgba(46,204,113,0.08); color: var(--green); border: 1px solid rgba(46,204,113,0.2); }
+
+  /* Connectors */
+  .connector-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .conn-line {
+    height: 2px;
+    flex: 1;
+    max-width: 120px;
+    background: linear-gradient(90deg, transparent, var(--flake), transparent);
+    opacity: 0.4;
+  }
+
+  .conn-label {
+    font-size: 0.6rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--flake);
+    opacity: 0.7;
+    white-space: nowrap;
+    padding: 3px 8px;
+    border: 1px solid rgba(41,181,232,0.2);
+    border-radius: 20px;
+  }
+
+  /* Full-width banner layers */
+  .full-layer {
+    width: 100%;
+    max-width: 780px;
+    border-radius: 14px;
+    padding: 16px 24px;
+    border: 1.5px solid;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s;
+    cursor: default;
+  }
+
+  .full-layer:hover { transform: translateY(-2px); }
+  .full-layer .layer-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .full-layer .layer-info .layer-name { font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+  .full-layer .layer-info .layer-desc { font-size: 0.65rem; margin-top: 4px; opacity: 0.75; font-family: 'Space Mono', monospace; }
+
+  .full-layer.source  { background: rgba(247,201,72,0.08); border-color: rgba(247,201,72,0.35); color: var(--gold); }
+  .full-layer.bi      { background: rgba(155,89,182,0.1);  border-color: rgba(155,89,182,0.35); color: #c39af7; }
+
+  /* Side-by-side zone */
+  .zone-wrapper {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 780px;
+    align-items: stretch;
+  }
+
+  .zone-block {
+    flex: 1;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid;
+  }
+
+  .zone-block.lake-zone { border-color: rgba(41,181,232,0.3); background: rgba(41,181,232,0.04); }
+  .zone-block.dw-zone   { border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.04); }
+
+  .zone-title {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid;
+  }
+
+  .lake-zone .zone-title { color: var(--flake); border-color: rgba(41,181,232,0.2); }
+  .dw-zone  .zone-title  { color: var(--green);  border-color: rgba(46,204,113,0.2); }
+
+  .zone-layers { display: flex; flex-direction: column; gap: 8px; }
+
+  .mini-layer {
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.15s;
+    cursor: default;
+  }
+
+  .mini-layer:hover { transform: translateX(3px); }
+  .mini-layer .m-icon { font-size: 1.1rem; }
+  .mini-layer .m-name { font-size: 0.72rem; font-weight: 700; }
+  .mini-layer .m-desc { font-size: 0.6rem; opacity: 0.7; font-family: 'Space Mono', monospace; }
+
+  .mini-layer.raw    { background: rgba(41,181,232,0.08); border-color: rgba(41,181,232,0.3); color: var(--flake); }
+  .mini-layer.staging{ background: rgba(0,212,255,0.08);  border-color: rgba(0,212,255,0.3);  color: var(--accent); }
+  .mini-layer.dw-s   { background: rgba(0,212,255,0.06);  border-color: rgba(0,212,255,0.25); color: #7de8ff; }
+  .mini-layer.core   { background: rgba(46,204,113,0.08); border-color: rgba(46,204,113,0.3); color: var(--green); }
+  .mini-layer.mart   { background: rgba(46,204,113,0.12); border-color: rgba(46,204,113,0.4); color: #5af0a0; }
+
+  /* ====== STEPS SECTION ====== */
+  .steps-section { display: none; }
+  .steps-section.active { display: block; }
+
+  .phase-block {
+    margin-bottom: 36px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    animation: fadeIn 0.4s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .phase-header {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+  }
+
+  .phase-header:hover { filter: brightness(1.1); }
+
+  .phase-num {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  .phase-title { font-size: 1rem; font-weight: 700; }
+  .phase-sub   { font-size: 0.72rem; opacity: 0.7; font-family: 'Space Mono', monospace; margin-top: 2px; }
+  .phase-toggle { margin-left: auto; font-size: 1.2rem; transition: transform 0.3s; }
+  .phase-block.open .phase-toggle { transform: rotate(180deg); }
+
+  /* Phase color themes */
+  .phase-block.lake .phase-header  { background: rgba(41,181,232,0.12); }
+  .phase-block.lake .phase-num     { background: var(--flake); color: var(--deep); }
+  .phase-block.lake .phase-title   { color: var(--flake); }
+
+  .phase-block.dw .phase-header    { background: rgba(46,204,113,0.12); }
+  .phase-block.dw .phase-num       { background: var(--green); color: var(--deep); }
+  .phase-block.dw .phase-title     { color: var(--green); }
+
+  .phase-body {
+    display: none;
+    padding: 24px;
+    background: rgba(255,255,255,0.02);
+    border-top: 1px solid var(--border);
+  }
+
+  .phase-block.open .phase-body { display: block; }
+
+  /* Steps within a phase */
+  .step-item {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .step-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .lake .step-dot { background: var(--flake); }
+  .dw   .step-dot { background: var(--green); }
+
+  .step-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--ice);
+  }
+
+  .step-desc {
+    font-size: 0.82rem;
+    color: rgba(232,244,253,0.7);
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+
+  pre {
+    background: #020d1a;
+    border: 1px solid rgba(41,181,232,0.2);
+    border-radius: 10px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    color: #a8d8f0;
+    position: relative;
+  }
+
+  .sql-kw   { color: #29b5e8; font-weight: bold; }
+  .sql-str  { color: #f7c948; }
+  .sql-cmt  { color: #4a7a9b; font-style: italic; }
+  .sql-fn   { color: #2ecc71; }
+  .sql-type { color: #c39af7; }
+
+  /* ====== INFO CARDS ====== */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .info-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s;
+  }
+
+  .info-card:hover { transform: translateY(-4px); }
+  .info-card .ic-icon { font-size: 1.8rem; margin-bottom: 10px; }
+  .info-card .ic-title { font-weight: 700; font-size: 0.9rem; color: var(--accent); margin-bottom: 6px; }
+  .info-card .ic-text  { font-size: 0.78rem; color: rgba(232,244,253,0.65); line-height: 1.5; }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .flow { min-width: auto; }
+    .zone-wrapper { flex-direction: column; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<header>
+  <span class="snowflake-icon">❄️</span>
+  <h1>Snowflake Data Lake &<br>Data Warehouse Architecture</h1>
+  <p>// Implementation Guide & Architecture Reference</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('diagram')">🗺 Architecture Diagram</button>
+  <button class="tab-btn" onclick="showTab('steps')">📋 Step-by-Step Guide</button>
+  <button class="tab-btn" onclick="showTab('concepts')">💡 Key Concepts</button>
+</div>
+
+<div class="container">
+
+  <!-- ===== DIAGRAM TAB ===== -->
+  <div class="diagram-section active" id="tab-diagram">
+    <div class="arch-diagram">
+      <div class="diagram-title">// End-to-End Data Flow Architecture</div>
+
+      <div class="flow">
+
+        <!-- Source Systems -->
+        <div class="flow-row">
+          <div class="full-layer source">
+            <span class="layer-icon">🗄️</span>
+            <div class="layer-info">
+              <div class="layer-name">Source Systems</div>
+              <div class="layer-desc">CRM · ERP · Flat Files · APIs · Streaming · Databases · SaaS Apps</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Arrow + connector -->
+        <div class="flow-arrow-down">↓</div>
+        <div class="connector-row">
+          <div class="conn-line"></div>
+          <div class="conn-label">🔄 Fivetran / ADF / Custom ETL / Kafka</div>
+          <div class="conn-line"></div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+
+        <!-- Cloud Storage -->
+        <div class="flow-row">
+          <div class="full-layer source" style="border-color:rgba(41,181,232,0.35); color:var(--flake); background:rgba(41,181,232,0.07);">
+            <span class="layer-icon">☁️</span>
+            <div class="layer-info">
+              <div class="layer-name">Cloud Object Storage (Data Lake Storage)</div>
+              <div class="layer-desc">Amazon S3 · Azure Data Lake Storage · Google Cloud Storage — Raw files: JSON, Parquet, CSV, Avro, ORC</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow-down">↓</div>
+        <div class="connector-row">
+          <div class="conn-line"></div>
+          <div class="conn-label">📥 COPY INTO / Snowpipe (auto-ingest)</div>
+          <div class="conn-line"></div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+
+        <!-- Lake + DW Zones side by side -->
+        <div class="zone-wrapper">
+
+          <!-- DATA LAKE ZONE -->
+          <div class="zone-block lake-zone">
+            <div class="zone-title">❄️ Data Lake (Snowflake)</div>
+            <div class="zone-layers">
+
+              <div class="mini-layer raw">
+                <span class="m-icon">📦</span>
+                <div>
+                  <div class="m-name">RAW Layer</div>
+                  <div class="m-desc">Schema-on-read · VARIANT type<br>Immutable landing zone</div>
+                </div>
+              </div>
+
+              <div style="text-align:center; font-size:0.85rem; color:var(--flake); opacity:0.5; padding:2px 0;">↓ light transforms</div>
+
+              <div class="mini-layer staging">
+                <span class="m-icon">🔍</span>
+                <div>
+                  <div class="m-name">STAGING Layer</div>
+                  <div class="m-desc">Flatten · Deduplicate<br>Basic cleansing</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- DATA WAREHOUSE ZONE -->
+          <div class="zone-block dw-zone">
+            <div class="zone-title">🏭 Data Warehouse (Snowflake)</div>
+            <div class="zone-layers">
+
+              <div class="mini-layer dw-s">
+                <span class="m-icon">🧹</span>
+                <div>
+                  <div class="m-name">DW STAGING Layer</div>
+                  <div class="m-desc">Typed · Validated<br>Business rules applied</div>
+                </div>
+              </div>
+
+              <div style="text-align:center; font-size:0.85rem; color:var(--green); opacity:0.5; padding:2px 0;">↓ dimensional modeling</div>
+
+              <div class="mini-layer core">
+                <span class="m-icon">⭐</span>
+                <div>
+                  <div class="m-name">CORE Layer</div>
+                  <div class="m-desc">Dim + Fact tables<br>Star / Snowflake schema</div>
+                </div>
+              </div>
+
+              <div style="text-align:center; font-size:0.85rem; color:var(--green); opacity:0.5; padding:2px 0;">↓ aggregations</div>
+
+              <div class="mini-layer mart">
+                <span class="m-icon">📊</span>
+                <div>
+                  <div class="m-name">DATA MARTS</div>
+                  <div class="m-desc">Sales · Finance · HR<br>Business-ready views</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-arrow-down">↓</div>
+        <div class="connector-row">
+          <div class="conn-line"></div>
+          <div class="conn-label">🔌 ODBC / JDBC / Native Connectors</div>
+          <div class="conn-line"></div>
+        </div>
+        <div class="flow-arrow-down">↓</div>
+
+        <!-- BI Layer -->
+        <div class="flow-row">
+          <div class="full-layer bi">
+            <span class="layer-icon">📈</span>
+            <div class="layer-info">
+              <div class="layer-name">BI & Analytics Layer</div>
+              <div class="layer-desc">Tableau · Power BI · Looker · Sigma · Streamlit · Jupyter · dbt Semantic Layer</div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /flow -->
+
+      <!-- Legend -->
+      <div style="display:flex; gap:16px; flex-wrap:wrap; justify-content:center; margin-top:36px; padding-top:24px; border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;font-family:'Space Mono',monospace;">
+          <div style="width:12px;height:12px;border-radius:3px;background:rgba(41,181,232,0.3);border:1px solid var(--flake);"></div>
+          Data Lake Zone
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;font-family:'Space Mono',monospace;">
+          <div style="width:12px;height:12px;border-radius:3px;background:rgba(46,204,113,0.3);border:1px solid var(--green);"></div>
+          Data Warehouse Zone
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;font-family:'Space Mono',monospace;">
+          <div style="width:12px;height:12px;border-radius:3px;background:rgba(247,201,72,0.3);border:1px solid var(--gold);"></div>
+          External Systems
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:0.7rem;font-family:'Space Mono',monospace;">
+          <div style="width:12px;height:12px;border-radius:3px;background:rgba(155,89,182,0.3);border:1px solid #c39af7;"></div>
+          Consumption Layer
+        </div>
+      </div>
+
+    </div><!-- /arch-diagram -->
+  </div>
+
+  <!-- ===== STEPS TAB ===== -->
+  <div class="steps-section" id="tab-steps">
+
+    <p style="font-size:0.82rem;color:rgba(232,244,253,0.5);font-family:'Space Mono',monospace;margin-bottom:24px;text-align:center;">
+      Click each phase to expand · SQL code included
+    </p>
+
+    <!-- PHASE 1 -->
+    <div class="phase-block lake open" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">1</div>
+        <div>
+          <div class="phase-title">Account Setup & Structure</div>
+          <div class="phase-sub">Create databases, schemas, and virtual warehouses</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Data Lake Database</div></div>
+          <div class="step-desc">Set up the raw landing zone for all incoming data — this is your Data Lake inside Snowflake.</div>
+          <pre><span class="sql-kw">CREATE DATABASE</span> DATA_LAKE;
+
+<span class="sql-kw">CREATE SCHEMA</span> DATA_LAKE.RAW;       <span class="sql-cmt">-- immutable landing zone</span>
+<span class="sql-kw">CREATE SCHEMA</span> DATA_LAKE.STAGING;   <span class="sql-cmt">-- light cleansing layer</span></pre>
+        </div>
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Data Warehouse Database</div></div>
+          <div class="step-desc">A separate database for structured, modeled data with staging, core, and mart layers.</div>
+          <pre><span class="sql-kw">CREATE DATABASE</span> DATA_WAREHOUSE;
+
+<span class="sql-kw">CREATE SCHEMA</span> DATA_WAREHOUSE.STAGING;   <span class="sql-cmt">-- typed & validated</span>
+<span class="sql-kw">CREATE SCHEMA</span> DATA_WAREHOUSE.CORE;      <span class="sql-cmt">-- dims + facts</span>
+<span class="sql-kw">CREATE SCHEMA</span> DATA_WAREHOUSE.MARTS;     <span class="sql-cmt">-- business-ready views</span></pre>
+        </div>
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Virtual Warehouses (Compute)</div></div>
+          <div class="step-desc">Separate compute clusters for loading vs. analytics to avoid resource contention.</div>
+          <pre><span class="sql-kw">CREATE WAREHOUSE</span> LOAD_WH
+  WAREHOUSE_SIZE = <span class="sql-str">'MEDIUM'</span>
+  AUTO_SUSPEND   = <span class="sql-fn">60</span>
+  AUTO_RESUME    = <span class="sql-fn">TRUE</span>
+  COMMENT        = <span class="sql-str">'ETL loading warehouse'</span>;
+
+<span class="sql-kw">CREATE WAREHOUSE</span> ANALYTICS_WH
+  WAREHOUSE_SIZE = <span class="sql-str">'SMALL'</span>
+  AUTO_SUSPEND   = <span class="sql-fn">300</span>
+  AUTO_RESUME    = <span class="sql-fn">TRUE</span>
+  COMMENT        = <span class="sql-str">'BI and analyst queries'</span>;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 2 -->
+    <div class="phase-block lake" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">2</div>
+        <div>
+          <div class="phase-title">External Stage & Storage Integration</div>
+          <div class="phase-sub">Connect Snowflake to cloud storage (S3 / ADLS / GCS)</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Storage Integration</div></div>
+          <div class="step-desc">Delegate cloud storage access to Snowflake securely (done once by ACCOUNTADMIN).</div>
+          <pre><span class="sql-kw">CREATE STORAGE INTEGRATION</span> s3_integration
+  TYPE                      = EXTERNAL_STAGE
+  STORAGE_PROVIDER          = <span class="sql-str">'S3'</span>
+  ENABLED                   = <span class="sql-fn">TRUE</span>
+  STORAGE_ALLOWED_LOCATIONS = (<span class="sql-str">'s3://your-bucket/'</span>);
+
+<span class="sql-cmt">-- Get the IAM values to configure your S3 bucket policy:</span>
+<span class="sql-kw">DESC INTEGRATION</span> s3_integration;</pre>
+        </div>
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create External Stage</div></div>
+          <div class="step-desc">Point Snowflake at the cloud bucket where your raw files land.</div>
+          <pre><span class="sql-kw">CREATE STAGE</span> DATA_LAKE.RAW.s3_raw_stage
+  STORAGE_INTEGRATION = s3_integration
+  URL         = <span class="sql-str">'s3://your-bucket/raw-data/'</span>
+  FILE_FORMAT = (<span class="sql-type">TYPE</span> = <span class="sql-str">'PARQUET'</span>);  <span class="sql-cmt">-- or JSON, CSV, AVRO</span>
+
+<span class="sql-cmt">-- List files in the stage</span>
+<span class="sql-kw">LIST</span> @DATA_LAKE.RAW.s3_raw_stage;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 3 -->
+    <div class="phase-block lake" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">3</div>
+        <div>
+          <div class="phase-title">Raw Landing Tables (Data Lake)</div>
+          <div class="phase-sub">Schema-on-read ingestion using VARIANT type</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Raw Table</div></div>
+          <div class="step-desc">Use the VARIANT column to store semi-structured data (JSON, XML, Avro) without defining a schema upfront.</div>
+          <pre><span class="sql-kw">CREATE TABLE</span> DATA_LAKE.RAW.orders_raw (
+  raw_data  <span class="sql-type">VARIANT</span>,
+  file_name <span class="sql-type">VARCHAR</span>,
+  loaded_at <span class="sql-type">TIMESTAMP</span> <span class="sql-kw">DEFAULT</span> <span class="sql-fn">CURRENT_TIMESTAMP</span>()
+);</pre>
+        </div>
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Bulk Load with COPY INTO</div></div>
+          <div class="step-desc">Load files from stage into the raw table in one command.</div>
+          <pre><span class="sql-kw">COPY INTO</span> DATA_LAKE.RAW.orders_raw (raw_data, file_name)
+<span class="sql-kw">FROM</span> (
+  <span class="sql-kw">SELECT</span> $1, METADATA$FILENAME
+  <span class="sql-kw">FROM</span> @DATA_LAKE.RAW.s3_raw_stage/orders/
+)
+FILE_FORMAT = (<span class="sql-type">TYPE</span> = <span class="sql-str">'JSON'</span>)
+ON_ERROR    = <span class="sql-str">'CONTINUE'</span>;</pre>
+        </div>
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Setup Snowpipe (Continuous Ingestion)</div></div>
+          <div class="step-desc">Automate ingestion whenever new files arrive in the bucket using event notifications.</div>
+          <pre><span class="sql-kw">CREATE PIPE</span> DATA_LAKE.RAW.orders_pipe
+  AUTO_INGEST = <span class="sql-fn">TRUE</span>
+<span class="sql-kw">AS</span>
+  <span class="sql-kw">COPY INTO</span> DATA_LAKE.RAW.orders_raw
+  <span class="sql-kw">FROM</span> @DATA_LAKE.RAW.s3_raw_stage/orders/;
+
+<span class="sql-cmt">-- Get SQS ARN to configure S3 event notifications:</span>
+<span class="sql-kw">SHOW PIPES</span> <span class="sql-kw">LIKE</span> <span class="sql-str">'orders_pipe'</span>;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 4 -->
+    <div class="phase-block lake" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">4</div>
+        <div>
+          <div class="phase-title">Lake Staging Layer</div>
+          <div class="phase-sub">Flatten and lightly cleanse VARIANT data</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Flatten JSON / VARIANT Data</div></div>
+          <div class="step-desc">Extract individual fields from VARIANT using colon notation. Create a view or table for reuse.</div>
+          <pre><span class="sql-kw">CREATE OR REPLACE TABLE</span> DATA_LAKE.STAGING.stg_orders_flat <span class="sql-kw">AS</span>
+<span class="sql-kw">SELECT</span>
+  raw_data:<span class="sql-fn">order_id</span>::<span class="sql-type">VARCHAR</span>     <span class="sql-kw">AS</span> order_id,
+  raw_data:<span class="sql-fn">customer_id</span>::<span class="sql-type">VARCHAR</span>  <span class="sql-kw">AS</span> customer_id,
+  raw_data:<span class="sql-fn">order_date</span>::<span class="sql-type">DATE</span>      <span class="sql-kw">AS</span> order_date,
+  raw_data:<span class="sql-fn">amount</span>::<span class="sql-type">FLOAT</span>         <span class="sql-kw">AS</span> order_amount,
+  raw_data:<span class="sql-fn">status</span>::<span class="sql-type">VARCHAR</span>       <span class="sql-kw">AS</span> order_status,
+  file_name,
+  loaded_at
+<span class="sql-kw">FROM</span> DATA_LAKE.RAW.orders_raw
+<span class="sql-kw">WHERE</span> raw_data:<span class="sql-fn">order_id</span> <span class="sql-kw">IS NOT NULL</span>;   <span class="sql-cmt">-- basic quality filter</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 5 -->
+    <div class="phase-block dw" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">5</div>
+        <div>
+          <div class="phase-title">DW Staging Layer</div>
+          <div class="phase-sub">Typed, validated, and business-rule-applied data</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create DW Staging Table</div></div>
+          <div class="step-desc">Pull from the lake staging layer, enforce strict types, and apply business cleansing logic.</div>
+          <pre><span class="sql-kw">CREATE OR REPLACE TABLE</span> DATA_WAREHOUSE.STAGING.stg_orders <span class="sql-kw">AS</span>
+<span class="sql-kw">SELECT</span>
+  order_id,
+  customer_id,
+  <span class="sql-fn">TRY_TO_DATE</span>(order_date)          <span class="sql-kw">AS</span> order_date,
+  <span class="sql-fn">COALESCE</span>(order_amount, <span class="sql-fn">0</span>)        <span class="sql-kw">AS</span> order_amount,
+  <span class="sql-fn">UPPER</span>(<span class="sql-fn">TRIM</span>(order_status))        <span class="sql-kw">AS</span> order_status,
+  <span class="sql-fn">CURRENT_TIMESTAMP</span>()             <span class="sql-kw">AS</span> dw_loaded_at
+<span class="sql-kw">FROM</span> DATA_LAKE.STAGING.stg_orders_flat
+<span class="sql-kw">WHERE</span> order_amount > <span class="sql-fn">0</span>            <span class="sql-cmt">-- data quality rule</span>
+  <span class="sql-kw">AND</span> order_date >= <span class="sql-str">'2020-01-01'</span>;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 6 -->
+    <div class="phase-block dw" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">6</div>
+        <div>
+          <div class="phase-title">Core Layer — Dimension Tables</div>
+          <div class="phase-sub">Build slowly changing dimensions (SCD Type 2)</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Dimension Tables</div></div>
+          <div class="step-desc">Dimensions describe the "who, what, where" context of your facts. Use surrogate keys for joins.</div>
+          <pre><span class="sql-kw">CREATE TABLE</span> DATA_WAREHOUSE.CORE.dim_customer (
+  customer_sk   <span class="sql-type">INT</span> AUTOINCREMENT <span class="sql-kw">PRIMARY KEY</span>,  <span class="sql-cmt">-- surrogate key</span>
+  customer_id   <span class="sql-type">VARCHAR</span> <span class="sql-kw">NOT NULL</span>,                <span class="sql-cmt">-- natural key</span>
+  customer_name <span class="sql-type">VARCHAR</span>,
+  email         <span class="sql-type">VARCHAR</span>,
+  country       <span class="sql-type">VARCHAR</span>,
+  segment       <span class="sql-type">VARCHAR</span>,
+  <span class="sql-cmt">-- SCD Type 2 tracking columns</span>
+  valid_from    <span class="sql-type">DATE</span>    <span class="sql-kw">DEFAULT</span> <span class="sql-fn">CURRENT_DATE</span>(),
+  valid_to      <span class="sql-type">DATE</span>    <span class="sql-kw">DEFAULT</span> <span class="sql-str">'9999-12-31'</span>,
+  is_current    <span class="sql-type">BOOLEAN</span> <span class="sql-kw">DEFAULT</span> <span class="sql-fn">TRUE</span>
+);
+
+<span class="sql-kw">CREATE TABLE</span> DATA_WAREHOUSE.CORE.dim_date (
+  date_sk    <span class="sql-type">INT</span> <span class="sql-kw">PRIMARY KEY</span>,
+  full_date  <span class="sql-type">DATE</span>,
+  year       <span class="sql-type">INT</span>,
+  quarter    <span class="sql-type">INT</span>,
+  month      <span class="sql-type">INT</span>,
+  month_name <span class="sql-type">VARCHAR</span>,
+  week       <span class="sql-type">INT</span>,
+  day_name   <span class="sql-type">VARCHAR</span>,
+  is_weekend <span class="sql-type">BOOLEAN</span>
+);</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 7 -->
+    <div class="phase-block dw" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">7</div>
+        <div>
+          <div class="phase-title">Core Layer — Fact Tables</div>
+          <div class="phase-sub">Build the central fact table with foreign keys to dimensions</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Fact Table</div></div>
+          <div class="step-desc">Facts store measurable events (sales, clicks, orders). They reference dimension surrogate keys.</div>
+          <pre><span class="sql-kw">CREATE TABLE</span> DATA_WAREHOUSE.CORE.fact_sales (
+  sales_sk     <span class="sql-type">INT</span> AUTOINCREMENT <span class="sql-kw">PRIMARY KEY</span>,
+  order_id     <span class="sql-type">VARCHAR</span>,
+  customer_sk  <span class="sql-type">INT</span> <span class="sql-kw">REFERENCES</span> dim_customer(customer_sk),
+  product_sk   <span class="sql-type">INT</span> <span class="sql-kw">REFERENCES</span> dim_product(product_sk),
+  date_sk      <span class="sql-type">INT</span> <span class="sql-kw">REFERENCES</span> dim_date(date_sk),
+  order_amount <span class="sql-type">FLOAT</span>,
+  quantity     <span class="sql-type">INT</span>,
+  discount_pct <span class="sql-type">FLOAT</span>,
+  net_amount   <span class="sql-type">FLOAT</span>,
+  loaded_at    <span class="sql-type">TIMESTAMP</span> <span class="sql-kw">DEFAULT</span> <span class="sql-fn">CURRENT_TIMESTAMP</span>()
+);
+
+<span class="sql-cmt">-- Load fact from staging</span>
+<span class="sql-kw">INSERT INTO</span> DATA_WAREHOUSE.CORE.fact_sales
+<span class="sql-kw">SELECT</span>
+  s.order_id,
+  c.customer_sk,
+  p.product_sk,
+  d.date_sk,
+  s.order_amount,
+  s.quantity,
+  s.discount_pct,
+  s.order_amount * (1 - s.discount_pct) <span class="sql-kw">AS</span> net_amount
+<span class="sql-kw">FROM</span> DATA_WAREHOUSE.STAGING.stg_orders s
+<span class="sql-kw">JOIN</span> DATA_WAREHOUSE.CORE.dim_customer c <span class="sql-kw">ON</span> s.customer_id = c.customer_id <span class="sql-kw">AND</span> c.is_current
+<span class="sql-kw">JOIN</span> DATA_WAREHOUSE.CORE.dim_date     d <span class="sql-kw">ON</span> s.order_date  = d.full_date;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 8 -->
+    <div class="phase-block dw" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">8</div>
+        <div>
+          <div class="phase-title">Data Marts & BI Layer</div>
+          <div class="phase-sub">Business-ready aggregated views for analysts</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Create Data Mart Views</div></div>
+          <div class="step-desc">Expose clean, pre-joined, aggregated views for specific business domains like Sales, Finance, HR.</div>
+          <pre><span class="sql-kw">CREATE OR REPLACE VIEW</span> DATA_WAREHOUSE.MARTS.sales_summary <span class="sql-kw">AS</span>
+<span class="sql-kw">SELECT</span>
+  d.year,
+  d.month_name,
+  c.country,
+  c.segment,
+  <span class="sql-fn">SUM</span>(f.net_amount)     <span class="sql-kw">AS</span> total_revenue,
+  <span class="sql-fn">COUNT</span>(f.order_id)     <span class="sql-kw">AS</span> total_orders,
+  <span class="sql-fn">AVG</span>(f.net_amount)     <span class="sql-kw">AS</span> avg_order_value,
+  <span class="sql-fn">SUM</span>(f.quantity)       <span class="sql-kw">AS</span> units_sold
+<span class="sql-kw">FROM</span>   DATA_WAREHOUSE.CORE.fact_sales     f
+<span class="sql-kw">JOIN</span>   DATA_WAREHOUSE.CORE.dim_customer   c <span class="sql-kw">ON</span> f.customer_sk = c.customer_sk
+<span class="sql-kw">JOIN</span>   DATA_WAREHOUSE.CORE.dim_date       d <span class="sql-kw">ON</span> f.date_sk    = d.date_sk
+<span class="sql-kw">GROUP BY</span> 1,2,3,4;</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 9 -->
+    <div class="phase-block dw" onclick="togglePhase(this)">
+      <div class="phase-header">
+        <div class="phase-num">9</div>
+        <div>
+          <div class="phase-title">Security, Roles & Governance</div>
+          <div class="phase-sub">RBAC, data masking, row-level security</div>
+        </div>
+        <span class="phase-toggle">▼</span>
+      </div>
+      <div class="phase-body">
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Role-Based Access Control</div></div>
+          <pre><span class="sql-kw">CREATE ROLE</span> DATA_ENGINEER;
+<span class="sql-kw">CREATE ROLE</span> DATA_ANALYST;
+<span class="sql-kw">CREATE ROLE</span> BUSINESS_USER;
+
+<span class="sql-kw">GRANT USAGE ON DATABASE</span> DATA_LAKE      <span class="sql-kw">TO ROLE</span> DATA_ENGINEER;
+<span class="sql-kw">GRANT USAGE ON DATABASE</span> DATA_WAREHOUSE <span class="sql-kw">TO ROLE</span> DATA_ENGINEER;
+<span class="sql-kw">GRANT SELECT ON ALL TABLES IN SCHEMA</span> DATA_WAREHOUSE.CORE
+  <span class="sql-kw">TO ROLE</span> DATA_ANALYST;
+<span class="sql-kw">GRANT SELECT ON ALL VIEWS IN SCHEMA</span> DATA_WAREHOUSE.MARTS
+  <span class="sql-kw">TO ROLE</span> BUSINESS_USER;</pre>
+        </div>
+        <div class="step-item">
+          <div class="step-header"><div class="step-dot"></div><div class="step-name">Dynamic Data Masking</div></div>
+          <pre><span class="sql-cmt">-- Mask email for non-engineer roles</span>
+<span class="sql-kw">CREATE MASKING POLICY</span> mask_email
+  <span class="sql-kw">AS</span> (val <span class="sql-type">STRING</span>) <span class="sql-kw">RETURNS</span> <span class="sql-type">STRING</span> ->
+    <span class="sql-kw">CASE WHEN</span> <span class="sql-fn">CURRENT_ROLE</span>() = <span class="sql-str">'DATA_ENGINEER'</span>
+    <span class="sql-kw">THEN</span> val
+    <span class="sql-kw">ELSE</span> <span class="sql-fn">REGEXP_REPLACE</span>(val, <span class="sql-str">'.+@'</span>, <span class="sql-str">'***@'</span>)
+  <span class="sql-kw">END</span>;
+
+<span class="sql-kw">ALTER TABLE</span> dim_customer
+  <span class="sql-kw">MODIFY COLUMN</span> email
+  <span class="sql-kw">SET MASKING POLICY</span> mask_email;</pre>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /steps-section -->
+
+  <!-- ===== CONCEPTS TAB ===== -->
+  <div class="diagram-section" id="tab-concepts">
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="ic-icon">🗄️</div>
+        <div class="ic-title">Data Lake vs Data Warehouse</div>
+        <div class="ic-text">Data Lake stores raw, unstructured data at any scale with schema-on-read. Data Warehouse stores structured, modeled data optimized for querying with schema-on-write.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">📦</div>
+        <div class="ic-title">VARIANT Type</div>
+        <div class="ic-text">Snowflake's native semi-structured type. Stores JSON, XML, Avro as-is. Query sub-fields with colon notation: <code style="color:var(--flake)">raw_data:field::VARCHAR</code>.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">⭐</div>
+        <div class="ic-title">Star Schema</div>
+        <div class="ic-text">Central fact table surrounded by dimension tables. Optimized for analytical queries. One join per dimension makes queries fast and intuitive.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">🔄</div>
+        <div class="ic-title">Snowpipe</div>
+        <div class="ic-text">Continuous, event-driven data ingestion. Triggers automatically when new files land in cloud storage. Serverless — no warehouse needed for loading.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">📅</div>
+        <div class="ic-title">SCD Type 2</div>
+        <div class="ic-text">Slowly Changing Dimension tracking. Preserves historical values by adding new rows with valid_from, valid_to, and is_current columns for each change.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">🏭</div>
+        <div class="ic-title">Virtual Warehouses</div>
+        <div class="ic-text">Compute clusters independent from storage. Scale up/down instantly, auto-suspend when idle, and auto-resume on query — pay only for what you use.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">🔐</div>
+        <div class="ic-title">RBAC Security</div>
+        <div class="ic-text">Role-Based Access Control. Grant privileges to roles, assign roles to users. Combine with Dynamic Data Masking and Row Access Policies for fine-grained control.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">📊</div>
+        <div class="ic-title">Data Mart</div>
+        <div class="ic-text">Subset of the data warehouse tailored for a specific business domain (Sales, Finance, HR). Typically implemented as views or materialized tables for performance.</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-icon">🛠️</div>
+        <div class="ic-title">dbt Integration</div>
+        <div class="ic-text">dbt (data build tool) is the industry standard for transformations inside Snowflake. Write SQL models, auto-generate lineage docs, and run tests on every deploy.</div>
+      </div>
+    </div>
+
+    <!-- Flow summary box -->
+    <div class="arch-diagram" style="font-family:'Space Mono',monospace; font-size:0.78rem; line-height:2;">
+      <div class="diagram-title">// Complete Flow Summary</div>
+      <div style="text-align:center; color:rgba(232,244,253,0.8);">
+        <span style="color:var(--gold)">Source Systems</span><br>
+        ↓ &nbsp;<span style="color:rgba(232,244,253,0.4); font-size:0.7rem">ETL / ELT tools</span><br>
+        <span style="color:var(--flake)">Cloud Storage (S3 / ADLS / GCS)</span><br>
+        ↓ &nbsp;<span style="color:rgba(232,244,253,0.4); font-size:0.7rem">COPY INTO / Snowpipe</span><br>
+        <span style="color:var(--flake)">DATA_LAKE.RAW &nbsp;&nbsp;&nbsp;&nbsp;→ VARIANT, immutable</span><br>
+        ↓ &nbsp;<span style="color:rgba(232,244,253,0.4); font-size:0.7rem">flatten + deduplicate</span><br>
+        <span style="color:var(--accent)">DATA_LAKE.STAGING &nbsp;→ typed fields, basic QA</span><br>
+        ↓ &nbsp;<span style="color:rgba(232,244,253,0.4); font-size:0.7rem">business rules</span><br>
+        <span style="color:#7de8ff">DATA_WAREHOUSE.STAGING → validated, enriched</span><br>
+        ↓ &nbsp;<span style="color:rgba(232,244,253,0.4); font-size:0.7rem">dimensional modeling</span><br>
+        <span style="color:var(--green)">DATA_WAREHOUSE.CORE &nbsp;&nbsp;→ Dims + Facts (Star)</span><br>
+        ↓ &nbsp;<span style="color:rgba(232,244,253,0.4); font-size:0.7rem">aggregations + joins</span><br>
+        <span style="color:#5af0a0">DATA_WAREHOUSE.MARTS &nbsp;→ Business views</span><br>
+        ↓ &nbsp;<span style="color:rgba(232,244,253,0.4); font-size:0.7rem">ODBC / native connectors</span><br>
+        <span style="color:#c39af7">BI Tools (Tableau / Power BI / Looker)</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  function showTab(name) {
+    // Diagram and concepts use diagram-section class
+    document.querySelectorAll('.diagram-section, .steps-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+    if (name === 'steps') {
+      document.getElementById('tab-steps').classList.add('active');
+    } else {
+      document.getElementById('tab-' + name).classList.add('active');
+    }
+
+    const idx = ['diagram','steps','concepts'].indexOf(name);
+    document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  }
+
+  function togglePhase(el) {
+    el.classList.toggle('open');
+  }
+</script>
+
+</body>
+</html>

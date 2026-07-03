@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP Headers Reference</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; padding: 40px 32px; max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 32px; }
+  h2 { font-size: 14px; font-weight: 600; margin: 28px 0 8px; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f5f5f5; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; text-align: left; padding: 8px 12px; border: 1px solid #e0e0e0; }
+  td { padding: 8px 12px; border: 1px solid #e0e0e0; vertical-align: top; line-height: 1.45; }
+  tr:nth-child(even) td { background: #fafafa; }
+  code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; color: #c0392b; }
+  .mono { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 11.5px; color: #555; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.3px; vertical-align: middle; }
+  .req  { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; }
+  .res  { background: #fff8ee; color: #b7680a; border: 1px solid #f5dfa6; }
+  .sec  { background: #f0f0ff; color: #5040a0; border: 1px solid #ccc8f0; }
+  .legend { display: flex; gap: 16px; margin-top: 24px; font-size: 12px; color: #666; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  hr { border: none; border-top: 1px solid #e8e8e8; margin: 8px 0 0; }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<h1>HTTP Headers Reference</h1>
+<p class="subtitle">Most commonly used request, response, and security headers.</p>
+<hr>
+
+<h2>Request Headers</h2>
+<table>
+  <thead>
+    <tr><th style="width:26%">Header</th><th style="width:10%">Type</th><th style="width:40%">Description</th><th style="width:24%">Example value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>Host</code></td><td><span class="tag req">req</span></td><td>Target domain — mandatory on all requests</td><td class="mono">example.com</td></tr>
+    <tr><td><code>User-Agent</code></td><td><span class="tag req">req</span></td><td>Browser/client identity string</td><td class="mono">Mozilla/5.0 (curl/7.x)</td></tr>
+    <tr><td><code>Authorization</code></td><td><span class="tag req">req</span></td><td>Credentials for server authentication</td><td class="mono">Bearer eyJhbGci...</td></tr>
+    <tr><td><code>Cookie</code></td><td><span class="tag req">req</span></td><td>All stored cookies for the domain</td><td class="mono">session=abc; theme=dark</td></tr>
+    <tr><td><code>Content-Type</code></td><td><span class="tag req">req</span></td><td>MIME type of the request body</td><td class="mono">application/json</td></tr>
+    <tr><td><code>Content-Length</code></td><td><span class="tag req">req</span></td><td>Byte length of request body</td><td class="mono">348</td></tr>
+    <tr><td><code>Accept</code></td><td><span class="tag req">req</span></td><td>Media types the client can handle in response</td><td class="mono">text/html, application/json</td></tr>
+    <tr><td><code>Accept-Encoding</code></td><td><span class="tag req">req</span></td><td>Compression methods client can decode</td><td class="mono">gzip, br, deflate</td></tr>
+    <tr><td><code>Accept-Language</code></td><td><span class="tag req">req</span></td><td>Preferred response language(s)</td><td class="mono">en-US, fr;q=0.9</td></tr>
+    <tr><td><code>Referer</code></td><td><span class="tag req">req</span></td><td>URL of the page that linked to this request</td><td class="mono">https://google.com/search</td></tr>
+    <tr><td><code>Origin</code></td><td><span class="tag req">req</span></td><td>Scheme + host of the cross-origin request source</td><td class="mono">https://app.example.com</td></tr>
+    <tr><td><code>Cache-Control</code></td><td><span class="tag req">req</span></td><td>Caching directives for the request</td><td class="mono">no-cache</td></tr>
+    <tr><td><code>If-None-Match</code></td><td><span class="tag req">req</span></td><td>Return resource only if ETag doesn't match</td><td class="mono">"abc123etag"</td></tr>
+    <tr><td><code>If-Modified-Since</code></td><td><span class="tag req">req</span></td><td>Return resource only if changed since this date</td><td class="mono">Mon, 28 Mar 2022 GMT</td></tr>
+    <tr><td><code>Connection</code></td><td><span class="tag req">req</span></td><td>Control TCP connection persistence</td><td class="mono">keep-alive</td></tr>
+    <tr><td><code>X-Forwarded-For</code></td><td><span class="tag req">req</span></td><td>Client's real IP when routed through a proxy</td><td class="mono">192.0.2.1</td></tr>
+  </tbody>
+</table>
+
+<h2>Response Headers</h2>
+<table>
+  <thead>
+    <tr><th style="width:26%">Header</th><th style="width:10%">Type</th><th style="width:40%">Description</th><th style="width:24%">Example value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>Content-Type</code></td><td><span class="tag res">res</span></td><td>MIME type of the response body</td><td class="mono">text/html; charset=utf-8</td></tr>
+    <tr><td><code>Content-Length</code></td><td><span class="tag res">res</span></td><td>Byte size of the response body</td><td class="mono">2048</td></tr>
+    <tr><td><code>Content-Encoding</code></td><td><span class="tag res">res</span></td><td>Compression applied to response body</td><td class="mono">gzip</td></tr>
+    <tr><td><code>Content-Disposition</code></td><td><span class="tag res">res</span></td><td>Show inline or prompt file download</td><td class="mono">attachment; filename="f.pdf"</td></tr>
+    <tr><td><code>Set-Cookie</code></td><td><span class="tag res">res</span></td><td>Sets a cookie with optional attributes</td><td class="mono">id=abc; HttpOnly; Secure; SameSite=Strict</td></tr>
+    <tr><td><code>Cache-Control</code></td><td><span class="tag res">res</span></td><td>Caching directives (max-age, no-store, public…)</td><td class="mono">max-age=3600, public</td></tr>
+    <tr><td><code>ETag</code></td><td><span class="tag res">res</span></td><td>Version identifier for the resource</td><td class="mono">"33a64df5551592f7"</td></tr>
+    <tr><td><code>Last-Modified</code></td><td><span class="tag res">res</span></td><td>When the resource was last changed on the server</td><td class="mono">Mon, 28 Mar 2022 11:20 GMT</td></tr>
+    <tr><td><code>Expires</code></td><td><span class="tag res">res</span></td><td>Date/time after which response is considered stale</td><td class="mono">Tue, 29 Mar 2022 05:30 GMT</td></tr>
+    <tr><td><code>Vary</code></td><td><span class="tag res">res</span></td><td>Which request headers affect the cached response</td><td class="mono">Accept-Encoding</td></tr>
+    <tr><td><code>Location</code></td><td><span class="tag res">res</span></td><td>Redirect URL (3xx) or newly created resource (201)</td><td class="mono">https://example.com/new-url</td></tr>
+    <tr><td><code>Server</code></td><td><span class="tag res">res</span></td><td>Server software handling the request</td><td class="mono">nginx/1.24</td></tr>
+    <tr><td><code>Date</code></td><td><span class="tag res">res</span></td><td>Date and time the response was sent</td><td class="mono">Mon, 28 Mar 2022 05:30 GMT</td></tr>
+    <tr><td><code>Transfer-Encoding</code></td><td><span class="tag res">res</span></td><td>How body is delivered — chunked streams in pieces</td><td class="mono">chunked</td></tr>
+    <tr><td><code>WWW-Authenticate</code></td><td><span class="tag res">res</span></td><td>Auth method required — sent with 401 response</td><td class="mono">Bearer realm="api"</td></tr>
+    <tr><td><code>Retry-After</code></td><td><span class="tag res">res</span></td><td>Seconds to wait before retrying — sent with 503/429</td><td class="mono">120</td></tr>
+    <tr><td><code>Allow</code></td><td><span class="tag res">res</span></td><td>HTTP methods permitted on resource — sent with 405</td><td class="mono">GET, POST, HEAD</td></tr>
+  </tbody>
+</table>
+
+<h2>Security Headers</h2>
+<table>
+  <thead>
+    <tr><th style="width:26%">Header</th><th style="width:10%">Type</th><th style="width:40%">Description</th><th style="width:24%">Example value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>Strict-Transport-Security</code></td><td><span class="tag sec">sec</span></td><td>Forces HTTPS — prevents protocol downgrade attacks</td><td class="mono">max-age=31536000; includeSubDomains</td></tr>
+    <tr><td><code>Content-Security-Policy</code></td><td><span class="tag sec">sec</span></td><td>Controls which resources browser may load — prevents XSS</td><td class="mono">default-src 'self'</td></tr>
+    <tr><td><code>X-Frame-Options</code></td><td><span class="tag sec">sec</span></td><td>Blocks page from loading in iframes — stops clickjacking</td><td class="mono">DENY</td></tr>
+    <tr><td><code>X-Content-Type-Options</code></td><td><span class="tag sec">sec</span></td><td>Stops browsers from MIME-sniffing the content type</td><td class="mono">nosniff</td></tr>
+    <tr><td><code>Referrer-Policy</code></td><td><span class="tag sec">sec</span></td><td>Controls how much referrer info is sent in requests</td><td class="mono">strict-origin-when-cross-origin</td></tr>
+    <tr><td><code>Permissions-Policy</code></td><td><span class="tag sec">sec</span></td><td>Controls browser feature access (camera, mic, location…)</td><td class="mono">geolocation=(), camera=(self)</td></tr>
+    <tr><td><code>Access-Control-Allow-Origin</code></td><td><span class="tag sec">sec</span></td><td>Which origins are permitted to read the response (CORS)</td><td class="mono">https://app.com</td></tr>
+  </tbody>
+</table>
+
+<div class="legend">
+  <span><span class="tag req">req</span> Request only</span>
+  <span><span class="tag res">res</span> Response only</span>
+  <span><span class="tag sec">sec</span> Security / CORS</span>
+</div>
+
+</body>
+</html>

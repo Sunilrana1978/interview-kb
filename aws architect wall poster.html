@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AWS Architect Interview Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --aws-orange: #E87900;
+    --aws-dark: #1A1A2E;
+    --aws-blue: #1A6FBF;
+    --aws-teal: #00897B;
+    --aws-red: #D32F2F;
+    --aws-purple: #6200EA;
+    --aws-green: #2E7D32;
+    --card-bg: #FFFFFF;
+    --border: rgba(0,0,0,0.08);
+    --text: #1A1A2E;
+    --muted: #666680;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #F0F2F5;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    display: block;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--aws-orange), transparent);
+    margin-top: 16px;
+  }
+
+  .header .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--aws-orange);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .header h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px;
+    letter-spacing: 3px;
+    line-height: 1;
+    background: linear-gradient(135deg, #E87900, #C85000);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* CARD */
+  .card {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .card.orange::before { background: var(--aws-orange); }
+  .card.blue::before { background: var(--aws-blue); }
+  .card.teal::before { background: var(--aws-teal); }
+  .card.red::before { background: var(--aws-red); }
+  .card.purple::before { background: var(--aws-purple); }
+  .card.green::before { background: var(--aws-green); }
+  .card.yellow::before { background: #FFD166; }
+  .card.pink::before { background: #FF6B9D; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .card-icon {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1.5px;
+  }
+
+  .card.orange .card-title { color: #C85000; }
+  .card.blue .card-title { color: var(--aws-blue); }
+  .card.teal .card-title { color: var(--aws-teal); }
+  .card.red .card-title { color: var(--aws-red); }
+  .card.purple .card-title { color: var(--aws-purple); }
+  .card.green .card-title { color: var(--aws-green); }
+  .card.yellow .card-title { color: #B8860B; }
+  .card.pink .card-title { color: #C2185B; }
+
+  .card-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-left: auto;
+    opacity: 0.5;
+  }
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  li {
+    font-size: 12px;
+    color: #333344;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.4;
+    font-weight: 400;
+  }
+
+  li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    font-size: 9px;
+    top: 2px;
+  }
+
+  .card.orange li::before { color: #C85000; }
+  .card.blue li::before { color: var(--aws-blue); }
+  .card.teal li::before { color: var(--aws-teal); }
+  .card.red li::before { color: var(--aws-red); }
+  .card.purple li::before { color: var(--aws-purple); }
+  .card.green li::before { color: var(--aws-green); }
+  .card.yellow li::before { color: #B8860B; }
+  .card.pink li::before { color: #C2185B; }
+
+  li strong {
+    font-weight: 700;
+    color: #111122;
+  }
+
+  /* TAG PILLS */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 10px;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+
+  .card.orange .tag { background: rgba(200,80,0,0.08); color: #C85000; border: 1px solid rgba(200,80,0,0.25); }
+  .card.blue .tag { background: rgba(26,111,191,0.08); color: var(--aws-blue); border: 1px solid rgba(26,111,191,0.25); }
+  .card.teal .tag { background: rgba(0,137,123,0.08); color: var(--aws-teal); border: 1px solid rgba(0,137,123,0.25); }
+  .card.red .tag { background: rgba(211,47,47,0.08); color: var(--aws-red); border: 1px solid rgba(211,47,47,0.25); }
+  .card.purple .tag { background: rgba(98,0,234,0.08); color: var(--aws-purple); border: 1px solid rgba(98,0,234,0.25); }
+  .card.green .tag { background: rgba(46,125,50,0.08); color: var(--aws-green); border: 1px solid rgba(46,125,50,0.25); }
+  .card.yellow .tag { background: rgba(184,134,11,0.08); color: #B8860B; border: 1px solid rgba(184,134,11,0.25); }
+  .card.pink .tag { background: rgba(194,24,91,0.08); color: #C2185B; border: 1px solid rgba(194,24,91,0.25); }
+
+  /* WIDE CARD */
+  .card.wide {
+    grid-column: span 2;
+  }
+
+  .card.wide ul {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 20px;
+  }
+
+  /* FOOTER */
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    opacity: 0.5;
+  }
+
+  .divider {
+    height: 1px;
+    background: rgba(0,0,0,0.08);
+    margin: 10px 0;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+    margin-top: 2px;
+  }
+
+  .footer {
+    margin-top: 20px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    opacity: 0.6;
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<style>
+html.light{filter:invert(1) hue-rotate(180deg);}
+html.light img,html.light video,html.light canvas,html.light iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+</head>
+<body>
+<div style="position:fixed;top:12px;left:12px;z-index:9999;display:flex;gap:6px;align-items:center;">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;color:#5b9cf6;font-family:Inter,system-ui,sans-serif;font-size:12px;font-weight:500;text-decoration:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" onmouseover="this.style.borderColor='#5b9cf6'" onmouseout="this.style.borderColor='rgba(91,156,246,0.25)'"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>Home</a>
+  <button onclick="(function(){var l=document.documentElement.classList.toggle('light');localStorage.setItem('theme',l?'light':'dark');})()" style="display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;background:rgba(17,19,24,0.92);border:1px solid rgba(91,156,246,0.25);border-radius:7px;cursor:pointer;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);" title="Toggle light / dark mode">
+    <svg id="__sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg id="__moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5b9cf6" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+</div>
+<script>
+(function(){
+  function syncIcon(){
+    var l=document.documentElement.classList.contains('light');
+    var sun=document.getElementById('__sun'),moon=document.getElementById('__moon');
+    if(sun&&moon){sun.style.display=l?'block':'none';moon.style.display=l?'none':'block';}
+  }
+  syncIcon();
+  var btn=document.querySelector('[title="Toggle light / dark mode"]');
+  if(btn)btn.addEventListener('click',function(){setTimeout(syncIcon,0);});
+})();
+</script>
+
+
+<div class="header">
+  <div class="eyebrow">Interview Reference Sheet</div>
+  <h1>AWS Cloud Architect</h1>
+  <div class="subtitle">Key Topics · Architecture Patterns · Best Practices</div>
+</div>
+
+<div class="grid">
+
+  <!-- IaC / Terraform -->
+  <div class="card orange">
+    <div class="card-header">
+      <span class="card-icon">🏗️</span>
+      <span class="card-title">IaC & Terraform</span>
+      <span class="card-num">01</span>
+    </div>
+    <ul>
+      <li><strong>Modular structure</strong> — one module per service</li>
+      <li>Root stack combines all modules</li>
+      <li>Outputs from one → inputs to another</li>
+      <li>Version control + code review for infra</li>
+      <li>Environment parity: dev / staging / prod</li>
+      <li>CI/CD pipeline integration</li>
+      <li>State management tracks real resources</li>
+    </ul>
+    <div class="tags">
+      <span class="tag">Terraform</span>
+      <span class="tag">CloudFormation</span>
+      <span class="tag">Modules</span>
+    </div>
+  </div>
+
+  <!-- Event-Driven Architecture -->
+  <div class="card teal wide">
+    <div class="card-header">
+      <span class="card-icon">⚡</span>
+      <span class="card-title">Event-Driven Architecture</span>
+      <span class="card-num">02</span>
+    </div>
+    <div class="section-label">Flow</div>
+    <ul>
+      <li><strong>SMS Source</strong> → SQS (buffer & decouple)</li>
+      <li><strong>Lambda #1</strong> → processes & writes to DynamoDB</li>
+      <li><strong>DynamoDB Streams</strong> → captures changes in real-time</li>
+      <li><strong>Lambda #2</strong> → consumes stream, publishes to EventBridge</li>
+      <li><strong>EventBridge Rules</strong> → route by consumer type</li>
+      <li><strong>Consumers</strong> → subscribe to relevant rules</li>
+      <li>Loose coupling — components only know events</li>
+      <li>Lambda auto-scales per message volume</li>
+    </ul>
+    <div class="tags">
+      <span class="tag">SQS</span>
+      <span class="tag">Lambda</span>
+      <span class="tag">DynamoDB Streams</span>
+      <span class="tag">EventBridge</span>
+    </div>
+  </div>
+
+  <!-- Monitoring -->
+  <div class="card blue">
+    <div class="card-header">
+      <span class="card-icon">📊</span>
+      <span class="card-title">Monitoring</span>
+      <span class="card-num">03</span>
+    </div>
+    <ul>
+      <li>CloudWatch Logs per Lambda</li>
+      <li>Custom metrics via <strong>Lambda Powertools</strong></li>
+      <li>Alarms on error rate, DLQ depth</li>
+      <li>X-Ray for distributed tracing</li>
+      <li>Structured JSON logs for Insights</li>
+      <li>SQS dead letter queue monitoring</li>
+    </ul>
+    <div class="section-label" style="margin-top:10px">Key Metrics</div>
+    <ul>
+      <li>Processing time, error count</li>
+      <li>DynamoDB write latency</li>
+      <li>Lambda cold starts, duration</li>
+    </ul>
+  </div>
+
+  <!-- Data Protection -->
+  <div class="card red">
+    <div class="card-header">
+      <span class="card-icon">🛡️</span>
+      <span class="card-title">Data Protection</span>
+      <span class="card-num">04</span>
+    </div>
+    <ul>
+      <li>DynamoDB <strong>point-in-time recovery</strong> (35 days)</li>
+      <li>Terraform deletion protection flag</li>
+      <li>S3 versioning + MFA delete</li>
+      <li>AWS Backup — centralized mgmt</li>
+      <li>IAM policies block accidental deletes</li>
+      <li>Lifecycle policies for storage tiers</li>
+    </ul>
+    <div class="tags">
+      <span class="tag">PITR</span>
+      <span class="tag">S3 Versioning</span>
+      <span class="tag">AWS Backup</span>
+    </div>
+  </div>
+
+  <!-- Cost Optimization -->
+  <div class="card green">
+    <div class="card-header">
+      <span class="card-icon">💰</span>
+      <span class="card-title">Cost Optimization</span>
+      <span class="card-num">05</span>
+    </div>
+    <ul>
+      <li><strong>Tag all resources</strong> in Terraform (env, team, project)</li>
+      <li>Cost Explorer — slice by tag/service</li>
+      <li>Right-size EC2 per environment</li>
+      <li>Lambda memory tuning (cost vs speed)</li>
+      <li>DynamoDB on-demand for dev/unpredictable</li>
+      <li>Reserved instances for prod</li>
+      <li>Shut down non-prod off-hours</li>
+      <li>S3 lifecycle → Glacier for old logs</li>
+    </ul>
+  </div>
+
+  <!-- Security -->
+  <div class="card purple">
+    <div class="card-header">
+      <span class="card-icon">🔐</span>
+      <span class="card-title">Security</span>
+      <span class="card-num">06</span>
+    </div>
+    <ul>
+      <li>IAM <strong>least privilege</strong> per service</li>
+      <li>Encryption at rest & in transit</li>
+      <li>VPC isolation + security groups</li>
+      <li>Secrets Manager / Parameter Store</li>
+      <li>No hardcoded credentials in IaC</li>
+      <li>Audit trails via CloudTrail</li>
+    </ul>
+    <div class="tags">
+      <span class="tag">IAM</span>
+      <span class="tag">KMS</span>
+      <span class="tag">VPC</span>
+      <span class="tag">CloudTrail</span>
+    </div>
+  </div>
+
+  <!-- Debugging -->
+  <div class="card yellow">
+    <div class="card-header">
+      <span class="card-icon">🔍</span>
+      <span class="card-title">Debug Methodology</span>
+      <span class="card-num">07</span>
+    </div>
+    <ul>
+      <li><strong>Step 1</strong> — Check CloudWatch Logs for error</li>
+      <li><strong>Step 2</strong> — X-Ray trace full request path</li>
+      <li><strong>Step 3</strong> — Check SQS dead letter queue</li>
+      <li><strong>Step 4</strong> — Verify DynamoDB Streams active</li>
+      <li><strong>Step 5</strong> — Check EventBridge rule matches</li>
+      <li>Structured logs = searchable errors</li>
+    </ul>
+  </div>
+
+  <!-- Design Thinking -->
+  <div class="card pink wide">
+    <div class="card-header">
+      <span class="card-icon">🧠</span>
+      <span class="card-title">Architect Design Thinking</span>
+      <span class="card-num">08</span>
+    </div>
+    <ul>
+      <li><strong>Scalability</strong> — auto-scaling, serverless, stateless design</li>
+      <li><strong>Resilience</strong> — multi-AZ, retries, DLQ, circuit breakers</li>
+      <li><strong>Trade-offs</strong> — serverless vs containers vs EC2</li>
+      <li><strong>Consistency</strong> — eventual vs strong consistency decisions</li>
+      <li><strong>Observability</strong> — logs, metrics, traces (3 pillars)</li>
+      <li><strong>Cost awareness</strong> — design for efficiency from day one</li>
+      <li>Always anchor answers to <strong>real project examples</strong></li>
+      <li>Show the full picture — not just the happy path</li>
+    </ul>
+  </div>
+
+</div>
+
+<div class="footer">AWS CLOUD ARCHITECT · INTERVIEW REFERENCE · PRINT &amp; PIN</div>
+
+</body>
+</html>
