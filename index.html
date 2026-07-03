@@ -559,10 +559,6 @@ html.dark .card-title { color: #5b9cf6; }
           <span class="hero-stat-num">8</span>
           <span class="hero-stat-label">Topics</span>
         </div>
-        <div class="hero-stat">
-          <span class="hero-stat-num" id="visitor-count">—</span>
-          <span class="hero-stat-label">Visitors</span>
-        </div>
       </div>
     </div>
 
@@ -859,6 +855,10 @@ html.dark .card-title { color: #5b9cf6; }
 
 <footer class="page-footer">
   Tech Interview Knowledge Base &nbsp;·&nbsp; <span id="footer-count"></span> guides &nbsp;·&nbsp; 8 categories
+  &nbsp;·&nbsp;
+  <a href="https://interview-kb.goatcounter.com" target="_blank" style="text-decoration:none;">
+    <img src="https://interview-kb.goatcounter.com/counter/%2Finterview-kb%2Findex.html.svg" alt="visitor count" style="vertical-align:middle; height:18px;">
+  </a>
 </footer>
 
 <script>
@@ -927,23 +927,5 @@ html.dark .card-title { color: #5b9cf6; }
   });
 </script>
 <script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
-<script>
-  (function poll() {
-    if (window.goatcounter && window.goatcounter.visit_count) {
-      window.goatcounter.visit_count({
-        callback: function(html) {
-          var el = document.getElementById('visitor-count');
-          if (!el) return;
-          var tmp = document.createElement('div');
-          tmp.innerHTML = html;
-          var num = (tmp.textContent || tmp.innerText || '').trim();
-          if (num) el.textContent = num;
-        }
-      });
-    } else {
-      setTimeout(poll, 200);
-    }
-  })();
-</script>
 </body>
 </html>
