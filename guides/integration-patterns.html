@@ -1478,5 +1478,34 @@ breaker.<span class="fn">on</span>(<span class="str">'close'</span>,    () => me
   });
 </script>
 <script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
 </body>
 </html>
