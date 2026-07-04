@@ -927,6 +927,7 @@ html.dark .card-title { color: #5b9cf6; }
   (function poll() {
     if (window.goatcounter && window.goatcounter.visit_count) {
       window.goatcounter.visit_count({
+        path: 'TOTAL',
         callback: function(html) {
           var tmp = document.createElement('div');
           tmp.innerHTML = html;
