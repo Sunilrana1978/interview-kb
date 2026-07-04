@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Cheatsheet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&family=Outfit:wght@300;400;600;700;900&display=swap');
+
+  :root {
+    --bg: #0c0e14;
+    --surface: #13151f;
+    --surface2: #1a1d2b;
+    --border: #252838;
+    --yellow: #f7c948;
+    --cyan: #38d9f5;
+    --green: #4ade80;
+    --pink: #f472b6;
+    --orange: #fb923c;
+    --purple: #a78bfa;
+    --red: #f87171;
+    --text: #e2e4f0;
+    --muted: #5a5f7a;
+    --muted2: #7c82a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    padding: 48px 24px 80px;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    max-width: 1200px;
+    margin: 0 auto 56px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--yellow);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fira Code', monospace;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #0c0e14;
+    flex-shrink: 0;
+  }
+
+  h1 {
+    font-size: clamp(1.8rem, 3vw, 2.6rem);
+    font-weight: 900;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+
+  h1 span { color: var(--yellow); }
+
+  .header-meta {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  /* ── TOC pills ── */
+  .toc {
+    max-width: 1200px;
+    margin: 0 auto 48px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toc a {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--muted2);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .toc a:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  /* ── Grid ── */
+  .grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .card:nth-child(1)  { animation-delay: 0.04s }
+  .card:nth-child(2)  { animation-delay: 0.08s }
+  .card:nth-child(3)  { animation-delay: 0.12s }
+  .card:nth-child(4)  { animation-delay: 0.16s }
+  .card:nth-child(5)  { animation-delay: 0.20s }
+  .card:nth-child(6)  { animation-delay: 0.24s }
+  .card:nth-child(7)  { animation-delay: 0.28s }
+  .card:nth-child(8)  { animation-delay: 0.32s }
+  .card:nth-child(9)  { animation-delay: 0.36s }
+  .card:nth-child(10) { animation-delay: 0.40s }
+  .card:nth-child(11) { animation-delay: 0.44s }
+  .card:nth-child(12) { animation-delay: 0.48s }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .card-header {
+    padding: 14px 18px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .card-body {
+    padding: 16px 18px;
+    flex: 1;
+  }
+
+  /* ── Code blocks ── */
+  pre {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    line-height: 1.75;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 8px 0;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 14px 0 6px;
+  }
+
+  .section-label:first-child { margin-top: 0; }
+
+  /* syntax colors */
+  .kw  { color: var(--purple); }
+  .fn  { color: var(--cyan); }
+  .str { color: var(--green); }
+  .num { color: var(--orange); }
+  .cmt { color: var(--muted); font-style: italic; }
+  .op  { color: var(--yellow); }
+  .cls { color: var(--pink); }
+  .var { color: var(--text); }
+  .ret { color: var(--red); }
+
+  /* ── Wide card (spans 2 cols) ── */
+  .wide { grid-column: span 2; }
+  @media (max-width: 560px) { .wide { grid-column: span 1; } }
+
+  /* ── Table inside card ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    margin-top: 4px;
+  }
+
+  th {
+    text-align: left;
+    color: var(--muted2);
+    font-weight: 400;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #1e2030;
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  td:first-child { color: var(--yellow); white-space: nowrap; }
+  td:last-child  { color: var(--muted2); }
+
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Tip pill ── */
+  .tip {
+    display: inline-block;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    background: #1e2133;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 3px 8px;
+    color: var(--muted2);
+    margin-top: 8px;
+  }
+
+  .tip b { color: var(--yellow); }
+
+  footer {
+    max-width: 1200px;
+    margin: 56px auto 0;
+    text-align: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">JS</div>
+    <div>
+      <h1>Java<span>Script</span></h1>
+      <div style="font-family:'Fira Code',monospace;font-size:0.72rem;color:var(--muted);margin-top:4px;">Quick Reference Cheatsheet</div>
+    </div>
+  </div>
+  <div class="header-meta">
+    ES2015+ · Modern JS<br>
+    12 sections · all essentials
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#vars">Variables</a>
+  <a href="#types">Data Types</a>
+  <a href="#operators">Operators</a>
+  <a href="#strings">Strings</a>
+  <a href="#arrays">Arrays</a>
+  <a href="#objects">Objects</a>
+  <a href="#functions">Functions</a>
+  <a href="#classes">Classes</a>
+  <a href="#control">Control Flow</a>
+  <a href="#async">Async</a>
+  <a href="#destructuring">Destructuring</a>
+  <a href="#misc">Misc / ES6+</a>
+</nav>
+
+<div class="grid">
+
+  <!-- 1. Variables -->
+  <div class="card" id="vars">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--yellow)"></div>
+      <div class="card-title" style="color:var(--yellow)">Variables</div>
+    </div>
+    <div class="card-body">
+      <pre><span class="kw">const</span> name <span class="op">=</span> <span class="str">"Alice"</span>;     <span class="cmt">// immutable binding</span>
+<span class="kw">let</span>   age  <span class="op">=</span> <span class="num">30</span>;         <span class="cmt">// block-scoped, mutable</span>
+<span class="kw">var</span>   old  <span class="op">=</span> <span class="str">"avoid"</span>;    <span class="cmt">// function-scoped ⚠️</span></pre>
+      <div class="section-label">Scope rules</div>
+      <table>
+        <tr><th>keyword</th><th>scope</th><th>re-assign</th><th>hoisted</th></tr>
+        <tr><td>const</td><td>block</td><td>❌</td><td>no</td></tr>
+        <tr><td>let</td><td>block</td><td>✅</td><td>no</td></tr>
+        <tr><td>var</td><td>function</td><td>✅</td><td>yes ⚠️</td></tr>
+      </table>
+      <div class="tip"><b>Rule:</b> always prefer const, use let when you need to reassign</div>
+    </div>
+  </div>
+
+  <!-- 2. Data Types -->
+  <div class="card" id="types">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--cyan)"></div>
+      <div class="card-title" style="color:var(--cyan)">Data Types</div>
+    </div>
+    <div class="card-body">
+      <pre><span class="cmt">// Primitives</span>
+<span class="kw">typeof</span> <span class="str">"hello"</span>      <span class="cmt">// "string"</span>
+<span class="kw">typeof</span> <span class="num">42</span>          <span class="cmt">// "number"</span>
+<span class="kw">typeof</span> <span class="num">3.14</span>        <span class="cmt">// "number"</span>
+<span class="kw">typeof</span> <span class="kw">true</span>        <span class="cmt">// "boolean"</span>
+<span class="kw">typeof</span> <span class="kw">undefined</span>   <span class="cmt">// "undefined"</span>
+<span class="kw">typeof</span> <span class="kw">null</span>        <span class="cmt">// "object" ← JS quirk!</span>
+<span class="kw">typeof</span> <span class="num">9007n</span>       <span class="cmt">// "bigint"</span>
+<span class="kw">typeof</span> Symbol()    <span class="cmt">// "symbol"</span>
+
+<span class="cmt">// Reference types</span>
+<span class="kw">typeof</span> {}          <span class="cmt">// "object"</span>
+<span class="kw">typeof</span> []          <span class="cmt">// "object"</span>
+<span class="kw">typeof</span> <span class="fn">function</span>(){} <span class="cmt">// "function"</span></pre>
+    </div>
+  </div>
+
+  <!-- 3. Operators -->
+  <div class="card" id="operators">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--orange)"></div>
+      <div class="card-title" style="color:var(--orange)">Operators</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">Equality</div>
+      <pre><span class="num">1</span> <span class="op">==</span>  <span class="str">"1"</span>   <span class="cmt">// true  (loose, coerces)</span>
+<span class="num">1</span> <span class="op">===</span> <span class="str">"1"</span>   <span class="cmt">// false (strict) ✅ use this</span>
+<span class="num">1</span> <span class="op">!==</span> <span class="num">2</span>     <span class="cmt">// true</span></pre>
+      <div class="section-label">Logical</div>
+      <pre><span class="kw">true</span>  <span class="op">&&</span> <span class="kw">false</span>   <span class="cmt">// false  (AND)</span>
+<span class="kw">true</span>  <span class="op">||</span> <span class="kw">false</span>   <span class="cmt">// true   (OR)</span>
+<span class="op">!</span><span class="kw">true</span>            <span class="cmt">// false  (NOT)</span>
+<span class="kw">null</span>  <span class="op">??</span> <span class="str">"def"</span>   <span class="cmt">// "def"  (nullish)</span>
+a     <span class="op">??=</span> <span class="str">"val"</span>  <span class="cmt">// assign if null/undef</span></pre>
+      <div class="section-label">Optional chaining</div>
+      <pre>user<span class="op">?.</span>address<span class="op">?.</span>city  <span class="cmt">// no error if null</span>
+arr<span class="op">?.</span>[<span class="num">0</span>]              <span class="cmt">// safe index access</span>
+fn<span class="op">?.</span>()               <span class="cmt">// call only if fn exists</span></pre>
+    </div>
+  </div>
+
+  <!-- 4. Strings -->
+  <div class="card" id="strings">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--green)"></div>
+      <div class="card-title" style="color:var(--green)">Strings</div>
+    </div>
+    <div class="card-body">
+      <pre><span class="kw">const</span> s <span class="op">=</span> <span class="str">"Hello, World!"</span>;
+
+s.<span class="fn">length</span>              <span class="cmt">// 13</span>
+s.<span class="fn">toUpperCase</span>()       <span class="cmt">// "HELLO, WORLD!"</span>
+s.<span class="fn">toLowerCase</span>()       <span class="cmt">// "hello, world!"</span>
+s.<span class="fn">includes</span>(<span class="str">"World"</span>)   <span class="cmt">// true</span>
+s.<span class="fn">startsWith</span>(<span class="str">"He"</span>)  <span class="cmt">// true</span>
+s.<span class="fn">endsWith</span>(<span class="str">"!"</span>)     <span class="cmt">// true</span>
+s.<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">5</span>)        <span class="cmt">// "Hello"</span>
+s.<span class="fn">replace</span>(<span class="str">"World"</span>,<span class="str">"JS"</span>) <span class="cmt">// "Hello, JS!"</span>
+s.<span class="fn">split</span>(<span class="str">", "</span>)        <span class="cmt">// ["Hello", "World!"]</span>
+s.<span class="fn">trim</span>()              <span class="cmt">// removes whitespace</span>
+s.<span class="fn">padStart</span>(<span class="num">15</span>, <span class="str">"*"</span>) <span class="cmt">// "**Hello, World!"</span>
+s.<span class="fn">repeat</span>(<span class="num">2</span>)          <span class="cmt">// "Hello...Hello..."</span></pre>
+      <div class="section-label">Template literals</div>
+      <pre><span class="kw">const</span> n <span class="op">=</span> <span class="str">"Alice"</span>;
+<span class="str">`Hello, <span class="op">${</span>n<span class="op">}</span>! You are <span class="op">${</span><span class="num">2024</span> <span class="op">-</span> <span class="num">1994</span><span class="op">}</span>`</span></pre>
+    </div>
+  </div>
+
+  <!-- 5. Arrays -->
+  <div class="card wide" id="arrays">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--cyan)"></div>
+      <div class="card-title" style="color:var(--cyan)">Arrays</div>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div class="section-label">Mutation methods</div>
+        <pre><span class="kw">const</span> a <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+a.<span class="fn">push</span>(<span class="num">4</span>)       <span class="cmt">// [1,2,3,4] add end</span>
+a.<span class="fn">pop</span>()         <span class="cmt">// [1,2,3]   rem end</span>
+a.<span class="fn">unshift</span>(<span class="num">0</span>)   <span class="cmt">// [0,1,2,3] add start</span>
+a.<span class="fn">shift</span>()       <span class="cmt">// [1,2,3]   rem start</span>
+a.<span class="fn">splice</span>(<span class="num">1</span>,<span class="num">1</span>)  <span class="cmt">// remove at index 1</span>
+a.<span class="fn">reverse</span>()     <span class="cmt">// [3,2,1] in-place</span>
+a.<span class="fn">sort</span>((x,y)<span class="op">=></span>x<span class="op">-</span>y) <span class="cmt">// numeric sort</span></pre>
+        <div class="section-label">Spread &amp; combine</div>
+        <pre><span class="kw">const</span> b <span class="op">=</span> [<span class="num">4</span>,<span class="num">5</span>];
+[<span class="op">...</span>a, <span class="op">...</span>b]    <span class="cmt">// [1,2,3,4,5]</span>
+a.<span class="fn">concat</span>(b)     <span class="cmt">// [1,2,3,4,5]</span>
+a.<span class="fn">flat</span>()        <span class="cmt">// flatten 1 level</span>
+a.<span class="fn">flat</span>(<span class="kw">Infinity</span>) <span class="cmt">// flatten all</span></pre>
+      </div>
+      <div>
+        <div class="section-label">Iteration / transform</div>
+        <pre>[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">map</span>(x <span class="op">=></span> x <span class="op">*</span> <span class="num">2</span>)
+<span class="cmt">// [2, 4, 6]</span>
+
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>].<span class="fn">filter</span>(x <span class="op">=></span> x <span class="op">%</span> <span class="num">2</span> <span class="op">===</span> <span class="num">0</span>)
+<span class="cmt">// [2, 4]</span>
+
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">reduce</span>((acc, x) <span class="op">=></span> acc <span class="op">+</span> x, <span class="num">0</span>)
+<span class="cmt">// 6</span>
+
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">find</span>(x <span class="op">=></span> x <span class="op">></span> <span class="num">1</span>)   <span class="cmt">// 2</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">findIndex</span>(x<span class="op">=></span>x<span class="op">></span><span class="num">1</span>) <span class="cmt">// 1</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">some</span>(x <span class="op">=></span> x <span class="op">></span> <span class="num">2</span>)   <span class="cmt">// true</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">every</span>(x <span class="op">=></span> x <span class="op">></span> <span class="num">0</span>)  <span class="cmt">// true</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">includes</span>(<span class="num">2</span>)        <span class="cmt">// true</span>
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">forEach</span>(x<span class="op">=></span><span class="fn">console</span>.<span class="fn">log</span>(x))
+[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">flatMap</span>(x<span class="op">=></span>[x,x<span class="op">*</span><span class="num">2</span>])
+<span class="cmt">// [1,2, 2,4, 3,6]</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Objects -->
+  <div class="card" id="objects">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--pink)"></div>
+      <div class="card-title" style="color:var(--pink)">Objects</div>
+    </div>
+    <div class="card-body">
+      <pre><span class="kw">const</span> obj <span class="op">=</span> { name: <span class="str">"Alice"</span>, age: <span class="num">30</span> };
+
+<span class="cmt">// Access</span>
+obj.name          <span class="cmt">// "Alice"</span>
+obj[<span class="str">"age"</span>]        <span class="cmt">// 30</span>
+
+<span class="cmt">// Keys / values / entries</span>
+Object.<span class="fn">keys</span>(obj)    <span class="cmt">// ["name","age"]</span>
+Object.<span class="fn">values</span>(obj)  <span class="cmt">// ["Alice",30]</span>
+Object.<span class="fn">entries</span>(obj) <span class="cmt">// [["name","Alice"],...]</span>
+
+<span class="cmt">// Merge / clone</span>
+<span class="kw">const</span> merged <span class="op">=</span> { <span class="op">...</span>obj, city: <span class="str">"NYC"</span> };
+Object.<span class="fn">assign</span>({}, obj); <span class="cmt">// shallow clone</span>
+
+<span class="cmt">// Check key exists</span>
+<span class="str">"name"</span> <span class="kw">in</span> obj    <span class="cmt">// true</span>
+obj.<span class="fn">hasOwnProperty</span>(<span class="str">"name"</span>) <span class="cmt">// true</span>
+
+<span class="cmt">// Freeze (immutable)</span>
+Object.<span class="fn">freeze</span>(obj);</pre>
+    </div>
+  </div>
+
+  <!-- 7. Functions -->
+  <div class="card" id="functions">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--purple)"></div>
+      <div class="card-title" style="color:var(--purple)">Functions</div>
+    </div>
+    <div class="card-body">
+      <pre><span class="cmt">// Declaration (hoisted)</span>
+<span class="kw">function</span> <span class="fn">add</span>(a, b) { <span class="ret">return</span> a <span class="op">+</span> b; }
+
+<span class="cmt">// Expression</span>
+<span class="kw">const</span> <span class="fn">add</span> <span class="op">=</span> <span class="kw">function</span>(a, b) { <span class="ret">return</span> a <span class="op">+</span> b; };
+
+<span class="cmt">// Arrow function ✅ preferred</span>
+<span class="kw">const</span> <span class="fn">add</span> <span class="op">=</span> (a, b) <span class="op">=></span> a <span class="op">+</span> b;
+<span class="kw">const</span> <span class="fn">sq</span>  <span class="op">=</span> x <span class="op">=></span> x <span class="op">**</span> <span class="num">2</span>;   <span class="cmt">// single param</span>
+<span class="kw">const</span> <span class="fn">hi</span>  <span class="op">=</span> () <span class="op">=></span> <span class="str">"hello"</span>; <span class="cmt">// no params</span>
+
+<span class="cmt">// Default params</span>
+<span class="kw">const</span> <span class="fn">greet</span> <span class="op">=</span> (name <span class="op">=</span> <span class="str">"World"</span>) <span class="op">=></span> <span class="str">`Hi <span class="op">${</span>name<span class="op">}</span>`</span>;
+
+<span class="cmt">// Rest params</span>
+<span class="kw">const</span> <span class="fn">sum</span> <span class="op">=</span> (<span class="op">...</span>nums) <span class="op">=></span> nums.<span class="fn">reduce</span>((a,b)<span class="op">=></span>a<span class="op">+</span>b, <span class="num">0</span>);</pre>
+    </div>
+  </div>
+
+  <!-- 8. Classes -->
+  <div class="card" id="classes">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--pink)"></div>
+      <div class="card-title" style="color:var(--pink)">Classes</div>
+    </div>
+    <div class="card-body">
+      <pre><span class="kw">class</span> <span class="cls">Animal</span> {
+  <span class="cmt">// class field</span>
+  sound <span class="op">=</span> <span class="str">"..."</span>;
+
+  <span class="fn">constructor</span>(name) {
+    <span class="kw">this</span>.name <span class="op">=</span> name;
+  }
+
+  <span class="fn">speak</span>() {
+    <span class="ret">return</span> <span class="str">`<span class="op">${</span><span class="kw">this</span>.name<span class="op">}</span> says <span class="op">${</span><span class="kw">this</span>.sound<span class="op">}</span>`</span>;
+  }
+
+  <span class="kw">static</span> <span class="fn">create</span>(name) { <span class="ret">return</span> <span class="kw">new</span> <span class="cls">Animal</span>(name); }
+}
+
+<span class="kw">class</span> <span class="cls">Dog</span> <span class="kw">extends</span> <span class="cls">Animal</span> {
+  sound <span class="op">=</span> <span class="str">"Woof"</span>;
+
+  <span class="fn">constructor</span>(name, breed) {
+    <span class="kw">super</span>(name);        <span class="cmt">// call parent</span>
+    <span class="kw">this</span>.breed <span class="op">=</span> breed;
+  }
+}
+
+<span class="kw">const</span> d <span class="op">=</span> <span class="kw">new</span> <span class="cls">Dog</span>(<span class="str">"Rex"</span>, <span class="str">"Lab"</span>);
+d.<span class="fn">speak</span>(); <span class="cmt">// "Rex says Woof"</span>
+d <span class="kw">instanceof</span> <span class="cls">Animal</span>; <span class="cmt">// true</span></pre>
+    </div>
+  </div>
+
+  <!-- 9. Control Flow -->
+  <div class="card" id="control">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--orange)"></div>
+      <div class="card-title" style="color:var(--orange)">Control Flow</div>
+    </div>
+    <div class="card-body">
+      <pre><span class="cmt">// if / else</span>
+<span class="kw">if</span> (x <span class="op">></span> <span class="num">0</span>) { <span class="cmt">/* ... */</span> }
+<span class="kw">else if</span> (x <span class="op">===</span> <span class="num">0</span>) { <span class="cmt">/* ... */</span> }
+<span class="kw">else</span> { <span class="cmt">/* ... */</span> }
+
+<span class="cmt">// Ternary</span>
+<span class="kw">const</span> label <span class="op">=</span> x <span class="op">></span> <span class="num">0</span> <span class="op">?</span> <span class="str">"pos"</span> <span class="op">:</span> <span class="str">"neg"</span>;
+
+<span class="cmt">// switch</span>
+<span class="kw">switch</span> (day) {
+  <span class="kw">case</span> <span class="str">"Mon"</span>: <span class="ret">break</span>;
+  <span class="kw">default</span>:   <span class="ret">break</span>;
+}
+
+<span class="cmt">// Loops</span>
+<span class="kw">for</span> (<span class="kw">let</span> i <span class="op">=</span> <span class="num">0</span>; i <span class="op"><</span> <span class="num">3</span>; i<span class="op">++</span>) {}
+<span class="kw">for</span> (<span class="kw">const</span> val <span class="kw">of</span> [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>]) {}  <span class="cmt">// values</span>
+<span class="kw">for</span> (<span class="kw">const</span> key <span class="kw">in</span> obj) {}       <span class="cmt">// keys</span>
+<span class="kw">while</span> (cond) {}
+<span class="kw">do</span> {} <span class="kw">while</span> (cond);
+
+<span class="cmt">// Error handling</span>
+<span class="kw">try</span> {
+  <span class="kw">throw new</span> <span class="cls">Error</span>(<span class="str">"oops"</span>);
+} <span class="kw">catch</span> (e) {
+  console.<span class="fn">error</span>(e.message);
+} <span class="kw">finally</span> { <span class="cmt">/* always runs */</span> }</pre>
+    </div>
+  </div>
+
+  <!-- 10. Async -->
+  <div class="card wide" id="async">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--cyan)"></div>
+      <div class="card-title" style="color:var(--cyan)">Async / Await &amp; Promises</div>
+    </div>
+    <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div class="section-label">Promise basics</div>
+        <pre><span class="kw">const</span> p <span class="op">=</span> <span class="kw">new</span> Promise((resolve, reject) <span class="op">=></span> {
+  <span class="kw">if</span> (ok) resolve(<span class="str">"data"</span>);
+  <span class="kw">else</span>   reject(<span class="kw">new</span> <span class="cls">Error</span>(<span class="str">"fail"</span>));
+});
+
+p.<span class="fn">then</span>(data <span class="op">=></span> console.<span class="fn">log</span>(data))
+ .<span class="fn">catch</span>(err <span class="op">=></span> console.<span class="fn">error</span>(err))
+ .<span class="fn">finally</span>(() <span class="op">=></span> console.<span class="fn">log</span>(<span class="str">"done"</span>));
+
+<span class="cmt">// Promise combinators</span>
+Promise.<span class="fn">all</span>([p1, p2])        <span class="cmt">// all resolve</span>
+Promise.<span class="fn">allSettled</span>([p1,p2]) <span class="cmt">// all finish</span>
+Promise.<span class="fn">race</span>([p1, p2])       <span class="cmt">// first wins</span>
+Promise.<span class="fn">any</span>([p1, p2])        <span class="cmt">// first success</span></pre>
+      </div>
+      <div>
+        <div class="section-label">async / await ✅ preferred</div>
+        <pre><span class="kw">async function</span> <span class="fn">fetchUser</span>(id) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> res  <span class="op">=</span> <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/<span class="op">${</span>id<span class="op">}</span>`</span>);
+    <span class="kw">const</span> data <span class="op">=</span> <span class="kw">await</span> res.<span class="fn">json</span>();
+    <span class="ret">return</span> data;
+  } <span class="kw">catch</span> (e) {
+    console.<span class="fn">error</span>(<span class="str">"Error:"</span>, e);
+  }
+}
+
+<span class="cmt">// Parallel await</span>
+<span class="kw">const</span> [a, b] <span class="op">=</span> <span class="kw">await</span> Promise.<span class="fn">all</span>([
+  <span class="fn">fetchUser</span>(<span class="num">1</span>),
+  <span class="fn">fetchUser</span>(<span class="num">2</span>)
+]);
+
+<span class="cmt">// Top-level await (ES2022, modules)</span>
+<span class="kw">const</span> data <span class="op">=</span> <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="num">1</span>);</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Destructuring -->
+  <div class="card" id="destructuring">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--green)"></div>
+      <div class="card-title" style="color:var(--green)">Destructuring</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">Array destructuring</div>
+      <pre><span class="kw">const</span> [a, b, c] <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="kw">const</span> [x, , z] <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];    <span class="cmt">// skip index 1</span>
+<span class="kw">const</span> [h, <span class="op">...</span>rest] <span class="op">=</span> [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>]; <span class="cmt">// rest=[2,3]</span>
+<span class="kw">let</span> p <span class="op">=</span> <span class="num">1</span>, q <span class="op">=</span> <span class="num">2</span>;
+[p, q] <span class="op">=</span> [q, p];               <span class="cmt">// swap!</span></pre>
+      <div class="section-label">Object destructuring</div>
+      <pre><span class="kw">const</span> { name, age } <span class="op">=</span> user;
+<span class="kw">const</span> { name: n } <span class="op">=</span> user;        <span class="cmt">// rename</span>
+<span class="kw">const</span> { city <span class="op">=</span> <span class="str">"NYC"</span> } <span class="op">=</span> user;  <span class="cmt">// default</span>
+<span class="kw">const</span> { a: { b } } <span class="op">=</span> nested;    <span class="cmt">// nested</span>
+
+<span class="cmt">// In function params</span>
+<span class="kw">function</span> <span class="fn">greet</span>({ name, age <span class="op">=</span> <span class="num">0</span> }) {
+  <span class="ret">return</span> <span class="str">`<span class="op">${</span>name<span class="op">}</span> is <span class="op">${</span>age<span class="op">}</span>`</span>;
+}</pre>
+    </div>
+  </div>
+
+  <!-- 12. Misc / ES6+ -->
+  <div class="card" id="misc">
+    <div class="card-header">
+      <div class="card-dot" style="background:var(--purple)"></div>
+      <div class="card-title" style="color:var(--purple)">Misc / ES6+ Features</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">Map &amp; Set</div>
+      <pre><span class="kw">const</span> m <span class="op">=</span> <span class="kw">new</span> Map();
+m.<span class="fn">set</span>(<span class="str">"key"</span>, <span class="num">42</span>); m.<span class="fn">get</span>(<span class="str">"key"</span>); <span class="cmt">// 42</span>
+m.<span class="fn">has</span>(<span class="str">"key"</span>);  m.<span class="fn">delete</span>(<span class="str">"key"</span>);
+
+<span class="kw">const</span> s <span class="op">=</span> <span class="kw">new</span> Set([<span class="num">1</span>,<span class="num">2</span>,<span class="num">2</span>,<span class="num">3</span>]); <span class="cmt">// {1,2,3}</span>
+s.<span class="fn">add</span>(<span class="num">4</span>); s.<span class="fn">has</span>(<span class="num">2</span>); s.<span class="fn">size</span>;
+[<span class="op">...</span><span class="kw">new</span> Set(arr)]; <span class="cmt">// deduplicate array</span></pre>
+      <div class="section-label">Useful patterns</div>
+      <pre><span class="cmt">// Short-circuit render</span>
+isLoggedIn <span class="op">&&</span> <span class="fn">showDashboard</span>();
+
+<span class="cmt">// Computed keys</span>
+<span class="kw">const</span> key <span class="op">=</span> <span class="str">"name"</span>;
+<span class="kw">const</span> obj <span class="op">=</span> { [key]: <span class="str">"Alice"</span> };
+
+<span class="cmt">// Shorthand properties</span>
+<span class="kw">const</span> x <span class="op">=</span> <span class="num">1</span>, y <span class="op">=</span> <span class="num">2</span>;
+<span class="kw">const</span> point <span class="op">=</span> { x, y }; <span class="cmt">// { x:1, y:2 }</span>
+
+<span class="cmt">// Tagged template</span>
+String.<span class="fn">raw</span><span class="str">`C:\Users\file`</span>; <span class="cmt">// no escaping</span>
+
+<span class="cmt">// Generators</span>
+<span class="kw">function*</span> <span class="fn">gen</span>() { <span class="kw">yield</span> <span class="num">1</span>; <span class="kw">yield</span> <span class="num">2</span>; }
+<span class="kw">const</span> g <span class="op">=</span> <span class="fn">gen</span>(); g.<span class="fn">next</span>(); <span class="cmt">// {value:1}</span></pre>
+    </div>
+  </div>
+
+</div><!-- end grid -->
+
+<footer>
+  JavaScript Cheatsheet · ES2015 – ES2023 · console.log("happy coding 🚀")
+</footer>
+
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

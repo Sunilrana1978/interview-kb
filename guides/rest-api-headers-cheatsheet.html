@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>REST API Headers — Cheat Sheet</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c10;
+      --surface: #111318;
+      --border: #1e2230;
+      --accent-req: #00e5ff;
+      --accent-res: #b966ff;
+      --accent-req-dim: rgba(0,229,255,0.10);
+      --accent-res-dim: rgba(185,102,255,0.10);
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --tag-bg: #1e2230;
+      --mono: 'JetBrains Mono', monospace;
+      --display: 'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      min-height: 100vh;
+      padding: 3rem 1.5rem 5rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Glow orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(120px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-1 { width: 500px; height: 500px; top: -150px; left: -100px; background: rgba(0,229,255,0.07); }
+    .orb-2 { width: 400px; height: 400px; bottom: -100px; right: -50px; background: rgba(185,102,255,0.08); }
+
+    .wrapper {
+      max-width: 960px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+      animation: fadeDown 0.7s ease both;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent-req);
+      background: var(--accent-req-dim);
+      border: 1px solid rgba(0,229,255,0.2);
+      border-radius: 4px;
+      padding: 4px 12px;
+      margin-bottom: 1.2rem;
+    }
+
+    h1 {
+      font-family: var(--display);
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #fff 30%, var(--muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.8rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .section:nth-child(2) { animation-delay: 0.1s; }
+    .section:nth-child(3) { animation-delay: 0.2s; }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--display);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .section-label .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .req .dot { background: var(--accent-req); box-shadow: 0 0 10px var(--accent-req); }
+    .res .dot { background: var(--accent-res); box-shadow: 0 0 10px var(--accent-res); }
+    .req .section-label { color: var(--accent-req); }
+    .res .section-label { color: var(--accent-res); }
+
+    /* Table */
+    .table-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead tr {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .req thead tr { background: rgba(0,229,255,0.04); border-bottom: 1px solid rgba(0,229,255,0.12); }
+    .res thead tr { background: rgba(185,102,255,0.04); border-bottom: 1px solid rgba(185,102,255,0.12); }
+
+    th, td {
+      padding: 0.85rem 1.2rem;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { font-weight: 600; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s ease;
+    }
+    tbody tr:last-child { border-bottom: none; }
+
+    .req tbody tr:hover { background: var(--accent-req-dim); }
+    .res tbody tr:hover { background: var(--accent-res-dim); }
+
+    .header-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .req .header-name { color: var(--accent-req); }
+    .res .header-name { color: var(--accent-res); }
+
+    .purpose {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .example-pill {
+      display: inline-block;
+      font-size: 0.67rem;
+      padding: 3px 9px;
+      border-radius: 4px;
+      background: var(--tag-bg);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      white-space: nowrap;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Col widths */
+    col.c-header  { width: 26%; }
+    col.c-purpose { width: 36%; }
+    col.c-example { width: 38%; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="wrapper">
+
+  <header>
+    <div class="badge">Quick Reference</div>
+    <h1>REST API Headers</h1>
+    <p class="subtitle">// cheat_sheet.http — v1.0</p>
+  </header>
+
+  <!-- Request Headers -->
+  <div class="section req">
+    <div class="section-label"><span class="dot"></span> Common Request Headers</div>
+    <div class="table-wrap">
+      <table>
+        <colgroup>
+          <col class="c-header"/><col class="c-purpose"/><col class="c-example"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Header</th>
+            <th>Purpose</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="header-name">Authorization</span></td>
+            <td class="purpose">Auth token sent to the server to verify identity</td>
+            <td><span class="example-pill">Bearer xyz123</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Content-Type</span></td>
+            <td class="purpose">Media type of the request body</td>
+            <td><span class="example-pill">application/json</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Accept</span></td>
+            <td class="purpose">Expected response format from the server</td>
+            <td><span class="example-pill">application/json</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">User-Agent</span></td>
+            <td class="purpose">Identifies the client application making the request</td>
+            <td><span class="example-pill">PostmanRuntime/7.0</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Cache-Control</span></td>
+            <td class="purpose">Directives for caching mechanisms</td>
+            <td><span class="example-pill">no-cache</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Cookie</span></td>
+            <td class="purpose">Send stored cookies to the server</td>
+            <td><span class="example-pill">sessionId=abc</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Host</span></td>
+            <td class="purpose">Domain name of the target server</td>
+            <td><span class="example-pill">api.example.com</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Accept-Language</span></td>
+            <td class="purpose">Preferred language(s) for the response</td>
+            <td><span class="example-pill">en-US</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Response Headers -->
+  <div class="section res">
+    <div class="section-label"><span class="dot"></span> Common Response Headers</div>
+    <div class="table-wrap">
+      <table>
+        <colgroup>
+          <col class="c-header"/><col class="c-purpose"/><col class="c-example"/>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Header</th>
+            <th>Purpose</th>
+            <th>Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="header-name">Content-Type</span></td>
+            <td class="purpose">Media type of the response body</td>
+            <td><span class="example-pill">application/json</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Content-Length</span></td>
+            <td class="purpose">Size of the response body in bytes</td>
+            <td><span class="example-pill">348</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Set-Cookie</span></td>
+            <td class="purpose">Instructs client to store a cookie</td>
+            <td><span class="example-pill">token=abc; HttpOnly</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Cache-Control</span></td>
+            <td class="purpose">Cache policy for the response</td>
+            <td><span class="example-pill">max-age=3600</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Access-Control-Allow-Origin</span></td>
+            <td class="purpose">Specifies allowed CORS origins</td>
+            <td><span class="example-pill">*</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Authorization</span></td>
+            <td class="purpose">Auth token or credentials returned by server</td>
+            <td><span class="example-pill">Bearer &lt;token&gt;</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">ETag</span></td>
+            <td class="purpose">Unique identifier for cache validation</td>
+            <td><span class="example-pill">"abc123"</span></td>
+          </tr>
+          <tr>
+            <td><span class="header-name">Server</span></td>
+            <td class="purpose">Software info about the origin server</td>
+            <td><span class="example-pill">nginx</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>REST API HEADERS CHEAT SHEET &nbsp;·&nbsp; HTTP/1.1 &amp; HTTP/2 &nbsp;·&nbsp; 2026</footer>
+
+</div>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

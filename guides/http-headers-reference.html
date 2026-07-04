@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP Headers Reference</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; color: #1a1a1a; padding: 40px 32px; max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 32px; }
+  h2 { font-size: 14px; font-weight: 600; margin: 28px 0 8px; color: #1a1a1a; text-transform: uppercase; letter-spacing: 0.6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f5f5f5; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; text-align: left; padding: 8px 12px; border: 1px solid #e0e0e0; }
+  td { padding: 8px 12px; border: 1px solid #e0e0e0; vertical-align: top; line-height: 1.45; }
+  tr:nth-child(even) td { background: #fafafa; }
+  code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; color: #c0392b; }
+  .mono { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 11.5px; color: #555; }
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.3px; vertical-align: middle; }
+  .req  { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; }
+  .res  { background: #fff8ee; color: #b7680a; border: 1px solid #f5dfa6; }
+  .sec  { background: #f0f0ff; color: #5040a0; border: 1px solid #ccc8f0; }
+  .legend { display: flex; gap: 16px; margin-top: 24px; font-size: 12px; color: #666; flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 6px; }
+  hr { border: none; border-top: 1px solid #e8e8e8; margin: 8px 0 0; }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<h1>HTTP Headers Reference</h1>
+<p class="subtitle">Most commonly used request, response, and security headers.</p>
+<hr>
+
+<h2>Request Headers</h2>
+<table>
+  <thead>
+    <tr><th style="width:26%">Header</th><th style="width:10%">Type</th><th style="width:40%">Description</th><th style="width:24%">Example value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>Host</code></td><td><span class="tag req">req</span></td><td>Target domain — mandatory on all requests</td><td class="mono">example.com</td></tr>
+    <tr><td><code>User-Agent</code></td><td><span class="tag req">req</span></td><td>Browser/client identity string</td><td class="mono">Mozilla/5.0 (curl/7.x)</td></tr>
+    <tr><td><code>Authorization</code></td><td><span class="tag req">req</span></td><td>Credentials for server authentication</td><td class="mono">Bearer eyJhbGci...</td></tr>
+    <tr><td><code>Cookie</code></td><td><span class="tag req">req</span></td><td>All stored cookies for the domain</td><td class="mono">session=abc; theme=dark</td></tr>
+    <tr><td><code>Content-Type</code></td><td><span class="tag req">req</span></td><td>MIME type of the request body</td><td class="mono">application/json</td></tr>
+    <tr><td><code>Content-Length</code></td><td><span class="tag req">req</span></td><td>Byte length of request body</td><td class="mono">348</td></tr>
+    <tr><td><code>Accept</code></td><td><span class="tag req">req</span></td><td>Media types the client can handle in response</td><td class="mono">text/html, application/json</td></tr>
+    <tr><td><code>Accept-Encoding</code></td><td><span class="tag req">req</span></td><td>Compression methods client can decode</td><td class="mono">gzip, br, deflate</td></tr>
+    <tr><td><code>Accept-Language</code></td><td><span class="tag req">req</span></td><td>Preferred response language(s)</td><td class="mono">en-US, fr;q=0.9</td></tr>
+    <tr><td><code>Referer</code></td><td><span class="tag req">req</span></td><td>URL of the page that linked to this request</td><td class="mono">https://google.com/search</td></tr>
+    <tr><td><code>Origin</code></td><td><span class="tag req">req</span></td><td>Scheme + host of the cross-origin request source</td><td class="mono">https://app.example.com</td></tr>
+    <tr><td><code>Cache-Control</code></td><td><span class="tag req">req</span></td><td>Caching directives for the request</td><td class="mono">no-cache</td></tr>
+    <tr><td><code>If-None-Match</code></td><td><span class="tag req">req</span></td><td>Return resource only if ETag doesn't match</td><td class="mono">"abc123etag"</td></tr>
+    <tr><td><code>If-Modified-Since</code></td><td><span class="tag req">req</span></td><td>Return resource only if changed since this date</td><td class="mono">Mon, 28 Mar 2022 GMT</td></tr>
+    <tr><td><code>Connection</code></td><td><span class="tag req">req</span></td><td>Control TCP connection persistence</td><td class="mono">keep-alive</td></tr>
+    <tr><td><code>X-Forwarded-For</code></td><td><span class="tag req">req</span></td><td>Client's real IP when routed through a proxy</td><td class="mono">192.0.2.1</td></tr>
+  </tbody>
+</table>
+
+<h2>Response Headers</h2>
+<table>
+  <thead>
+    <tr><th style="width:26%">Header</th><th style="width:10%">Type</th><th style="width:40%">Description</th><th style="width:24%">Example value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>Content-Type</code></td><td><span class="tag res">res</span></td><td>MIME type of the response body</td><td class="mono">text/html; charset=utf-8</td></tr>
+    <tr><td><code>Content-Length</code></td><td><span class="tag res">res</span></td><td>Byte size of the response body</td><td class="mono">2048</td></tr>
+    <tr><td><code>Content-Encoding</code></td><td><span class="tag res">res</span></td><td>Compression applied to response body</td><td class="mono">gzip</td></tr>
+    <tr><td><code>Content-Disposition</code></td><td><span class="tag res">res</span></td><td>Show inline or prompt file download</td><td class="mono">attachment; filename="f.pdf"</td></tr>
+    <tr><td><code>Set-Cookie</code></td><td><span class="tag res">res</span></td><td>Sets a cookie with optional attributes</td><td class="mono">id=abc; HttpOnly; Secure; SameSite=Strict</td></tr>
+    <tr><td><code>Cache-Control</code></td><td><span class="tag res">res</span></td><td>Caching directives (max-age, no-store, public…)</td><td class="mono">max-age=3600, public</td></tr>
+    <tr><td><code>ETag</code></td><td><span class="tag res">res</span></td><td>Version identifier for the resource</td><td class="mono">"33a64df5551592f7"</td></tr>
+    <tr><td><code>Last-Modified</code></td><td><span class="tag res">res</span></td><td>When the resource was last changed on the server</td><td class="mono">Mon, 28 Mar 2022 11:20 GMT</td></tr>
+    <tr><td><code>Expires</code></td><td><span class="tag res">res</span></td><td>Date/time after which response is considered stale</td><td class="mono">Tue, 29 Mar 2022 05:30 GMT</td></tr>
+    <tr><td><code>Vary</code></td><td><span class="tag res">res</span></td><td>Which request headers affect the cached response</td><td class="mono">Accept-Encoding</td></tr>
+    <tr><td><code>Location</code></td><td><span class="tag res">res</span></td><td>Redirect URL (3xx) or newly created resource (201)</td><td class="mono">https://example.com/new-url</td></tr>
+    <tr><td><code>Server</code></td><td><span class="tag res">res</span></td><td>Server software handling the request</td><td class="mono">nginx/1.24</td></tr>
+    <tr><td><code>Date</code></td><td><span class="tag res">res</span></td><td>Date and time the response was sent</td><td class="mono">Mon, 28 Mar 2022 05:30 GMT</td></tr>
+    <tr><td><code>Transfer-Encoding</code></td><td><span class="tag res">res</span></td><td>How body is delivered — chunked streams in pieces</td><td class="mono">chunked</td></tr>
+    <tr><td><code>WWW-Authenticate</code></td><td><span class="tag res">res</span></td><td>Auth method required — sent with 401 response</td><td class="mono">Bearer realm="api"</td></tr>
+    <tr><td><code>Retry-After</code></td><td><span class="tag res">res</span></td><td>Seconds to wait before retrying — sent with 503/429</td><td class="mono">120</td></tr>
+    <tr><td><code>Allow</code></td><td><span class="tag res">res</span></td><td>HTTP methods permitted on resource — sent with 405</td><td class="mono">GET, POST, HEAD</td></tr>
+  </tbody>
+</table>
+
+<h2>Security Headers</h2>
+<table>
+  <thead>
+    <tr><th style="width:26%">Header</th><th style="width:10%">Type</th><th style="width:40%">Description</th><th style="width:24%">Example value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>Strict-Transport-Security</code></td><td><span class="tag sec">sec</span></td><td>Forces HTTPS — prevents protocol downgrade attacks</td><td class="mono">max-age=31536000; includeSubDomains</td></tr>
+    <tr><td><code>Content-Security-Policy</code></td><td><span class="tag sec">sec</span></td><td>Controls which resources browser may load — prevents XSS</td><td class="mono">default-src 'self'</td></tr>
+    <tr><td><code>X-Frame-Options</code></td><td><span class="tag sec">sec</span></td><td>Blocks page from loading in iframes — stops clickjacking</td><td class="mono">DENY</td></tr>
+    <tr><td><code>X-Content-Type-Options</code></td><td><span class="tag sec">sec</span></td><td>Stops browsers from MIME-sniffing the content type</td><td class="mono">nosniff</td></tr>
+    <tr><td><code>Referrer-Policy</code></td><td><span class="tag sec">sec</span></td><td>Controls how much referrer info is sent in requests</td><td class="mono">strict-origin-when-cross-origin</td></tr>
+    <tr><td><code>Permissions-Policy</code></td><td><span class="tag sec">sec</span></td><td>Controls browser feature access (camera, mic, location…)</td><td class="mono">geolocation=(), camera=(self)</td></tr>
+    <tr><td><code>Access-Control-Allow-Origin</code></td><td><span class="tag sec">sec</span></td><td>Which origins are permitted to read the response (CORS)</td><td class="mono">https://app.com</td></tr>
+  </tbody>
+</table>
+
+<div class="legend">
+  <span><span class="tag req">req</span> Request only</span>
+  <span><span class="tag res">res</span> Response only</span>
+  <span><span class="tag sec">sec</span> Security / CORS</span>
+</div>
+
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

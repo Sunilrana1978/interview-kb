@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain Integration Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #0f1628;
+    --bg3: #141c35;
+    --border: #1e2d5a;
+    --accent1: #00d4ff;
+    --accent2: #7b4fff;
+    --accent3: #00ff9d;
+    --accent4: #ff6b35;
+    --accent5: #ffd700;
+    --accent6: #ff4d8d;
+    --text: #e0e8ff;
+    --text2: #7a8bbf;
+    --text3: #4a5a8a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 40px 24px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .header-badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent1);
+    border: 1px solid var(--accent1);
+    padding: 4px 12px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .header h1 span {
+    color: var(--accent1);
+  }
+
+  .header p {
+    font-size: 13px;
+    color: var(--text2);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 40px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--text2);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+
+  /* Main architecture container */
+  .arch {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* Layer */
+  .layer {
+    position: relative;
+  }
+
+  .layer-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .layer-content {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  /* System Box */
+  .sys {
+    flex: 1;
+    min-width: 140px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 14px 16px;
+    position: relative;
+    transition: all 0.2s;
+  }
+
+  .sys:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .sys::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .sys.plm::before { background: var(--accent2); }
+  .sys.erp::before { background: var(--accent1); }
+  .sys.wms::before { background: var(--accent3); }
+  .sys.planning::before { background: var(--accent5); }
+  .sys.crm::before { background: var(--accent6); }
+  .sys.analytics::before { background: var(--accent4); }
+  .sys.factory::before { background: var(--accent3); }
+  .sys.ipaas::before { background: var(--accent1); }
+  .sys.kafka::before { background: linear-gradient(90deg, var(--accent1), var(--accent2)); }
+  .sys.sqs::before { background: var(--accent5); }
+
+  .sys-icon {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .sys-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 3px;
+    letter-spacing: 0.3px;
+  }
+
+  .sys-sub {
+    font-size: 10px;
+    color: var(--text2);
+    font-family: 'IBM Plex Mono', monospace;
+    line-height: 1.4;
+  }
+
+  .sys-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 6px;
+    margin-top: 6px;
+    border-radius: 2px;
+  }
+
+  .tag-plm { background: rgba(123,79,255,0.15); color: var(--accent2); border: 1px solid rgba(123,79,255,0.3); }
+  .tag-erp { background: rgba(0,212,255,0.15); color: var(--accent1); border: 1px solid rgba(0,212,255,0.3); }
+  .tag-wms { background: rgba(0,255,157,0.15); color: var(--accent3); border: 1px solid rgba(0,255,157,0.3); }
+  .tag-plan { background: rgba(255,215,0,0.15); color: var(--accent5); border: 1px solid rgba(255,215,0,0.3); }
+  .tag-crm { background: rgba(255,77,141,0.15); color: var(--accent6); border: 1px solid rgba(255,77,141,0.3); }
+  .tag-ana { background: rgba(255,107,53,0.15); color: var(--accent4); border: 1px solid rgba(255,107,53,0.3); }
+  .tag-ext { background: rgba(0,255,157,0.1); color: var(--accent3); border: 1px solid rgba(0,255,157,0.2); }
+
+  /* Kafka Hub - Central component */
+  .kafka-hub {
+    border: 1px solid rgba(0,212,255,0.4);
+    background: linear-gradient(135deg, rgba(0,212,255,0.05), rgba(123,79,255,0.05));
+    padding: 24px;
+    position: relative;
+    margin: 8px 0;
+  }
+
+  .kafka-hub::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent1));
+    z-index: -1;
+    animation: borderPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes borderPulse {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+  }
+
+  .kafka-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .kafka-title-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent1);
+    letter-spacing: 1px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .kafka-subtitle {
+    font-size: 10px;
+    color: var(--text2);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-left: auto;
+  }
+
+  .kafka-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .topic {
+    border: 1px solid var(--border);
+    background: var(--bg);
+    padding: 8px 12px;
+    flex: 1;
+    min-width: 130px;
+  }
+
+  .topic-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent1);
+    margin-bottom: 3px;
+  }
+
+  .topic-desc {
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .topic-events {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+  }
+
+  .event-pill {
+    font-size: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 5px;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.15);
+    color: var(--text2);
+  }
+
+  /* iPaaS layer */
+  .ipaas-box {
+    border: 1px solid rgba(0,212,255,0.25);
+    background: var(--bg2);
+    padding: 20px;
+    position: relative;
+  }
+
+  .ipaas-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent1), transparent);
+  }
+
+  .ipaas-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent1);
+    font-family: 'IBM Plex Mono', monospace;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ipaas-components {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .ipaas-comp {
+    flex: 1;
+    min-width: 120px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    padding: 10px 12px;
+  }
+
+  .ipaas-comp-name {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .ipaas-comp-desc {
+    font-size: 9px;
+    color: var(--text3);
+    line-height: 1.5;
+  }
+
+  /* Arrows/Flow indicators */
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0;
+    gap: 8px;
+    color: var(--text3);
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .arrow-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    position: relative;
+    max-width: 200px;
+  }
+
+  .flow-label {
+    color: var(--text3);
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+
+  /* Regional clusters */
+  .regions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .region {
+    flex: 1;
+    min-width: 200px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 16px;
+    position: relative;
+  }
+
+  .region-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .region-cluster {
+    border: 1px solid rgba(0,212,255,0.2);
+    background: var(--bg3);
+    padding: 10px;
+    margin-bottom: 8px;
+    font-size: 10px;
+  }
+
+  .region-cluster-name {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent1);
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .region-systems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+  }
+
+  .region-sys-tag {
+    font-size: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    background: var(--bg);
+  }
+
+  /* Consumer groups */
+  .consumer-groups {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .cg {
+    flex: 1;
+    min-width: 150px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 12px;
+  }
+
+  .cg-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent2);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .cg-desc {
+    font-size: 10px;
+    color: var(--text2);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+
+  .cg-reliability {
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2px 6px;
+    background: rgba(123,79,255,0.1);
+    border: 1px solid rgba(123,79,255,0.2);
+    color: var(--accent2);
+    display: inline-block;
+  }
+
+  /* Event flow timeline */
+  .timeline {
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 20px;
+  }
+
+  .timeline-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--accent5);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+
+  .timeline-steps {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+
+  .tstep {
+    flex: 1;
+    min-width: 110px;
+    position: relative;
+    padding: 0 8px;
+  }
+
+  .tstep::after {
+    content: '→';
+    position: absolute;
+    right: -8px;
+    top: 16px;
+    color: var(--text3);
+    font-size: 14px;
+    z-index: 1;
+  }
+
+  .tstep:last-child::after { display: none; }
+
+  .tstep-week {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--accent5);
+    margin-bottom: 6px;
+  }
+
+  .tstep-box {
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .tstep-system {
+    font-size: 9px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text3);
+    margin-bottom: 3px;
+  }
+
+  .tstep-event {
+    font-size: 10px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .tstep-kafka {
+    font-size: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent1);
+    margin-top: 4px;
+  }
+
+  /* Section headers */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent1);
+    border: 1px solid var(--accent1);
+    padding: 1px 6px;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 8px 0;
+  }
+
+  /* Bidirectional arrows */
+  .bidir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 10px 0;
+    flex-wrap: wrap;
+  }
+
+  .bidir-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text2);
+  }
+
+  .bidir-arrow {
+    color: var(--accent1);
+    font-size: 12px;
+  }
+
+  /* Mirror maker */
+  .mirror {
+    border: 1px dashed rgba(0,255,157,0.3);
+    background: rgba(0,255,157,0.03);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .mirror-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--accent3);
+    white-space: nowrap;
+  }
+
+  .mirror-flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .mirror-cluster {
+    font-size: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 3px 8px;
+    border: 1px solid rgba(0,255,157,0.3);
+    color: var(--accent3);
+    background: rgba(0,255,157,0.05);
+  }
+
+  .mirror-arrow {
+    color: var(--accent3);
+    font-size: 12px;
+  }
+
+  /* Monitoring row */
+  .monitoring {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .mon-item {
+    flex: 1;
+    min-width: 140px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .mon-icon { font-size: 16px; }
+
+  .mon-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .mon-desc {
+    font-size: 10px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 12px;
+  }
+
+  .footer-text {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .pulse {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse 2s ease-in-out infinite;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-badge">ENTERPRISE ARCHITECTURE</div>
+    <h1>Apparel Retail <span>Supply Chain Integration</span> Architecture</h1>
+    <p>Event-Driven · Multi-Region · iPaaS-Mediated · Canonical Model</p>
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#7b4fff"></div>PLM System</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00d4ff"></div>ERP / SAP</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#00ff9d"></div>WMS / Factory</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ffd700"></div>Planning</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff6b35"></div>Analytics</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#ff4d8d"></div>CRM</div>
+  </div>
+
+  <div class="arch">
+
+    <!-- SECTION 1: Source Systems -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">01</div>
+        <div class="section-title">SOURCE SYSTEMS — Internal Enterprise Applications</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="layer-content">
+        <div class="sys planning">
+          <div class="sys-icon">📋</div>
+          <div class="sys-name">Line Planning System</div>
+          <div class="sys-sub">Seasonal product planning<br>Launch timelines · Forecasts<br>26-week horizon</div>
+          <div class="sys-tag tag-plan">PLANNING</div>
+        </div>
+        <div class="sys plm">
+          <div class="sys-icon">🎨</div>
+          <div class="sys-name">PLM System</div>
+          <div class="sys-sub">Product lifecycle mgmt<br>BOM · Tech packs · Specs<br>Design versioning</div>
+          <div class="sys-tag tag-plm">PLM</div>
+        </div>
+        <div class="sys erp">
+          <div class="sys-icon">⚙️</div>
+          <div class="sys-name">ERP / SAP AFS</div>
+          <div class="sys-sub">Procurement · Inventory<br>Material master · PO mgmt<br>Finance · Order mgmt</div>
+          <div class="sys-tag tag-erp">ERP</div>
+        </div>
+        <div class="sys wms">
+          <div class="sys-icon">🏭</div>
+          <div class="sys-name">WMS</div>
+          <div class="sys-sub">Warehouse management<br>Inventory · Fulfillment<br>Receiving · Shipping</div>
+          <div class="sys-tag tag-wms">WMS</div>
+        </div>
+        <div class="sys crm">
+          <div class="sys-icon">👥</div>
+          <div class="sys-name">CRM System</div>
+          <div class="sys-sub">Customer orders · Sales<br>Account management<br>Order status tracking</div>
+          <div class="sys-tag tag-crm">CRM</div>
+        </div>
+        <div class="sys analytics">
+          <div class="sys-icon">📊</div>
+          <div class="sys-name">Analytics / BI</div>
+          <div class="sys-sub">Demand planning · Reports<br>Executive dashboards<br>Data warehouse</div>
+          <div class="sys-tag tag-ana">ANALYTICS</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow arrow -->
+    <div class="flow-arrow">
+      <div class="arrow-line"></div>
+      <div class="flow-label">↓ PUBLISH EVENTS VIA REST API ↓</div>
+      <div class="arrow-line"></div>
+    </div>
+
+    <!-- SECTION 2: iPaaS Layer -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">02</div>
+        <div class="section-title">iPaaS LAYER — Integration Platform (e.g. MuleSoft / Boomi)</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="ipaas-box">
+        <div class="ipaas-title">⚡ Integration Platform as a Service — Canonical Transformation Engine</div>
+        <div class="ipaas-components">
+          <div class="ipaas-comp">
+            <div class="ipaas-comp-name">📥 Inbound Adapters</div>
+            <div class="ipaas-comp-desc">REST · SOAP · EDI · SFTP<br>Receive from all vendor systems<br>Authentication per system</div>
+          </div>
+          <div class="ipaas-comp">
+            <div class="ipaas-comp-name">🗂️ Canonical Data Model</div>
+            <div class="ipaas-comp-desc">Columbia Standard Schema<br>product-id · sku · bom · cost<br>Stored in iPaaS config DB</div>
+          </div>
+          <div class="ipaas-comp">
+            <div class="ipaas-comp-name">🔄 Transformation Engine</div>
+            <div class="ipaas-comp-desc">Field mapping rules<br>DataWeave / drag-drop UI<br>Source → Canonical → Target</div>
+          </div>
+          <div class="ipaas-comp">
+            <div class="ipaas-comp-name">📦 Staging Buffer</div>
+            <div class="ipaas-comp-desc">Temporary message queue<br>ActiveMQ / internal broker<br>Retry with backoff logic</div>
+          </div>
+          <div class="ipaas-comp">
+            <div class="ipaas-comp-name">🗄️ iPaaS Database</div>
+            <div class="ipaas-comp-desc">Canonical schema versions<br>Transformation rules<br>Audit logs · Error queue</div>
+          </div>
+          <div class="ipaas-comp">
+            <div class="ipaas-comp-name">📤 Outbound Adapters</div>
+            <div class="ipaas-comp-desc">Publish to Kafka topics<br>Direct API calls (sync)<br>Supplier portal EDI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flow arrow -->
+    <div class="flow-arrow">
+      <div class="arrow-line"></div>
+      <div class="flow-label">↓ CANONICAL EVENTS PUBLISHED TO KAFKA ↓</div>
+      <div class="arrow-line"></div>
+    </div>
+
+    <!-- SECTION 3: Global Kafka Event Hub -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">03</div>
+        <div class="section-title">GLOBAL EVENT HUB — Central Kafka Cluster (Primary Region)</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="kafka-hub">
+        <div class="kafka-title">
+          <div>⚡</div>
+          <div class="kafka-title-text">APACHE KAFKA — Central Nervous System</div>
+          <div class="kafka-subtitle">7-day retention · At-least-once delivery · Offset tracking</div>
+        </div>
+        <div class="kafka-topics">
+          <div class="topic">
+            <div class="topic-name">product-lifecycle-events</div>
+            <div class="topic-desc">PLM owned topic</div>
+            <div class="topic-events">
+              <div class="event-pill">ProductLaunchPlanned</div>
+              <div class="event-pill">BOMCreated</div>
+              <div class="event-pill">BOMRevised</div>
+              <div class="event-pill">TechPackCreated</div>
+            </div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">sample-management-events</div>
+            <div class="topic-desc">Factory owned topic</div>
+            <div class="topic-events">
+              <div class="event-pill">SampleRequested</div>
+              <div class="event-pill">SampleProduced</div>
+              <div class="event-pill">SampleApproved</div>
+              <div class="event-pill">SampleRejected</div>
+            </div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">procurement-events</div>
+            <div class="topic-desc">ERP owned topic</div>
+            <div class="topic-events">
+              <div class="event-pill">ProcurementRequested</div>
+              <div class="event-pill">PurchaseOrderCreated</div>
+              <div class="event-pill">SupplierConfirmed</div>
+            </div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">inventory-events</div>
+            <div class="topic-desc">WMS owned topic</div>
+            <div class="topic-events">
+              <div class="event-pill">InventoryUpdated</div>
+              <div class="event-pill">StockReserved</div>
+              <div class="event-pill">ShipmentReady</div>
+            </div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">order-management-events</div>
+            <div class="topic-desc">CRM / ERP owned</div>
+            <div class="topic-events">
+              <div class="event-pill">SalesOrderCreated</div>
+              <div class="event-pill">OrderFulfilled</div>
+              <div class="event-pill">OrderShipped</div>
+            </div>
+          </div>
+          <div class="topic">
+            <div class="topic-name">transformation-failures</div>
+            <div class="topic-desc">Dead letter queue</div>
+            <div class="topic-events">
+              <div class="event-pill">FailedTransformations</div>
+              <div class="event-pill">SchemaErrors</div>
+              <div class="event-pill">RetryExhausted</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Consumer Groups -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">04</div>
+        <div class="section-title">CONSUMER GROUPS — Independent Offset Tracking per System</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="consumer-groups">
+        <div class="cg">
+          <div class="cg-name">erp-procurement</div>
+          <div class="cg-desc">SAP procurement module. Consumes BOM, sample approval, supplier events. Creates POs.</div>
+          <div class="cg-reliability">at-least-once</div>
+        </div>
+        <div class="cg">
+          <div class="cg-name">erp-inventory</div>
+          <div class="cg-desc">SAP inventory module. Tracks stock levels, material master updates, fulfillment events.</div>
+          <div class="cg-reliability">at-least-once</div>
+        </div>
+        <div class="cg">
+          <div class="cg-name">plm-subscribers</div>
+          <div class="cg-desc">PLM and tech dev teams. Receives sample feedback, factory events, approval updates.</div>
+          <div class="cg-reliability">at-least-once</div>
+        </div>
+        <div class="cg">
+          <div class="cg-name">supplier-portals</div>
+          <div class="cg-desc">Active partner systems. Factory portals in Asia, Europe. Subset of relevant events only.</div>
+          <div class="cg-reliability">at-least-once</div>
+        </div>
+        <div class="cg">
+          <div class="cg-name">analytics-warehouse</div>
+          <div class="cg-desc">BI and data warehouse. Consumes ALL events across all topics. Can lag hours behind.</div>
+          <div class="cg-reliability">best-effort</div>
+        </div>
+        <div class="cg">
+          <div class="cg-name">crm-order-mgmt</div>
+          <div class="cg-desc">CRM system. Inventory availability, order status updates, product launch visibility.</div>
+          <div class="cg-reliability">at-least-once</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MirrorMaker Regional Replication -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">05</div>
+        <div class="section-title">REGIONAL CLUSTERS — MirrorMaker Bidirectional Replication</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="mirror">
+        <div class="mirror-label">⟳ MIRRORMAKER</div>
+        <div class="mirror-flow">
+          <div class="mirror-cluster">🌎 N. America Cluster</div>
+          <div class="mirror-arrow">⟷</div>
+          <div class="mirror-cluster">🌏 Asia-Pacific Cluster</div>
+          <div class="mirror-arrow">⟷</div>
+          <div class="mirror-cluster">🌍 Europe Cluster</div>
+        </div>
+        <div style="font-size:9px; font-family: 'IBM Plex Mono', monospace; color: var(--text3)">Auto-replication · Origin ID prevents loops · &lt;5s lag · GDPR topic filtering</div>
+      </div>
+      <div style="margin-top: 12px">
+        <div class="regions">
+          <div class="region">
+            <div class="region-label">🌎 North America Region</div>
+            <div class="region-cluster">
+              <div class="region-cluster-name">Regional Kafka Cluster</div>
+              <div class="region-systems">
+                <div class="region-sys-tag">Planning System</div>
+                <div class="region-sys-tag">PLM</div>
+                <div class="region-sys-tag">SAP ERP</div>
+                <div class="region-sys-tag">WMS Portland</div>
+                <div class="region-sys-tag">CRM</div>
+              </div>
+            </div>
+          </div>
+          <div class="region">
+            <div class="region-label">🌏 Asia-Pacific Region</div>
+            <div class="region-cluster">
+              <div class="region-cluster-name">Regional Kafka Cluster</div>
+              <div class="region-systems">
+                <div class="region-sys-tag">Vietnam Factory</div>
+                <div class="region-sys-tag">China Factory</div>
+                <div class="region-sys-tag">Thailand Factory</div>
+                <div class="region-sys-tag">Supplier Portals</div>
+              </div>
+            </div>
+          </div>
+          <div class="region">
+            <div class="region-label">🌍 Europe Region</div>
+            <div class="region-cluster">
+              <div class="region-cluster-name">Regional Kafka Cluster</div>
+              <div class="region-systems">
+                <div class="region-sys-tag">EU Warehouse WMS</div>
+                <div class="region-sys-tag">EU SAP Instance</div>
+                <div class="region-sys-tag">EU Supplier Portal</div>
+                <div class="region-sys-tag">GDPR-filtered topics</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- External Partners -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">06</div>
+        <div class="section-title">EXTERNAL PARTNERS — Factories, Suppliers, Active Partners</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="layer-content">
+        <div class="sys factory">
+          <div class="sys-icon">🏭</div>
+          <div class="sys-name">Vietnam Factory</div>
+          <div class="sys-sub">Publishes to Asia-Pacific<br>regional Kafka cluster<br>Sample events · Production status</div>
+          <div class="sys-tag tag-ext">EXTERNAL</div>
+        </div>
+        <div class="sys factory">
+          <div class="sys-icon">🏭</div>
+          <div class="sys-name">China Factory</div>
+          <div class="sys-sub">Publishes to Asia-Pacific<br>regional Kafka cluster<br>Raw material · Fulfillment</div>
+          <div class="sys-tag tag-ext">EXTERNAL</div>
+        </div>
+        <div class="sys factory">
+          <div class="sys-icon">🏭</div>
+          <div class="sys-name">Thailand / Other</div>
+          <div class="sys-sub">Publishes to Asia-Pacific<br>regional Kafka cluster<br>Production events</div>
+          <div class="sys-tag tag-ext">EXTERNAL</div>
+        </div>
+        <div class="sys factory">
+          <div class="sys-icon">🚢</div>
+          <div class="sys-name">Logistics Partners</div>
+          <div class="sys-sub">Shipment tracking events<br>Customs clearance status<br>Delivery confirmations</div>
+          <div class="sys-tag tag-ext">EXTERNAL</div>
+        </div>
+        <div class="sys factory">
+          <div class="sys-icon">🧵</div>
+          <div class="sys-name">Raw Material Suppliers</div>
+          <div class="sys-sub">Fabric · Zipper · Thread<br>Material availability events<br>Pricing confirmations</div>
+          <div class="sys-tag tag-ext">EXTERNAL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Flow Timeline -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">07</div>
+        <div class="section-title">PRODUCT LAUNCH EVENT FLOW — 26-Week Planning Timeline</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="timeline">
+        <div class="timeline-title">⏱ SAMPLE FLOW: Summer Collection Launch (Week 1 → Week 26)</div>
+        <div class="timeline-steps">
+          <div class="tstep">
+            <div class="tstep-week">WK 1</div>
+            <div class="tstep-box">
+              <div class="tstep-system">PLANNING</div>
+              <div class="tstep-event">Product Launch Planned — 50K units forecast</div>
+              <div class="tstep-kafka">→ product-lifecycle-events</div>
+            </div>
+          </div>
+          <div class="tstep">
+            <div class="tstep-week">WK 2–4</div>
+            <div class="tstep-box">
+              <div class="tstep-system">PLM</div>
+              <div class="tstep-event">Tech Pack Created · BOM v1.0 Published</div>
+              <div class="tstep-kafka">→ product-lifecycle-events</div>
+            </div>
+          </div>
+          <div class="tstep">
+            <div class="tstep-week">WK 5–6</div>
+            <div class="tstep-box">
+              <div class="tstep-system">ERP</div>
+              <div class="tstep-event">Procurement Requested · Supplier Linked</div>
+              <div class="tstep-kafka">→ procurement-events</div>
+            </div>
+          </div>
+          <div class="tstep">
+            <div class="tstep-week">WK 7–8</div>
+            <div class="tstep-box">
+              <div class="tstep-system">FACTORY</div>
+              <div class="tstep-event">Sample Production Started · Materials Sourced</div>
+              <div class="tstep-kafka">→ sample-management-events</div>
+            </div>
+          </div>
+          <div class="tstep">
+            <div class="tstep-week">WK 10</div>
+            <div class="tstep-box">
+              <div class="tstep-system">FACTORY → QA</div>
+              <div class="tstep-event">Sample Ready · QA Inspection Triggered</div>
+              <div class="tstep-kafka">→ sample-management-events</div>
+            </div>
+          </div>
+          <div class="tstep">
+            <div class="tstep-week">WK 11</div>
+            <div class="tstep-box">
+              <div class="tstep-system">QA TEAM</div>
+              <div class="tstep-event">Sample Approved v1.0 · ERP notified</div>
+              <div class="tstep-kafka">→ sample-management-events</div>
+            </div>
+          </div>
+          <div class="tstep">
+            <div class="tstep-week">WK 12–20</div>
+            <div class="tstep-box">
+              <div class="tstep-system">ERP + FACTORY</div>
+              <div class="tstep-event">Full PO Created · Production at Scale</div>
+              <div class="tstep-kafka">→ procurement-events</div>
+            </div>
+          </div>
+          <div class="tstep">
+            <div class="tstep-week">WK 24–26</div>
+            <div class="tstep-box">
+              <div class="tstep-system">WMS + CRM</div>
+              <div class="tstep-event">Inventory Received · Orders Fulfilled</div>
+              <div class="tstep-kafka">→ inventory-events</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monitoring & Error Handling -->
+    <div class="layer">
+      <div class="section-header">
+        <div class="section-num">08</div>
+        <div class="section-title">MONITORING, ERROR HANDLING & REPLAY</div>
+        <div class="section-line"></div>
+      </div>
+      <div class="monitoring">
+        <div class="mon-item">
+          <div class="mon-icon">📡</div>
+          <div>
+            <div class="mon-title">Consumer Lag Monitoring</div>
+            <div class="mon-desc">Alert if consumer group lags &gt;1hr. Track offset progress per group. Detect stuck consumers.</div>
+          </div>
+        </div>
+        <div class="mon-item">
+          <div class="mon-icon">🔁</div>
+          <div>
+            <div class="mon-title">Replay from Kafka</div>
+            <div class="mon-desc">Reset consumer offset to replay events. 7-day retention window. No data loss on failures.</div>
+          </div>
+        </div>
+        <div class="mon-item">
+          <div class="mon-icon">☠️</div>
+          <div>
+            <div class="mon-title">Dead Letter Queue</div>
+            <div class="mon-desc">Failed transforms go to DLQ topic. Ops reviews daily. Fix rule, replay from original topic.</div>
+          </div>
+        </div>
+        <div class="mon-item">
+          <div class="mon-icon">🌙</div>
+          <div>
+            <div class="mon-title">Nightly Reconciliation</div>
+            <div class="mon-desc">2AM batch job compares PLM vs ERP vs WMS state. Flags drift. Publishes correction events.</div>
+          </div>
+        </div>
+        <div class="mon-item">
+          <div class="mon-icon">🔒</div>
+          <div>
+            <div class="mon-title">Idempotency</div>
+            <div class="mon-desc">Event ID deduplication. Same event processed twice = no duplicates. Safe retries.</div>
+          </div>
+        </div>
+        <div class="mon-item">
+          <div class="mon-icon">📋</div>
+          <div>
+            <div class="mon-title">Schema Registry</div>
+            <div class="mon-desc">All event schemas versioned. v1.0 and v1.1 supported simultaneously during migration.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-text"><span class="pulse"></span>EVENT-DRIVEN SUPPLY CHAIN ARCHITECTURE</div>
+    <div class="footer-text">iPaaS · Kafka · MirrorMaker · Canonical Model · Consumer Groups</div>
+    <div class="footer-text">Principal Integration Architect Reference</div>
+  </div>
+
+</div>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

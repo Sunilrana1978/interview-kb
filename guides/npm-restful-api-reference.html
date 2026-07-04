@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NPM Packages · RESTful API & Microservices Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080B0F;
+    --surface: #0E1318;
+    --surface2: #141A22;
+    --border: #1C2530;
+    --text: #C8D6E5;
+    --muted: #4A5A6B;
+    --server: #FF6B35;
+    --parsing: #00D4AA;
+    --validation: #A855F7;
+    --transform: #F59E0B;
+    --sanitize: #EF4444;
+    --database: #10B981;
+    --auth: #3B82F6;
+    --utils: #6366F1;
+    --code-bg: #060A0E;
+    --code-border: #1C2530;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.6;
+  }
+
+  /* Sidebar */
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 2rem 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-logo {
+    padding: 0 1.5rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+  }
+
+  .sidebar-logo .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .sidebar-logo h2 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #FFF;
+    line-height: 1.2;
+  }
+
+  .sidebar-section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    padding: 0.8rem 1.5rem 0.3rem;
+    text-transform: uppercase;
+  }
+
+  .sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 1.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.82rem;
+  }
+
+  .sidebar-link:hover { background: var(--surface2); }
+  .sidebar-link:hover .sidebar-dot { opacity: 1; }
+
+  .sidebar-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    opacity: 0.4;
+    flex-shrink: 0;
+    transition: opacity 0.15s;
+  }
+
+  /* Main content */
+  .main { flex: 1; padding: 3rem 2.5rem; max-width: 900px; }
+
+  /* Hero */
+  .hero {
+    margin-bottom: 3.5rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: #FFF;
+    line-height: 1.05;
+    margin-bottom: 1rem;
+  }
+
+  .hero h1 span { color: var(--server); }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    margin-top: 1.2rem;
+  }
+
+  .pipeline-step {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    letter-spacing: 0.1em;
+  }
+
+  .pipeline-arrow { color: var(--muted); }
+
+  /* Category section */
+  .category {
+    margin-bottom: 4rem;
+    scroll-margin-top: 2rem;
+  }
+
+  .category-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .category-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    padding: 0.3rem 0.7rem;
+    border-radius: 3px;
+    font-weight: 700;
+  }
+
+  .category-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #FFF;
+  }
+
+  .category-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+  }
+
+  /* Package card */
+  .package {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .package:hover { border-color: #2A3A4A; }
+
+  .package-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .package-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #FFF;
+  }
+
+  .package-name .prefix { opacity: 0.4; }
+
+  .package-install {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    background: var(--code-bg);
+    padding: 0.25rem 0.6rem;
+    border-radius: 3px;
+    border: 1px solid var(--code-border);
+    white-space: nowrap;
+  }
+
+  .package-body { padding: 1.25rem; }
+
+  .package-desc {
+    font-size: 0.85rem;
+    color: var(--text);
+    margin-bottom: 1rem;
+    line-height: 1.7;
+  }
+
+  .package-use-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .package-uses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .use-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* Code block */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+
+  .code-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--code-border);
+    background: #060C12;
+  }
+
+  pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    padding: 1rem;
+    color: #A8C0D6;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .kw { color: #7BA4D4; }       /* keywords */
+  .fn { color: #79C0FF; }       /* functions */
+  .str { color: #9ECE6A; }      /* strings */
+  .num { color: #F59E0B; }      /* numbers */
+  .cmt { color: #3D5060; font-style: italic; } /* comments */
+  .type { color: #BB9AF7; }     /* types */
+  .prop { color: #73DACA; }     /* properties */
+  .dec { color: #FF9E64; }      /* decorators */
+
+  /* Divider */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+    margin: 3rem 0;
+  }
+
+  /* Scroll to top */
+  .back-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .back-top:hover { color: #FFF; border-color: #4A5A6B; }
+
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .main { padding: 2rem 1.2rem; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="tag">NPM REFERENCE</div>
+      <h2>RESTful API &amp;<br>Microservices</h2>
+    </div>
+
+    <div class="sidebar-section-label">Categories</div>
+
+    <a class="sidebar-link" href="#server">
+      <span class="sidebar-dot" style="background:#FF6B35"></span> Server / Framework
+    </a>
+    <a class="sidebar-link" href="#parsing">
+      <span class="sidebar-dot" style="background:#00D4AA"></span> Request Parsing
+    </a>
+    <a class="sidebar-link" href="#validation">
+      <span class="sidebar-dot" style="background:#A855F7"></span> Schema Validation
+    </a>
+    <a class="sidebar-link" href="#transformation">
+      <span class="sidebar-dot" style="background:#F59E0B"></span> Data Transformation
+    </a>
+    <a class="sidebar-link" href="#sanitization">
+      <span class="sidebar-dot" style="background:#EF4444"></span> Sanitization &amp; Security
+    </a>
+    <a class="sidebar-link" href="#database">
+      <span class="sidebar-dot" style="background:#10B981"></span> Database / ORM
+    </a>
+    <a class="sidebar-link" href="#auth">
+      <span class="sidebar-dot" style="background:#3B82F6"></span> Auth &amp; Middleware
+    </a>
+    <a class="sidebar-link" href="#utils">
+      <span class="sidebar-dot" style="background:#6366F1"></span> Utilities &amp; Logging
+    </a>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-tag">JAVASCRIPT &amp; TYPESCRIPT ECOSYSTEM</div>
+      <h1>NPM Packages for<br><span>RESTful APIs</span> &amp;<br>Microservices</h1>
+      <p style="color:var(--muted);font-size:0.9rem;margin-top:1rem;">
+        A complete reference with code examples covering every stage of the API pipeline — from receiving a request to persisting data in the database.
+      </p>
+      <div class="pipeline">
+        <span class="pipeline-step" style="color:#FF6B35;border-color:#FF6B3533">REQUEST IN</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step" style="color:#00D4AA;border-color:#00D4AA33">PARSE</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step" style="color:#A855F7;border-color:#A855F733">VALIDATE</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step" style="color:#F59E0B;border-color:#F59E0B33">TRANSFORM</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step" style="color:#EF4444;border-color:#EF444433">SANITIZE</span>
+        <span class="pipeline-arrow">→</span>
+        <span class="pipeline-step" style="color:#10B981;border-color:#10B98133">STORE</span>
+      </div>
+    </div>
+
+    <!-- ==================== SERVER ==================== -->
+    <section class="category" id="server">
+      <div class="category-header">
+        <span class="category-badge" style="background:#FF6B3520;color:#FF6B35;border:1px solid #FF6B3540">SERVER</span>
+        <h2 class="category-title">Server / Framework</h2>
+      </div>
+      <p class="category-desc">The foundation of your API. These frameworks handle HTTP routing, middleware, and request/response lifecycle.</p>
+
+      <!-- Express -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>express</div>
+          <div class="package-install">npm install express @types/express</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">The most widely used Node.js web framework. Minimal and un-opinionated — you wire together exactly what you need using middleware. Massive ecosystem of plugins and community support.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">REST APIs</span>
+            <span class="use-tag">Routing</span>
+            <span class="use-tag">Middleware pipeline</span>
+            <span class="use-tag">Static file serving</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Basic Express REST API</div>
+            <pre><span class="kw">import</span> express, { Request, Response } <span class="kw">from</span> <span class="str">'express'</span>;
+
+<span class="kw">const</span> app = <span class="fn">express</span>();
+
+<span class="cmt">// Parse JSON request bodies</span>
+app.<span class="fn">use</span>(express.<span class="fn">json</span>());
+
+<span class="cmt">// GET all users</span>
+app.<span class="fn">get</span>(<span class="str">'/users'</span>, <span class="kw">async</span> (req: <span class="type">Request</span>, res: <span class="type">Response</span>) =&gt; {
+  <span class="kw">const</span> users = <span class="kw">await</span> <span class="fn">getAllUsers</span>();
+  res.<span class="fn">json</span>(users);
+});
+
+<span class="cmt">// POST create user</span>
+app.<span class="fn">post</span>(<span class="str">'/users'</span>, <span class="kw">async</span> (req: <span class="type">Request</span>, res: <span class="type">Response</span>) =&gt; {
+  <span class="kw">const</span> { name, email } = req.body;
+  <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">createUser</span>({ name, email });
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>(user);
+});
+
+<span class="cmt">// GET user by ID</span>
+app.<span class="fn">get</span>(<span class="str">'/users/:id'</span>, <span class="kw">async</span> (req: <span class="type">Request</span>, res: <span class="type">Response</span>) =&gt; {
+  <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">getUserById</span>(req.params.id);
+  <span class="kw">if</span> (!user) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">404</span>).<span class="fn">json</span>({ error: <span class="str">'Not found'</span> });
+  res.<span class="fn">json</span>(user);
+});
+
+app.<span class="fn">listen</span>(<span class="num">3000</span>, () =&gt; console.<span class="fn">log</span>(<span class="str">'API running on port 3000'</span>));</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fastify -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>fastify</div>
+          <div class="package-install">npm install fastify</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">High-performance HTTP framework with built-in JSON schema validation, serialization, and a powerful plugin system. Significantly faster than Express for throughput-intensive APIs.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">High-throughput APIs</span>
+            <span class="use-tag">Schema-first design</span>
+            <span class="use-tag">Microservices</span>
+            <span class="use-tag">Plugin architecture</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Fastify with Schema Validation</div>
+            <pre><span class="kw">import</span> Fastify <span class="kw">from</span> <span class="str">'fastify'</span>;
+
+<span class="kw">const</span> app = <span class="fn">Fastify</span>({ logger: <span class="kw">true</span> });
+
+<span class="cmt">// Define request/response schema inline</span>
+<span class="kw">const</span> createUserSchema = {
+  body: {
+    type: <span class="str">'object'</span>,
+    required: [<span class="str">'name'</span>, <span class="str">'email'</span>],
+    properties: {
+      name:  { type: <span class="str">'string'</span>, minLength: <span class="num">2</span> },
+      email: { type: <span class="str">'string'</span>, format: <span class="str">'email'</span> },
+    }
+  },
+  response: {
+    <span class="num">201</span>: {
+      type: <span class="str">'object'</span>,
+      properties: {
+        id:    { type: <span class="str">'string'</span> },
+        name:  { type: <span class="str">'string'</span> },
+        email: { type: <span class="str">'string'</span> },
+      }
+    }
+  }
+};
+
+app.<span class="fn">post</span>(<span class="str">'/users'</span>, { schema: createUserSchema }, <span class="kw">async</span> (request, reply) =&gt; {
+  <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">createUser</span>(request.body);
+  reply.<span class="fn">code</span>(<span class="num">201</span>).<span class="fn">send</span>(user);
+});
+
+<span class="kw">await</span> app.<span class="fn">listen</span>({ port: <span class="num">3000</span> });</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- NestJS -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>@nestjs/core</div>
+          <div class="package-install">npm install @nestjs/core @nestjs/common @nestjs/platform-express</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">A full-featured, opinionated TypeScript framework inspired by Angular. Uses decorators, dependency injection, modules, and controllers. Ideal for large teams and microservices architectures.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Enterprise APIs</span>
+            <span class="use-tag">Microservices</span>
+            <span class="use-tag">GraphQL</span>
+            <span class="use-tag">WebSockets</span>
+            <span class="use-tag">Dependency Injection</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · NestJS Controller + Service</div>
+            <pre><span class="cmt">// users.controller.ts</span>
+<span class="kw">import</span> { Controller, Get, Post, Body, Param } <span class="kw">from</span> <span class="str">'@nestjs/common'</span>;
+<span class="kw">import</span> { UsersService } <span class="kw">from</span> <span class="str">'./users.service'</span>;
+<span class="kw">import</span> { CreateUserDto } <span class="kw">from</span> <span class="str">'./dto/create-user.dto'</span>;
+
+<span class="dec">@Controller</span>(<span class="str">'users'</span>)
+<span class="kw">export class</span> <span class="type">UsersController</span> {
+  <span class="kw">constructor</span>(<span class="kw">private readonly</span> usersService: <span class="type">UsersService</span>) {}
+
+  <span class="dec">@Get</span>()
+  <span class="fn">findAll</span>() {
+    <span class="kw">return</span> <span class="kw">this</span>.usersService.<span class="fn">findAll</span>();
+  }
+
+  <span class="dec">@Get</span>(<span class="str">':id'</span>)
+  <span class="fn">findOne</span>(<span class="dec">@Param</span>(<span class="str">'id'</span>) id: <span class="type">string</span>) {
+    <span class="kw">return</span> <span class="kw">this</span>.usersService.<span class="fn">findOne</span>(id);
+  }
+
+  <span class="dec">@Post</span>()
+  <span class="fn">create</span>(<span class="dec">@Body</span>() createUserDto: <span class="type">CreateUserDto</span>) {
+    <span class="kw">return</span> <span class="kw">this</span>.usersService.<span class="fn">create</span>(createUserDto);
+  }
+}
+
+<span class="cmt">// users.service.ts</span>
+<span class="kw">import</span> { Injectable, NotFoundException } <span class="kw">from</span> <span class="str">'@nestjs/common'</span>;
+
+<span class="dec">@Injectable</span>()
+<span class="kw">export class</span> <span class="type">UsersService</span> {
+  <span class="kw">async</span> <span class="fn">create</span>(dto: <span class="type">CreateUserDto</span>) {
+    <span class="cmt">// Business logic + database call</span>
+    <span class="kw">return</span> <span class="kw">this</span>.repository.<span class="fn">save</span>(dto);
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ==================== PARSING ==================== -->
+    <section class="category" id="parsing">
+      <div class="category-header">
+        <span class="category-badge" style="background:#00D4AA20;color:#00D4AA;border:1px solid #00D4AA40">PARSING</span>
+        <h2 class="category-title">Request Parsing</h2>
+      </div>
+      <p class="category-desc">Extract and decode incoming data from requests — JSON bodies, form data, query strings, and file uploads.</p>
+
+      <!-- body-parser -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>body-parser</div>
+          <div class="package-install">npm install body-parser</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Parses incoming request bodies before your route handlers. Supports JSON, URL-encoded forms, raw buffers, and text. Note: Express 4.16+ includes <code style="font-family:monospace;color:#00D4AA">express.json()</code> which uses body-parser internally.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">JSON body parsing</span>
+            <span class="use-tag">Form data</span>
+            <span class="use-tag">URL-encoded payloads</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · body-parser Middleware Setup</div>
+            <pre><span class="kw">import</span> express <span class="kw">from</span> <span class="str">'express'</span>;
+<span class="kw">import</span> bodyParser <span class="kw">from</span> <span class="str">'body-parser'</span>;
+
+<span class="kw">const</span> app = <span class="fn">express</span>();
+
+<span class="cmt">// Parse application/json — body is available as req.body</span>
+app.<span class="fn">use</span>(bodyParser.<span class="fn">json</span>({ limit: <span class="str">'10mb'</span> }));
+
+<span class="cmt">// Parse application/x-www-form-urlencoded (HTML forms)</span>
+app.<span class="fn">use</span>(bodyParser.<span class="fn">urlencoded</span>({ extended: <span class="kw">true</span> }));
+
+app.<span class="fn">post</span>(<span class="str">'/submit'</span>, (req, res) =&gt; {
+  console.<span class="fn">log</span>(req.body);  <span class="cmt">// { name: 'John', email: 'john@example.com' }</span>
+  res.<span class="fn">json</span>({ received: req.body });
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- multer -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>multer</div>
+          <div class="package-install">npm install multer @types/multer</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Middleware for handling <code style="font-family:monospace;color:#00D4AA">multipart/form-data</code>, primarily used for file uploads. Supports disk storage, memory storage, and custom storage engines like S3.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">File uploads</span>
+            <span class="use-tag">Image upload</span>
+            <span class="use-tag">Form with files</span>
+            <span class="use-tag">S3 uploads</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · File Upload with Validation</div>
+            <pre><span class="kw">import</span> multer <span class="kw">from</span> <span class="str">'multer'</span>;
+<span class="kw">import</span> path <span class="kw">from</span> <span class="str">'path'</span>;
+
+<span class="kw">const</span> storage = multer.<span class="fn">diskStorage</span>({
+  destination: (req, file, cb) =&gt; cb(<span class="kw">null</span>, <span class="str">'uploads/'</span>),
+  filename: (req, file, cb) =&gt; {
+    <span class="kw">const</span> unique = Date.<span class="fn">now</span>() + <span class="str">'-'</span> + Math.<span class="fn">round</span>(Math.<span class="fn">random</span>() * 1e9);
+    cb(<span class="kw">null</span>, unique + path.<span class="fn">extname</span>(file.originalname));
+  }
+});
+
+<span class="kw">const</span> upload = <span class="fn">multer</span>({
+  storage,
+  limits: { fileSize: <span class="num">5</span> * <span class="num">1024</span> * <span class="num">1024</span> },  <span class="cmt">// 5MB limit</span>
+  fileFilter: (req, file, cb) =&gt; {
+    <span class="kw">const</span> allowed = [<span class="str">'image/jpeg'</span>, <span class="str">'image/png'</span>, <span class="str">'image/webp'</span>];
+    <span class="kw">if</span> (allowed.<span class="fn">includes</span>(file.mimetype)) cb(<span class="kw">null</span>, <span class="kw">true</span>);
+    <span class="kw">else</span> cb(<span class="kw">new</span> <span class="type">Error</span>(<span class="str">'Only image files allowed'</span>));
+  }
+});
+
+<span class="cmt">// Single file upload</span>
+app.<span class="fn">post</span>(<span class="str">'/upload/avatar'</span>, upload.<span class="fn">single</span>(<span class="str">'avatar'</span>), (req, res) =&gt; {
+  res.<span class="fn">json</span>({ filename: req.file?.filename, path: req.file?.path });
+});
+
+<span class="cmt">// Multiple files</span>
+app.<span class="fn">post</span>(<span class="str">'/upload/gallery'</span>, upload.<span class="fn">array</span>(<span class="str">'images'</span>, <span class="num">10</span>), (req, res) =&gt; {
+  res.<span class="fn">json</span>({ files: req.files });
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- qs -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>qs</div>
+          <div class="package-install">npm install qs @types/qs</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Parses and stringifies query strings with support for nested objects and arrays — something the built-in <code style="font-family:monospace;color:#00D4AA">querystring</code> module cannot do.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Nested query params</span>
+            <span class="use-tag">Array params</span>
+            <span class="use-tag">Filter/sort params</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Parsing Complex Query Strings</div>
+            <pre><span class="kw">import</span> qs <span class="kw">from</span> <span class="str">'qs'</span>;
+
+<span class="cmt">// Parse: /users?filter[age]=25&filter[role]=admin&sort[]=name</span>
+<span class="kw">const</span> parsed = qs.<span class="fn">parse</span>(<span class="str">'filter[age]=25&filter[role]=admin&sort[]=name'</span>);
+<span class="cmt">// Result: { filter: { age: '25', role: 'admin' }, sort: ['name'] }</span>
+
+<span class="cmt">// In Express route — req.query already uses qs under the hood</span>
+app.<span class="fn">get</span>(<span class="str">'/users'</span>, (req, res) =&gt; {
+  <span class="kw">const</span> { filter, sort, page = <span class="num">1</span>, limit = <span class="num">20</span> } = req.query <span class="kw">as</span> <span class="kw">any</span>;
+  <span class="cmt">// filter = { age: '25', role: 'admin' }</span>
+  res.<span class="fn">json</span>({ filter, sort, page, limit });
+});
+
+<span class="cmt">// Stringify nested objects back to query string</span>
+<span class="kw">const</span> queryString = qs.<span class="fn">stringify</span>({ filter: { status: <span class="str">'active'</span> }, page: <span class="num">2</span> });
+<span class="cmt">// Result: 'filter%5Bstatus%5D=active&page=2'</span></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ==================== VALIDATION ==================== -->
+    <section class="category" id="validation">
+      <div class="category-header">
+        <span class="category-badge" style="background:#A855F720;color:#A855F7;border:1px solid #A855F740">VALIDATION</span>
+        <h2 class="category-title">Schema Validation</h2>
+      </div>
+      <p class="category-desc">Validate incoming request data against a defined schema before processing. Reject bad data early with clear error messages.</p>
+
+      <!-- Zod -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>zod</div>
+          <div class="package-install">npm install zod</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">TypeScript-first schema declaration and runtime validation. Schemas double as TypeScript type definitions — no duplication needed. The most popular validation library for TypeScript projects in 2025.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Request body validation</span>
+            <span class="use-tag">TypeScript type inference</span>
+            <span class="use-tag">Environment variable validation</span>
+            <span class="use-tag">API contracts</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Zod Schema + Validation Middleware</div>
+            <pre><span class="kw">import</span> { z } <span class="kw">from</span> <span class="str">'zod'</span>;
+
+<span class="cmt">// Define schema — also infers TypeScript type</span>
+<span class="kw">const</span> CreateUserSchema = z.<span class="fn">object</span>({
+  name:     z.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">2</span>).<span class="fn">max</span>(<span class="num">100</span>),
+  email:    z.<span class="fn">string</span>().<span class="fn">email</span>(),
+  age:      z.<span class="fn">number</span>().<span class="fn">int</span>().<span class="fn">min</span>(<span class="num">18</span>).<span class="fn">max</span>(<span class="num">120</span>).<span class="fn">optional</span>(),
+  role:     z.<span class="fn">enum</span>([<span class="str">'admin'</span>, <span class="str">'user'</span>, <span class="str">'moderator'</span>]).<span class="fn">default</span>(<span class="str">'user'</span>),
+  tags:     z.<span class="fn">array</span>(z.<span class="fn">string</span>()).<span class="fn">max</span>(<span class="num">5</span>).<span class="fn">optional</span>(),
+});
+
+<span class="cmt">// TypeScript type is inferred from the schema — no duplication</span>
+<span class="kw">type</span> <span class="type">CreateUserInput</span> = z.<span class="fn">infer</span>&lt;<span class="kw">typeof</span> CreateUserSchema&gt;;
+
+<span class="cmt">// Reusable validation middleware factory</span>
+<span class="kw">const</span> <span class="fn">validate</span> = (schema: z.<span class="type">ZodSchema</span>) =&gt; (req, res, next) =&gt; {
+  <span class="kw">const</span> result = schema.<span class="fn">safeParse</span>(req.body);
+  <span class="kw">if</span> (!result.success) {
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({
+      error: <span class="str">'Validation failed'</span>,
+      issues: result.error.<span class="fn">flatten</span>().fieldErrors,
+    });
+  }
+  req.body = result.data;  <span class="cmt">// Replace with parsed/coerced data</span>
+  <span class="fn">next</span>();
+};
+
+<span class="cmt">// Use in route</span>
+app.<span class="fn">post</span>(<span class="str">'/users'</span>, <span class="fn">validate</span>(CreateUserSchema), <span class="kw">async</span> (req, res) =&gt; {
+  <span class="kw">const</span> user: <span class="type">CreateUserInput</span> = req.body;
+  <span class="kw">const</span> created = <span class="kw">await</span> <span class="fn">createUser</span>(user);
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>(created);
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Joi -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>joi</div>
+          <div class="package-install">npm install joi</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Battle-tested schema description and data validation. Rich API for complex validations including conditional rules, custom validators, and transformations during validation.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Complex validations</span>
+            <span class="use-tag">Conditional rules</span>
+            <span class="use-tag">Custom error messages</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Joi Validation with Custom Messages</div>
+            <pre><span class="kw">import</span> Joi <span class="kw">from</span> <span class="str">'joi'</span>;
+
+<span class="kw">const</span> userSchema = Joi.<span class="fn">object</span>({
+  name:     Joi.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">2</span>).<span class="fn">max</span>(<span class="num">100</span>).<span class="fn">required</span>(),
+  email:    Joi.<span class="fn">string</span>().<span class="fn">email</span>().<span class="fn">required</span>(),
+  password: Joi.<span class="fn">string</span>().<span class="fn">min</span>(<span class="num">8</span>)
+              .<span class="fn">pattern</span>(<span class="kw">new</span> <span class="type">RegExp</span>(<span class="str">'^(?=.*[A-Z])(?=.*[0-9])'</span>))
+              .<span class="fn">required</span>()
+              .<span class="fn">messages</span>({
+                <span class="str">'string.pattern.base'</span>: <span class="str">'Password must contain uppercase and number'</span>
+              }),
+  <span class="cmt">// Conditional: confirmPassword required only when password present</span>
+  confirmPassword: Joi.<span class="fn">when</span>(<span class="str">'password'</span>, {
+    is:   Joi.<span class="fn">exist</span>(),
+    then: Joi.<span class="fn">string</span>().<span class="fn">valid</span>(Joi.<span class="fn">ref</span>(<span class="str">'password'</span>)).<span class="fn">required</span>(),
+  }),
+});
+
+app.<span class="fn">post</span>(<span class="str">'/register'</span>, (req, res) =&gt; {
+  <span class="kw">const</span> { error, value } = userSchema.<span class="fn">validate</span>(req.body, { abortEarly: <span class="kw">false</span> });
+  <span class="kw">if</span> (error) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ errors: error.details });
+  <span class="cmt">// value is the validated and coerced object</span>
+  res.<span class="fn">json</span>({ message: <span class="str">'Valid!'</span>, data: value });
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- class-validator -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>class-validator</div>
+          <div class="package-install">npm install class-validator class-transformer</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Decorator-based validation for TypeScript classes. Used heavily with NestJS where DTOs (Data Transfer Objects) are defined as classes with validation decorators.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">NestJS DTOs</span>
+            <span class="use-tag">Class decorators</span>
+            <span class="use-tag">Nested object validation</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · DTO with Decorator Validation</div>
+            <pre><span class="kw">import</span> {
+  IsString, IsEmail, IsInt, Min, Max,
+  IsOptional, IsEnum, ValidateNested, Length
+} <span class="kw">from</span> <span class="str">'class-validator'</span>;
+<span class="kw">import</span> { Type } <span class="kw">from</span> <span class="str">'class-transformer'</span>;
+
+<span class="kw">class</span> <span class="type">AddressDto</span> {
+  <span class="dec">@IsString</span>() street: <span class="type">string</span>;
+  <span class="dec">@IsString</span>() city:   <span class="type">string</span>;
+  <span class="dec">@IsString</span>() zip:    <span class="type">string</span>;
+}
+
+<span class="kw">enum</span> <span class="type">UserRole</span> { Admin = <span class="str">'admin'</span>, User = <span class="str">'user'</span> }
+
+<span class="kw">export class</span> <span class="type">CreateUserDto</span> {
+  <span class="dec">@IsString</span>()
+  <span class="dec">@Length</span>(<span class="num">2</span>, <span class="num">100</span>)
+  name: <span class="type">string</span>;
+
+  <span class="dec">@IsEmail</span>()
+  email: <span class="type">string</span>;
+
+  <span class="dec">@IsInt</span>()
+  <span class="dec">@Min</span>(<span class="num">18</span>) <span class="dec">@Max</span>(<span class="num">120</span>)
+  <span class="dec">@IsOptional</span>()
+  age?: <span class="type">number</span>;
+
+  <span class="dec">@IsEnum</span>(<span class="type">UserRole</span>)
+  role: <span class="type">UserRole</span>;
+
+  <span class="dec">@ValidateNested</span>()          <span class="cmt">// Validate nested class</span>
+  <span class="dec">@Type</span>(() =&gt; <span class="type">AddressDto</span>)   <span class="cmt">// Transform plain object to class</span>
+  <span class="dec">@IsOptional</span>()
+  address?: <span class="type">AddressDto</span>;
+}</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ==================== TRANSFORMATION ==================== -->
+    <section class="category" id="transformation">
+      <div class="category-header">
+        <span class="category-badge" style="background:#F59E0B20;color:#F59E0B;border:1px solid #F59E0B40">TRANSFORM</span>
+        <h2 class="category-title">Data Transformation</h2>
+      </div>
+      <p class="category-desc">Reshape, convert, and manipulate data between the request and the database — format dates, pick fields, merge objects, and more.</p>
+
+      <!-- class-transformer -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>class-transformer</div>
+          <div class="package-install">npm install class-transformer reflect-metadata</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Transforms plain JavaScript objects into class instances and back. Crucial for converting JSON request bodies into typed DTO classes, and for excluding sensitive fields from responses.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Plain → class conversion</span>
+            <span class="use-tag">Exclude sensitive fields</span>
+            <span class="use-tag">Rename properties</span>
+            <span class="use-tag">Type coercion</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Transform Request and Exclude Fields</div>
+            <pre"><span class="kw">import</span> { plainToInstance, Exclude, Expose, Transform } <span class="kw">from</span> <span class="str">'class-transformer'</span>;
+
+<span class="kw">class</span> <span class="type">UserResponse</span> {
+  <span class="dec">@Expose</span>()
+  id: <span class="type">string</span>;
+
+  <span class="dec">@Expose</span>()
+  name: <span class="type">string</span>;
+
+  <span class="dec">@Expose</span>()
+  email: <span class="type">string</span>;
+
+  <span class="dec">@Exclude</span>()          <span class="cmt">// Never sent to client</span>
+  password: <span class="type">string</span>;
+
+  <span class="dec">@Expose</span>()
+  <span class="dec">@Transform</span>(({ value }) =&gt; value.<span class="fn">toISOString</span>())
+  createdAt: <span class="type">Date</span>;   <span class="cmt">// Date → ISO string</span>
+}
+
+app.<span class="fn">get</span>(<span class="str">'/users/:id'</span>, <span class="kw">async</span> (req, res) =&gt; {
+  <span class="kw">const</span> rawUser = <span class="kw">await</span> db.<span class="fn">findUser</span>(req.params.id);
+
+  <span class="cmt">// Transform: include only @Expose() fields, exclude password</span>
+  <span class="kw">const</span> response = <span class="fn">plainToInstance</span>(<span class="type">UserResponse</span>, rawUser, {
+    excludeExtraneousValues: <span class="kw">true</span>
+  });
+
+  res.<span class="fn">json</span>(response);
+  <span class="cmt">// { id, name, email, createdAt } — no password field</span>
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- lodash -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>lodash</div>
+          <div class="package-install">npm install lodash @types/lodash</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Comprehensive utility library for object and array manipulation. Provides hundreds of helper functions for picking, omitting, merging, grouping, and transforming data structures.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">pick/omit fields</span>
+            <span class="use-tag">deep merge</span>
+            <span class="use-tag">groupBy</span>
+            <span class="use-tag">chunk arrays</span>
+            <span class="use-tag">debounce/throttle</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Common Lodash Transformations in APIs</div>
+            <pre><span class="kw">import</span> _ <span class="kw">from</span> <span class="str">'lodash'</span>;
+
+<span class="kw">const</span> requestBody = {
+  name: <span class="str">'Alice'</span>, email: <span class="str">'alice@example.com'</span>,
+  _csrf: <span class="str">'token123'</span>, __v: <span class="num">0</span>, internalId: <span class="str">'x9'</span>
+};
+
+<span class="cmt">// Pick only allowed fields from request</span>
+<span class="kw">const</span> safeData = _.<span class="fn">pick</span>(requestBody, [<span class="str">'name'</span>, <span class="str">'email'</span>]);
+<span class="cmt">// { name: 'Alice', email: 'alice@example.com' }</span>
+
+<span class="cmt">// Omit internal/sensitive fields</span>
+<span class="kw">const</span> clean = _.<span class="fn">omit</span>(requestBody, [<span class="str">'_csrf'</span>, <span class="str">'__v'</span>, <span class="str">'internalId'</span>]);
+
+<span class="cmt">// Deep merge with defaults</span>
+<span class="kw">const</span> defaults = { role: <span class="str">'user'</span>, preferences: { theme: <span class="str">'dark'</span>, lang: <span class="str">'en'</span> } };
+<span class="kw">const</span> merged = _.<span class="fn">merge</span>({}, defaults, requestBody);
+
+<span class="cmt">// Group array results for response</span>
+<span class="kw">const</span> orders = <span class="kw">await</span> <span class="fn">getAllOrders</span>();
+<span class="kw">const</span> grouped = _.<span class="fn">groupBy</span>(orders, <span class="str">'status'</span>);
+<span class="cmt">// { pending: [...], shipped: [...], delivered: [...] }</span>
+
+<span class="cmt">// Chunk for batch database operations</span>
+<span class="kw">const</span> batchIds = [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>,<span class="num">7</span>,<span class="num">8</span>,<span class="num">9</span>,<span class="num">10</span>];
+<span class="kw">const</span> batches = _.<span class="fn">chunk</span>(batchIds, <span class="num">3</span>);
+<span class="cmt">// [[1,2,3], [4,5,6], [7,8,9], [10]]</span>
+<span class="kw">for</span> (<span class="kw">const</span> batch <span class="kw">of</span> batches) {
+  <span class="kw">await</span> db.<span class="fn">batchInsert</span>(batch);
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- date-fns -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>date-fns</div>
+          <div class="package-install">npm install date-fns</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Modular date utility library. Parse, format, compare, and manipulate dates without the bloat of moment.js. Tree-shakeable — import only what you use.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Parse date strings</span>
+            <span class="use-tag">Format for DB storage</span>
+            <span class="use-tag">Date arithmetic</span>
+            <span class="use-tag">Timezone handling</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Date Parsing and Transformation</div>
+            <pre><span class="kw">import</span> { parseISO, format, addDays, isAfter, startOfDay } <span class="kw">from</span> <span class="str">'date-fns'</span>;
+
+app.<span class="fn">post</span>(<span class="str">'/bookings'</span>, (req, res) =&gt; {
+  <span class="kw">const</span> { checkIn, checkOut } = req.body;
+
+  <span class="cmt">// Parse ISO string from request to Date object</span>
+  <span class="kw">const</span> checkInDate  = <span class="fn">parseISO</span>(checkIn);
+  <span class="kw">const</span> checkOutDate = <span class="fn">parseISO</span>(checkOut);
+
+  <span class="cmt">// Validate: check-out must be after check-in</span>
+  <span class="kw">if</span> (!<span class="fn">isAfter</span>(checkOutDate, checkInDate)) {
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ error: <span class="str">'Check-out must be after check-in'</span> });
+  }
+
+  <span class="cmt">// Add buffer day for cleaning</span>
+  <span class="kw">const</span> cleaningDay = <span class="fn">addDays</span>(checkOutDate, <span class="num">1</span>);
+
+  <span class="cmt">// Format for database storage</span>
+  <span class="kw">const</span> booking = {
+    checkIn:     <span class="fn">format</span>(checkInDate,  <span class="str">'yyyy-MM-dd'</span>),
+    checkOut:    <span class="fn">format</span>(checkOutDate, <span class="str">'yyyy-MM-dd'</span>),
+    cleaningDay: <span class="fn">format</span>(cleaningDay,   <span class="str">'yyyy-MM-dd'</span>),
+    createdAt:   <span class="kw">new</span> <span class="type">Date</span>().<span class="fn">toISOString</span>(),
+  };
+
+  res.<span class="fn">json</span>(booking);
+});</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ==================== SANITIZATION ==================== -->
+    <section class="category" id="sanitization">
+      <div class="category-header">
+        <span class="category-badge" style="background:#EF444420;color:#EF4444;border:1px solid #EF444440">SECURITY</span>
+        <h2 class="category-title">Sanitization &amp; Security</h2>
+      </div>
+      <p class="category-desc">Clean and protect incoming data to prevent XSS, injection attacks, and other vulnerabilities before storing or returning data.</p>
+
+      <!-- sanitize-html -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>sanitize-html</div>
+          <div class="package-install">npm install sanitize-html @types/sanitize-html</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Removes dangerous HTML and allows only whitelisted tags and attributes. Essential when users can submit rich text content (blogs, comments, descriptions).</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Rich text input</span>
+            <span class="use-tag">XSS prevention</span>
+            <span class="use-tag">Comment sanitization</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Sanitize HTML Content Before Storing</div>
+            <pre><span class="kw">import</span> sanitizeHtml <span class="kw">from</span> <span class="str">'sanitize-html'</span>;
+
+<span class="kw">const</span> sanitizeOptions = {
+  allowedTags: [<span class="str">'b'</span>, <span class="str">'i'</span>, <span class="str">'em'</span>, <span class="str">'strong'</span>, <span class="str">'a'</span>, <span class="str">'p'</span>, <span class="str">'ul'</span>, <span class="str">'ol'</span>, <span class="str">'li'</span>],
+  allowedAttributes: {
+    <span class="str">'a'</span>: [<span class="str">'href'</span>, <span class="str">'title'</span>],  <span class="cmt">// Only safe link attributes</span>
+  },
+  allowedSchemes: [<span class="str">'http'</span>, <span class="str">'https'</span>, <span class="str">'mailto'</span>],
+};
+
+app.<span class="fn">post</span>(<span class="str">'/posts'</span>, (req, res) =&gt; {
+  <span class="kw">const</span> { title, content } = req.body;
+
+  <span class="cmt">// Input: &lt;script&gt;alert('xss')&lt;/script&gt;&lt;b&gt;Hello&lt;/b&gt;</span>
+  <span class="kw">const</span> safeContent = <span class="fn">sanitizeHtml</span>(content, sanitizeOptions);
+  <span class="cmt">// Output: &lt;b&gt;Hello&lt;/b&gt;  — script tag removed</span>
+
+  <span class="kw">const</span> post = { title, content: safeContent };
+  res.<span class="fn">json</span>(post);
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- validator -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>validator</div>
+          <div class="package-install">npm install validator @types/validator</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">String validation and sanitization functions. Validates emails, URLs, credit cards, IP addresses, and more. Also provides sanitizers to escape, trim, and normalize strings.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Email validation</span>
+            <span class="use-tag">URL validation</span>
+            <span class="use-tag">String escaping</span>
+            <span class="use-tag">Normalize whitespace</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Validate and Sanitize Strings</div>
+            <pre><span class="kw">import</span> validator <span class="kw">from</span> <span class="str">'validator'</span>;
+
+app.<span class="fn">post</span>(<span class="str">'/contact'</span>, (req, res) =&gt; {
+  <span class="kw">let</span> { email, website, message, phone } = req.body;
+
+  <span class="cmt">// Normalize and validate email</span>
+  email = validator.<span class="fn">normalizeEmail</span>(email) || <span class="str">''</span>;
+  <span class="kw">if</span> (!validator.<span class="fn">isEmail</span>(email))
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid email'</span> });
+
+  <span class="cmt">// Validate URL</span>
+  <span class="kw">if</span> (website &amp;&amp; !validator.<span class="fn">isURL</span>(website, { protocols: [<span class="str">'https'</span>] }))
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ error: <span class="str">'URL must use HTTPS'</span> });
+
+  <span class="cmt">// Sanitize: escape HTML entities in message</span>
+  message = validator.<span class="fn">escape</span>(validator.<span class="fn">trim</span>(message));
+  <span class="cmt">// "Hello &lt;world&gt;" → "Hello &amp;lt;world&amp;gt;"</span>
+
+  <span class="cmt">// Validate phone number</span>
+  <span class="kw">if</span> (phone &amp;&amp; !validator.<span class="fn">isMobilePhone</span>(phone, <span class="str">'any'</span>))
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid phone number'</span> });
+
+  res.<span class="fn">json</span>({ email, website, message, phone });
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- helmet -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>helmet</div>
+          <div class="package-install">npm install helmet</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Secures Express apps by setting various HTTP headers. Protects against common attacks like clickjacking, XSS, MIME-type sniffing, and more. Should always be included in production APIs.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Security headers</span>
+            <span class="use-tag">CSP</span>
+            <span class="use-tag">HSTS</span>
+            <span class="use-tag">XSS protection</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Helmet Security Middleware</div>
+            <pre"><span class="kw">import</span> helmet <span class="kw">from</span> <span class="str">'helmet'</span>;
+<span class="kw">import</span> express <span class="kw">from</span> <span class="str">'express'</span>;
+
+<span class="kw">const</span> app = <span class="fn">express</span>();
+
+<span class="cmt">// Apply all default security headers</span>
+app.<span class="fn">use</span>(<span class="fn">helmet</span>());
+
+<span class="cmt">// Or customize specific headers</span>
+app.<span class="fn">use</span>(<span class="fn">helmet</span>({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: [<span class="str">"'self'"</span>],
+      scriptSrc:  [<span class="str">"'self'"</span>, <span class="str">'cdn.example.com'</span>],
+    }
+  },
+  hsts: { maxAge: <span class="num">31536000</span>, includeSubDomains: <span class="kw">true</span> },
+  referrerPolicy: { policy: <span class="str">'strict-origin-when-cross-origin'</span> },
+}));
+
+<span class="cmt">// Sets headers like:
+// X-Content-Type-Options: nosniff
+// X-Frame-Options: SAMEORIGIN
+// Strict-Transport-Security: max-age=31536000
+// Content-Security-Policy: default-src 'self'</span></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ==================== DATABASE ==================== -->
+    <section class="category" id="database">
+      <div class="category-header">
+        <span class="category-badge" style="background:#10B98120;color:#10B981;border:1px solid #10B98140">DATABASE</span>
+        <h2 class="category-title">Database / ORM</h2>
+      </div>
+      <p class="category-desc">Map your application models to database tables or collections and perform type-safe queries, migrations, and relationships.</p>
+
+      <!-- Prisma -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>prisma</div>
+          <div class="package-install">npm install prisma @prisma/client</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Next-generation ORM with an intuitive data model, auto-generated type-safe client, and built-in migrations. The most popular TypeScript ORM as of 2025. Supports PostgreSQL, MySQL, SQLite, MongoDB and more.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Type-safe queries</span>
+            <span class="use-tag">Migrations</span>
+            <span class="use-tag">Relations</span>
+            <span class="use-tag">PostgreSQL/MySQL/MongoDB</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Prisma Schema + CRUD Operations</div>
+            <pre"><span class="cmt">// schema.prisma</span>
+<span class="kw">model</span> <span class="type">User</span> {
+  id        <span class="type">String</span>   <span class="dec">@id @default</span>(<span class="fn">cuid</span>())
+  name      <span class="type">String</span>
+  email     <span class="type">String</span>   <span class="dec">@unique</span>
+  role      <span class="type">Role</span>     <span class="dec">@default</span>(<span class="type">USER</span>)
+  posts     <span class="type">Post</span>[]
+  createdAt <span class="type">DateTime</span> <span class="dec">@default</span>(<span class="fn">now</span>())
+}
+
+<span class="cmt">// API route using Prisma client</span>
+<span class="kw">import</span> { PrismaClient } <span class="kw">from</span> <span class="str">'@prisma/client'</span>;
+<span class="kw">const</span> prisma = <span class="kw">new</span> <span class="type">PrismaClient</span>();
+
+<span class="cmt">// Create</span>
+<span class="kw">const</span> user = <span class="kw">await</span> prisma.user.<span class="fn">create</span>({
+  data: { name: <span class="str">'Alice'</span>, email: <span class="str">'alice@example.com'</span> }
+});
+
+<span class="cmt">// Read with relations</span>
+<span class="kw">const</span> users = <span class="kw">await</span> prisma.user.<span class="fn">findMany</span>({
+  where:   { role: <span class="str">'USER'</span> },
+  include: { posts: { where: { published: <span class="kw">true</span> } } },
+  orderBy: { createdAt: <span class="str">'desc'</span> },
+  take:    <span class="num">20</span>, skip: <span class="num">0</span>,   <span class="cmt">// Pagination</span>
+});
+
+<span class="cmt">// Update</span>
+<span class="kw">const</span> updated = <span class="kw">await</span> prisma.user.<span class="fn">update</span>({
+  where: { id: userId },
+  data:  { name: <span class="str">'Alice Smith'</span> },
+});
+
+<span class="cmt">// Delete</span>
+<span class="kw">await</span> prisma.user.<span class="fn">delete</span>({ where: { id: userId } });</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- TypeORM -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>typeorm</div>
+          <div class="package-install">npm install typeorm reflect-metadata</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Decorator-based ORM supporting both Active Record and Data Mapper patterns. Tightly integrated with TypeScript and NestJS. Great for complex relational data models with many relationships.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">NestJS integration</span>
+            <span class="use-tag">Decorator entities</span>
+            <span class="use-tag">Complex relations</span>
+            <span class="use-tag">Repository pattern</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · TypeORM Entity + Repository</div>
+            <pre><span class="kw">import</span> { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } <span class="kw">from</span> <span class="str">'typeorm'</span>;
+
+<span class="dec">@Entity</span>(<span class="str">'users'</span>)
+<span class="kw">export class</span> <span class="type">User</span> {
+  <span class="dec">@PrimaryGeneratedColumn</span>(<span class="str">'uuid'</span>)
+  id: <span class="type">string</span>;
+
+  <span class="dec">@Column</span>({ length: <span class="num">100</span> })
+  name: <span class="type">string</span>;
+
+  <span class="dec">@Column</span>({ unique: <span class="kw">true</span> })
+  email: <span class="type">string</span>;
+
+  <span class="dec">@Column</span>({ select: <span class="kw">false</span> })  <span class="cmt">// Never returned by default</span>
+  password: <span class="type">string</span>;
+
+  <span class="dec">@CreateDateColumn</span>()
+  createdAt: <span class="type">Date</span>;
+}
+
+<span class="cmt">// Repository usage in service</span>
+<span class="kw">import</span> { InjectRepository } <span class="kw">from</span> <span class="str">'@nestjs/typeorm'</span>;
+<span class="kw">import</span> { Repository } <span class="kw">from</span> <span class="str">'typeorm'</span>;
+
+<span class="kw">export class</span> <span class="type">UsersService</span> {
+  <span class="kw">constructor</span>(
+    <span class="dec">@InjectRepository</span>(<span class="type">User</span>)
+    <span class="kw">private</span> repo: <span class="type">Repository</span>&lt;<span class="type">User</span>&gt;
+  ) {}
+
+  <span class="fn">findAll</span>() {
+    <span class="kw">return</span> <span class="kw">this</span>.repo.<span class="fn">find</span>({ order: { createdAt: <span class="str">'DESC'</span> } });
+  }
+
+  <span class="fn">create</span>(dto: <span class="type">CreateUserDto</span>) {
+    <span class="kw">const</span> user = <span class="kw">this</span>.repo.<span class="fn">create</span>(dto);
+    <span class="kw">return</span> <span class="kw">this</span>.repo.<span class="fn">save</span>(user);
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mongoose -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>mongoose</div>
+          <div class="package-install">npm install mongoose</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">MongoDB object modeling for Node.js. Defines schemas, models, and middleware (hooks) for MongoDB. Includes built-in validation, query building, and population (joins).</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">MongoDB</span>
+            <span class="use-tag">Schema definition</span>
+            <span class="use-tag">Document hooks</span>
+            <span class="use-tag">Population (joins)</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Mongoose Schema + Model + CRUD</div>
+            <pre><span class="kw">import</span> mongoose, { Schema, Document } <span class="kw">from</span> <span class="str">'mongoose'</span>;
+
+<span class="kw">interface</span> <span class="type">IUser</span> <span class="kw">extends</span> <span class="type">Document</span> {
+  name: <span class="type">string</span>; email: <span class="type">string</span>; role: <span class="type">string</span>;
+}
+
+<span class="kw">const</span> UserSchema = <span class="kw">new</span> <span class="type">Schema</span>&lt;<span class="type">IUser</span>&gt;({
+  name:  { type: <span class="type">String</span>, required: <span class="kw">true</span>, trim: <span class="kw">true</span> },
+  email: { type: <span class="type">String</span>, required: <span class="kw">true</span>, unique: <span class="kw">true</span>, lowercase: <span class="kw">true</span> },
+  role:  { type: <span class="type">String</span>, enum: [<span class="str">'user'</span>, <span class="str">'admin'</span>], default: <span class="str">'user'</span> },
+}, { timestamps: <span class="kw">true</span> });
+
+<span class="cmt">// Pre-save hook: hash password before storing</span>
+UserSchema.<span class="fn">pre</span>(<span class="str">'save'</span>, <span class="kw">async function</span>() {
+  <span class="kw">if</span> (<span class="kw">this</span>.<span class="fn">isModified</span>(<span class="str">'password'</span>)) {
+    <span class="kw">this</span>.password = <span class="kw">await</span> bcrypt.<span class="fn">hash</span>(<span class="kw">this</span>.password, <span class="num">12</span>);
+  }
+});
+
+<span class="kw">const</span> User = mongoose.<span class="fn">model</span>&lt;<span class="type">IUser</span>&gt;(<span class="str">'User'</span>, UserSchema);
+
+<span class="cmt">// CRUD operations</span>
+<span class="kw">const</span> user    = <span class="kw">await</span> User.<span class="fn">create</span>({ name: <span class="str">'Alice'</span>, email: <span class="str">'alice@example.com'</span> });
+<span class="kw">const</span> users   = <span class="kw">await</span> User.<span class="fn">find</span>({ role: <span class="str">'user'</span> }).<span class="fn">sort</span>({ createdAt: -<span class="num">1</span> }).<span class="fn">limit</span>(<span class="num">20</span>);
+<span class="kw">const</span> updated = <span class="kw">await</span> User.<span class="fn">findByIdAndUpdate</span>(id, { name: <span class="str">'Alice S.'</span> }, { new: <span class="kw">true</span> });</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ==================== AUTH ==================== -->
+    <section class="category" id="auth">
+      <div class="category-header">
+        <span class="category-badge" style="background:#3B82F620;color:#3B82F6;border:1px solid #3B82F640">AUTH</span>
+        <h2 class="category-title">Auth &amp; Middleware</h2>
+      </div>
+      <p class="category-desc">Handle authentication, authorization, and cross-origin access — the security layer between clients and your API.</p>
+
+      <!-- jsonwebtoken -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>jsonwebtoken</div>
+          <div class="package-install">npm install jsonwebtoken @types/jsonwebtoken</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Sign and verify JSON Web Tokens (JWT). Stateless authentication — the token carries user identity and is verified on every request without hitting the database.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">User authentication</span>
+            <span class="use-tag">Stateless sessions</span>
+            <span class="use-tag">API key signing</span>
+            <span class="use-tag">Refresh tokens</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · JWT Auth Middleware + Login Route</div>
+            <pre"><span class="kw">import</span> jwt <span class="kw">from</span> <span class="str">'jsonwebtoken'</span>;
+
+<span class="kw">const</span> SECRET = process.env.JWT_SECRET!;
+
+<span class="cmt">// Login: sign a token</span>
+app.<span class="fn">post</span>(<span class="str">'/auth/login'</span>, <span class="kw">async</span> (req, res) =&gt; {
+  <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">validateCredentials</span>(req.body);
+  <span class="kw">if</span> (!user) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid credentials'</span> });
+
+  <span class="kw">const</span> token = jwt.<span class="fn">sign</span>(
+    { userId: user.id, role: user.role },  <span class="cmt">// Payload</span>
+    SECRET,
+    { expiresIn: <span class="str">'15m'</span> }                 <span class="cmt">// Short-lived access token</span>
+  );
+
+  <span class="kw">const</span> refreshToken = jwt.<span class="fn">sign</span>(
+    { userId: user.id },
+    SECRET,
+    { expiresIn: <span class="str">'7d'</span> }
+  );
+
+  res.<span class="fn">json</span>({ token, refreshToken });
+});
+
+<span class="cmt">// Auth middleware: verify token on protected routes</span>
+<span class="kw">const</span> <span class="fn">authenticate</span> = (req, res, next) =&gt; {
+  <span class="kw">const</span> token = req.headers.authorization?.<span class="fn">replace</span>(<span class="str">'Bearer '</span>, <span class="str">''</span>);
+  <span class="kw">if</span> (!token) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'No token provided'</span> });
+
+  <span class="kw">try</span> {
+    req.user = jwt.<span class="fn">verify</span>(token, SECRET);
+    <span class="fn">next</span>();
+  } <span class="kw">catch</span> {
+    res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid or expired token'</span> });
+  }
+};
+
+<span class="cmt">// Protected route</span>
+app.<span class="fn">get</span>(<span class="str">'/profile'</span>, authenticate, (req, res) =&gt; {
+  res.<span class="fn">json</span>({ userId: req.user.userId, role: req.user.role });
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- bcryptjs -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>bcryptjs</div>
+          <div class="package-install">npm install bcryptjs @types/bcryptjs</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Hash passwords using bcrypt — a slow, salted hashing algorithm designed specifically for passwords. Never store plain-text passwords. bcryptjs is the pure-JS version (no native dependencies).</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Password hashing</span>
+            <span class="use-tag">Password comparison</span>
+            <span class="use-tag">Salting</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Hash and Verify Passwords</div>
+            <pre><span class="kw">import</span> bcrypt <span class="kw">from</span> <span class="str">'bcryptjs'</span>;
+
+<span class="cmt">// Register: hash before storing</span>
+app.<span class="fn">post</span>(<span class="str">'/auth/register'</span>, <span class="kw">async</span> (req, res) =&gt; {
+  <span class="kw">const</span> { name, email, password } = req.body;
+
+  <span class="cmt">// Cost factor 12: ~250ms — slow enough to resist brute force</span>
+  <span class="kw">const</span> hashedPassword = <span class="kw">await</span> bcrypt.<span class="fn">hash</span>(password, <span class="num">12</span>);
+
+  <span class="kw">const</span> user = <span class="kw">await</span> db.users.<span class="fn">create</span>({
+    name, email,
+    password: hashedPassword  <span class="cmt">// Store hash, never plain text</span>
+  });
+
+  res.<span class="fn">status</span>(<span class="num">201</span>).<span class="fn">json</span>({ id: user.id, email: user.email });
+});
+
+<span class="cmt">// Login: compare input with stored hash</span>
+app.<span class="fn">post</span>(<span class="str">'/auth/login'</span>, <span class="kw">async</span> (req, res) =&gt; {
+  <span class="kw">const</span> { email, password } = req.body;
+  <span class="kw">const</span> user = <span class="kw">await</span> db.users.<span class="fn">findByEmail</span>(email);
+
+  <span class="kw">if</span> (!user) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid credentials'</span> });
+
+  <span class="kw">const</span> isMatch = <span class="kw">await</span> bcrypt.<span class="fn">compare</span>(password, user.password);
+  <span class="kw">if</span> (!isMatch) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid credentials'</span> });
+
+  <span class="cmt">// Issue JWT token...</span>
+  res.<span class="fn">json</span>({ message: <span class="str">'Login successful'</span> });
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- cors -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>cors</div>
+          <div class="package-install">npm install cors @types/cors</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Enable Cross-Origin Resource Sharing so your frontend (on a different domain/port) can call your API. Configure which origins, methods, and headers are allowed.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Frontend ↔ API communication</span>
+            <span class="use-tag">Whitelist origins</span>
+            <span class="use-tag">Preflight requests</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · CORS Configuration</div>
+            <pre><span class="kw">import</span> cors <span class="kw">from</span> <span class="str">'cors'</span>;
+
+<span class="kw">const</span> allowedOrigins = [
+  <span class="str">'https://myapp.com'</span>,
+  <span class="str">'https://admin.myapp.com'</span>,
+  process.env.NODE_ENV === <span class="str">'development'</span> ? <span class="str">'http://localhost:3000'</span> : <span class="str">''</span>
+].<span class="fn">filter</span>(Boolean);
+
+app.<span class="fn">use</span>(<span class="fn">cors</span>({
+  origin: (origin, callback) =&gt; {
+    <span class="kw">if</span> (!origin || allowedOrigins.<span class="fn">includes</span>(origin)) {
+      <span class="fn">callback</span>(<span class="kw">null</span>, <span class="kw">true</span>);
+    } <span class="kw">else</span> {
+      <span class="fn">callback</span>(<span class="kw">new</span> <span class="type">Error</span>(<span class="str">`Origin ${origin} not allowed`</span>));
+    }
+  },
+  methods:          [<span class="str">'GET'</span>, <span class="str">'POST'</span>, <span class="str">'PUT'</span>, <span class="str">'PATCH'</span>, <span class="str">'DELETE'</span>],
+  allowedHeaders:   [<span class="str">'Content-Type'</span>, <span class="str">'Authorization'</span>],
+  credentials:      <span class="kw">true</span>,   <span class="cmt">// Allow cookies/auth headers</span>
+  maxAge:           <span class="num">86400</span>,  <span class="cmt">// Cache preflight for 24h</span>
+}));</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ==================== UTILS ==================== -->
+    <section class="category" id="utils">
+      <div class="category-header">
+        <span class="category-badge" style="background:#6366F120;color:#6366F1;border:1px solid #6366F140">UTILS</span>
+        <h2 class="category-title">Utilities &amp; Logging</h2>
+      </div>
+      <p class="category-desc">Essential supporting packages — environment config, structured logging, HTTP clients, and unique ID generation.</p>
+
+      <!-- dotenv -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>dotenv</div>
+          <div class="package-install">npm install dotenv</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Loads environment variables from a <code style="font-family:monospace;color:#6366F1">.env</code> file into <code style="font-family:monospace;color:#6366F1">process.env</code>. Keeps secrets and config out of source code. Always add <code style="font-family:monospace;color:#6366F1">.env</code> to <code style="font-family:monospace;color:#6366F1">.gitignore</code>.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">API keys</span>
+            <span class="use-tag">DB connection strings</span>
+            <span class="use-tag">Environment config</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · dotenv with Type-Safe Config</div>
+            <pre"><span class="cmt"># .env file</span>
+PORT=3000
+DATABASE_URL=postgresql://user:pass@localhost:5432/mydb
+JWT_SECRET=super-secret-key-here
+REDIS_URL=redis://localhost:6379
+
+<span class="cmt">// config.ts — load and validate all env vars at startup</span>
+<span class="kw">import</span> <span class="str">'dotenv/config'</span>;
+
+<span class="kw">const</span> <span class="fn">requireEnv</span> = (key: <span class="type">string</span>): <span class="type">string</span> =&gt; {
+  <span class="kw">const</span> value = process.env[key];
+  <span class="kw">if</span> (!value) <span class="kw">throw new</span> <span class="type">Error</span>(<span class="str">`Missing required env var: ${key}`</span>);
+  <span class="kw">return</span> value;
+};
+
+<span class="kw">export const</span> config = {
+  port:        parseInt(process.env.PORT || <span class="str">'3000'</span>),
+  databaseUrl: <span class="fn">requireEnv</span>(<span class="str">'DATABASE_URL'</span>),
+  jwtSecret:   <span class="fn">requireEnv</span>(<span class="str">'JWT_SECRET'</span>),
+  redisUrl:    process.env.REDIS_URL,  <span class="cmt">// Optional</span>
+  isDev:       process.env.NODE_ENV === <span class="str">'development'</span>,
+};</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- winston -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>winston</div>
+          <div class="package-install">npm install winston</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Versatile logging library with multiple transports (console, file, external services). Supports log levels, JSON formatting, and metadata — essential for production observability.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Request logging</span>
+            <span class="use-tag">Error tracking</span>
+            <span class="use-tag">Log to file/cloud</span>
+            <span class="use-tag">Log levels</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Winston Logger Setup + Request Logging</div>
+            <pre"><span class="kw">import</span> winston <span class="kw">from</span> <span class="str">'winston'</span>;
+
+<span class="kw">const</span> logger = winston.<span class="fn">createLogger</span>({
+  level: process.env.NODE_ENV === <span class="str">'production'</span> ? <span class="str">'info'</span> : <span class="str">'debug'</span>,
+  format: winston.format.<span class="fn">combine</span>(
+    winston.format.<span class="fn">timestamp</span>(),
+    winston.format.<span class="fn">errors</span>({ stack: <span class="kw">true</span> }),
+    winston.format.<span class="fn">json</span>()
+  ),
+  transports: [
+    <span class="kw">new</span> winston.transports.<span class="fn">Console</span>({
+      format: winston.format.<span class="fn">combine</span>(
+        winston.format.<span class="fn">colorize</span>(),
+        winston.format.<span class="fn">simple</span>()
+      )
+    }),
+    <span class="kw">new</span> winston.transports.<span class="fn">File</span>({ filename: <span class="str">'logs/error.log'</span>, level: <span class="str">'error'</span> }),
+    <span class="kw">new</span> winston.transports.<span class="fn">File</span>({ filename: <span class="str">'logs/combined.log'</span> }),
+  ]
+});
+
+<span class="cmt">// Request logger middleware</span>
+app.<span class="fn">use</span>((req, res, next) =&gt; {
+  res.<span class="fn">on</span>(<span class="str">'finish'</span>, () =&gt; {
+    logger.<span class="fn">info</span>(<span class="str">'HTTP Request'</span>, {
+      method: req.method,
+      path:   req.path,
+      status: res.statusCode,
+      ip:     req.ip,
+    });
+  });
+  <span class="fn">next</span>();
+});</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- axios -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>axios</div>
+          <div class="package-install">npm install axios</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Promise-based HTTP client for making outbound API calls from your server — calling third-party APIs, other microservices, or webhooks. Includes interceptors, automatic JSON parsing, and timeout support.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Third-party API calls</span>
+            <span class="use-tag">Service-to-service</span>
+            <span class="use-tag">Webhooks</span>
+            <span class="use-tag">Request interceptors</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · Axios Instance with Interceptors</div>
+            <pre><span class="kw">import</span> axios <span class="kw">from</span> <span class="str">'axios'</span>;
+
+<span class="cmt">// Create a configured instance for a specific service</span>
+<span class="kw">const</span> paymentApi = axios.<span class="fn">create</span>({
+  baseURL: <span class="str">'https://api.stripe.com/v1'</span>,
+  timeout: <span class="num">10000</span>,
+  headers: { Authorization: <span class="str">`Bearer ${process.env.STRIPE_KEY}`</span> }
+});
+
+<span class="cmt">// Request interceptor: add trace ID to every request</span>
+paymentApi.interceptors.request.<span class="fn">use</span>((config) =&gt; {
+  config.headers[<span class="str">'X-Trace-ID'</span>] = <span class="fn">generateTraceId</span>();
+  <span class="kw">return</span> config;
+});
+
+<span class="cmt">// Response interceptor: normalize errors</span>
+paymentApi.interceptors.response.<span class="fn">use</span>(
+  (response) =&gt; response.data,
+  (error) =&gt; {
+    logger.<span class="fn">error</span>(<span class="str">'Payment API error'</span>, { status: error.response?.status });
+    <span class="kw">throw new</span> <span class="type">PaymentError</span>(error.response?.data?.message);
+  }
+);
+
+<span class="cmt">// Usage in service</span>
+<span class="kw">async function</span> <span class="fn">chargeCustomer</span>(amount: <span class="type">number</span>, customerId: <span class="type">string</span>) {
+  <span class="kw">const</span> charge = <span class="kw">await</span> paymentApi.<span class="fn">post</span>(<span class="str">'/charges'</span>, {
+    amount, currency: <span class="str">'usd'</span>, customer: customerId
+  });
+  <span class="kw">return</span> charge;
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- uuid -->
+      <div class="package">
+        <div class="package-header">
+          <div class="package-name"><span class="prefix">$ </span>uuid</div>
+          <div class="package-install">npm install uuid @types/uuid</div>
+        </div>
+        <div class="package-body">
+          <p class="package-desc">Generate RFC-compliant universally unique identifiers. v4 (random) is most common for entity IDs. v7 (time-ordered) is increasingly preferred for database primary keys as it's sortable.</p>
+          <div class="package-use-label">COMMON USE CASES</div>
+          <div class="package-uses">
+            <span class="use-tag">Entity IDs</span>
+            <span class="use-tag">Request trace IDs</span>
+            <span class="use-tag">Idempotency keys</span>
+            <span class="use-tag">Session tokens</span>
+          </div>
+          <div class="code-block">
+            <div class="code-label">TypeScript · UUID Generation Patterns</div>
+            <pre><span class="kw">import</span> { v4 <span class="kw">as</span> uuidv4, v7 <span class="kw">as</span> uuidv7, validate } <span class="kw">from</span> <span class="str">'uuid'</span>;
+
+<span class="cmt">// v4: random UUID — great for user IDs, order IDs</span>
+<span class="kw">const</span> userId   = <span class="fn">uuidv4</span>();  <span class="cmt">// '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d'</span>
+
+<span class="cmt">// v7: time-ordered UUID — better for DB primary keys (sortable, indexed)</span>
+<span class="kw">const</span> recordId = <span class="fn">uuidv7</span>();  <span class="cmt">// Starts with current timestamp prefix</span>
+
+<span class="cmt">// Validate a UUID from request params</span>
+app.<span class="fn">get</span>(<span class="str">'/users/:id'</span>, (req, res, next) =&gt; {
+  <span class="kw">if</span> (!<span class="fn">validate</span>(req.params.id)) {
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">400</span>).<span class="fn">json</span>({ error: <span class="str">'Invalid user ID format'</span> });
+  }
+  <span class="fn">next</span>();
+});
+
+<span class="cmt">// Add trace ID to all requests for logging</span>
+app.<span class="fn">use</span>((req, res, next) =&gt; {
+  req.traceId = <span class="fn">uuidv4</span>();
+  res.<span class="fn">setHeader</span>(<span class="str">'X-Request-ID'</span>, req.traceId);
+  <span class="fn">next</span>();
+});</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div style="margin-top:4rem;padding-top:2rem;border-top:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;">
+      JAVASCRIPT &amp; TYPESCRIPT ECOSYSTEM · NPM PACKAGE REFERENCE · 2025<br>
+      <span style="opacity:0.5">Parse → Validate → Transform → Sanitize → Store</span>
+    </div>
+
+  </main>
+</div>
+
+<a class="back-top" href="#top">↑ TOP</a>
+
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>

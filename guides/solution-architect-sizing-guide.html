@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Size Estimation — Solution Architect's Field Manual</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161d;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --accent: #f0a500;
+    --accent2: #e05a3a;
+    --accent3: #3ab5e0;
+    --text: #d4d8e8;
+    --muted: #6b7494;
+    --green: #3ae08a;
+    --purple: #a374f5;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ─────────────────────────────────────── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 6rem 8vw 4rem;
+    position: relative;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 30%, rgba(240,165,0,.07) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 60% at 10% 80%, rgba(58,181,224,.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp .6s .1s ease forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    color: #fff;
+    max-width: 820px;
+    opacity: 0;
+    animation: fadeUp .7s .25s ease forwards;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .hero-sub {
+    margin-top: 1.8rem;
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 560px;
+    opacity: 0;
+    animation: fadeUp .7s .4s ease forwards;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 3.5rem;
+    opacity: 0;
+    animation: fadeUp .7s .55s ease forwards;
+  }
+
+  .stat-pill {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+  }
+
+  .stat-pill span:first-child {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .stat-pill span:last-child {
+    font-size: .75rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .grid-lines {
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 45%;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: .4;
+    mask-image: linear-gradient(to left, rgba(0,0,0,.6), transparent);
+  }
+
+  /* ── NAV PILLS ────────────────────────────────── */
+  .nav-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,20,.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: .8rem 8vw;
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+  }
+
+  .nav-bar a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color .2s;
+  }
+
+  .nav-bar a:hover { color: var(--accent); }
+
+  /* ── SECTIONS ─────────────────────────────────── */
+  section {
+    padding: 5rem 8vw;
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+
+  section.visible { opacity: 1; transform: none; }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 1.2rem;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .6rem;
+  }
+
+  p { color: var(--text); margin-bottom: 1rem; }
+
+  /* ── CARDS ────────────────────────────────────── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.2rem;
+    margin-top: 2.5rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.8rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, transform .2s;
+  }
+
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--accent));
+  }
+
+  .card-icon {
+    font-size: 1.6rem;
+    margin-bottom: .9rem;
+  }
+
+  .card h3 { font-size: 1.05rem; margin-bottom: .5rem; }
+
+  .card p { font-size: .9rem; color: var(--muted); margin: 0; }
+
+  /* ── FORMULA BOXES ────────────────────────────── */
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 1.4rem 1.8rem;
+    margin: 1.4rem 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .9rem;
+    color: var(--accent);
+    overflow-x: auto;
+  }
+
+  .formula .comment {
+    color: var(--muted);
+    font-size: .78rem;
+  }
+
+  /* ── WORKED EXAMPLE ───────────────────────────── */
+  .example-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 2rem;
+  }
+
+  .example-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: .9rem 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+  }
+
+  .example-header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+
+  .example-body {
+    padding: 1.8rem;
+  }
+
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: .7rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .9rem;
+    gap: 1rem;
+  }
+
+  .calc-row:last-child { border: none; }
+
+  .calc-row .label { color: var(--muted); }
+
+  .calc-row .value {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .calc-row.highlight { background: rgba(240,165,0,.05); border-radius: 3px; padding: .7rem .5rem; }
+
+  /* ── PIPELINE DIAGRAM ─────────────────────────── */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    overflow-x: auto;
+    padding: 1.5rem 0;
+    margin: 2rem 0;
+  }
+
+  .pipe-node {
+    flex-shrink: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 1.4rem;
+    text-align: center;
+    min-width: 130px;
+    transition: border-color .2s;
+  }
+
+  .pipe-node:hover { border-color: var(--accent3); }
+
+  .pipe-node .node-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent3);
+    margin-bottom: .4rem;
+  }
+
+  .pipe-node .node-value {
+    font-size: .9rem;
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .pipe-node .node-sub {
+    font-size: .72rem;
+    color: var(--muted);
+    margin-top: .25rem;
+  }
+
+  .pipe-arrow {
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 1.1rem;
+  }
+
+  /* ── TABLE ────────────────────────────────────── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1.5rem;
+    font-size: .88rem;
+  }
+
+  .data-table th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: .8rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table td {
+    padding: .8rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .data-table tr:hover td { background: var(--surface2); }
+
+  .data-table .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    font-size: .82rem;
+  }
+
+  /* ── BADGE ────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    padding: .2rem .6rem;
+    border-radius: 2px;
+    font-weight: 500;
+  }
+
+  .badge-green { background: rgba(58,224,138,.12); color: var(--green); }
+  .badge-orange { background: rgba(240,165,0,.12); color: var(--accent); }
+  .badge-red { background: rgba(224,90,58,.12); color: var(--accent2); }
+  .badge-blue { background: rgba(58,181,224,.12); color: var(--accent3); }
+  .badge-purple { background: rgba(163,116,245,.12); color: var(--purple); }
+
+  /* ── CHECKLIST ────────────────────────────────── */
+  .checklist { list-style: none; margin: 1.2rem 0; }
+
+  .checklist li {
+    display: flex;
+    gap: .8rem;
+    padding: .55rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: .92rem;
+    color: var(--text);
+  }
+
+  .checklist li::before {
+    content: '→';
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    flex-shrink: 0;
+    margin-top: .05rem;
+  }
+
+  /* ── LATENCY TIMELINE ─────────────────────────── */
+  .latency-bar {
+    margin: 1.2rem 0;
+  }
+
+  .latency-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: .8rem;
+    margin-bottom: .4rem;
+  }
+
+  .latency-label span:first-child { color: var(--muted); }
+
+  .latency-label span:last-child {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+  }
+
+  .bar-track {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--bar-color, var(--accent));
+    transition: width 1s cubic-bezier(.16,1,.3,1);
+  }
+
+  /* ── CALL-OUT ─────────────────────────────────── */
+  .callout {
+    background: rgba(240,165,0,.06);
+    border: 1px solid rgba(240,165,0,.25);
+    border-radius: 4px;
+    padding: 1.2rem 1.6rem;
+    margin: 1.5rem 0;
+    font-size: .9rem;
+  }
+
+  .callout strong {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: .5rem;
+  }
+
+  /* ── TWO COLUMN ───────────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr; }
+    .hero-stats { flex-wrap: wrap; gap: 1.5rem; }
+    .pipeline { flex-direction: column; }
+    .pipe-arrow { transform: rotate(90deg); }
+  }
+
+  /* ── FOOTER ───────────────────────────────────── */
+  footer {
+    padding: 3rem 8vw;
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── ANIMATIONS ───────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  /* ── SCROLLBAR ────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<!-- ══ HERO ═════════════════════════════════════════ -->
+<div class="hero">
+  <div class="grid-lines"></div>
+  <p class="hero-tag">Solution Architect Field Manual · 2026 Edition</p>
+  <h1>Size Estimation for<br><em>High-Throughput</em><br>Systems</h1>
+  <p class="hero-sub">A practitioner's guide to capacity planning for event-driven architectures targeting <strong>10,000 RPS</strong> with <strong>p99 latency &lt; target</strong> — plus every major estimation method used in modern software development.</p>
+  <div class="hero-stats">
+    <div class="stat-pill"><span>10K</span><span>Requests / sec</span></div>
+    <div class="stat-pill"><span>p99</span><span>Latency target</span></div>
+    <div class="stat-pill"><span>864M</span><span>Requests / day</span></div>
+    <div class="stat-pill"><span>6+</span><span>Estimation methods</span></div>
+  </div>
+</div>
+
+<!-- ══ NAV ═══════════════════════════════════════════ -->
+<nav class="nav-bar">
+  <a href="#fundamentals">Fundamentals</a>
+  <a href="#eda">EDA Sizing</a>
+  <a href="#worked">Worked Example</a>
+  <a href="#latency">Latency Budget</a>
+  <a href="#infra">Infrastructure</a>
+  <a href="#methods">Other Methods</a>
+  <a href="#checklist">Checklist</a>
+</nav>
+
+<!-- ══ FUNDAMENTALS ══════════════════════════════════ -->
+<section id="fundamentals">
+  <p class="section-label">01 · Foundations</p>
+  <h2>Core Sizing Principles</h2>
+  <p>Before touching a sizing spreadsheet, a Solution Architect must ground the exercise in three universal laws that govern all distributed systems.</p>
+
+  <div class="card-grid">
+    <div class="card" style="--card-accent: var(--accent)">
+      <div class="card-icon">⚖️</div>
+      <h3>Little's Law</h3>
+      <p>The average number of items in a system equals the arrival rate multiplied by the average time spent. Foundational for queue-depth and concurrency calculations.</p>
+    </div>
+    <div class="card" style="--card-accent: var(--accent2)">
+      <div class="card-icon">📐</div>
+      <h3>Amdahl's Law</h3>
+      <p>Theoretical speedup is limited by the sequential portion of the workload. Guides parallelism decisions — there are diminishing returns beyond a certain scale.</p>
+    </div>
+    <div class="card" style="--card-accent: var(--accent3)">
+      <div class="card-icon">🌊</div>
+      <h3>Universal Scalability Law</h3>
+      <p>Extends Amdahl's to account for coherency penalties (crosstalk between nodes). Critical for predicting performance degradation beyond the linear scaling regime.</p>
+    </div>
+  </div>
+
+  <div class="formula">
+    <span class="comment">// Little's Law — N = λ × W</span><br>
+    N (concurrent requests) = Arrival Rate (λ) × Average Response Time (W)<br><br>
+    <span class="comment">// For 10K RPS @ 50ms avg latency:</span><br>
+    N = 10,000 req/s × 0.050 s = <strong>500 concurrent requests in-flight</strong>
+  </div>
+</section>
+
+<!-- ══ EDA SIZING ═════════════════════════════════════ -->
+<section id="eda">
+  <p class="section-label">02 · Event-Driven Architecture</p>
+  <h2>EDA Sizing Methodology</h2>
+  <p>Event-driven architectures decouple producers from consumers via a message broker. Sizing must account for every component in the chain: producers, broker, consumers, and downstream storage.</p>
+
+  <div class="pipeline">
+    <div class="pipe-node">
+      <div class="node-label">Producers</div>
+      <div class="node-value">10,000 RPS</div>
+      <div class="node-sub">event generators</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node">
+      <div class="node-label">Load Balancer</div>
+      <div class="node-value">L4 / L7</div>
+      <div class="node-sub">ingress tier</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node">
+      <div class="node-label">Broker</div>
+      <div class="node-value">Kafka / Pulsar</div>
+      <div class="node-sub">partitioned topics</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node">
+      <div class="node-label">Consumers</div>
+      <div class="node-value">Consumer Groups</div>
+      <div class="node-sub">parallel processing</div>
+    </div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-node">
+      <div class="node-label">Sinks</div>
+      <div class="node-value">DB / Cache / S3</div>
+      <div class="node-sub">persistence layer</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div>
+      <h3>Step 1 — Throughput Decomposition</h3>
+      <p>Convert peak RPS into per-layer requirements before sizing any single component.</p>
+      <div class="formula">
+        Peak RPS     = 10,000 msg/s<br>
+        Safety factor = ×2.5 (burst headroom)<br>
+        Design target = <strong>25,000 msg/s</strong><br><br>
+        <span class="comment">// Daily volume</span><br>
+        10,000 × 86,400 = 864,000,000 events/day
+      </div>
+    </div>
+    <div>
+      <h3>Step 2 — Event Payload Sizing</h3>
+      <p>Estimate average payload to determine network bandwidth, broker storage, and serialization overhead.</p>
+      <div class="formula">
+        Avg event size  = 512 bytes<br>
+        Throughput bw   = 10K × 512 B = <strong>5 MB/s</strong><br>
+        Replication (×3)= 15 MB/s<br>
+        Daily storage   = 864M × 512 B ≈ <strong>442 GB/day</strong>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:2.5rem;">Step 3 — Kafka Partition Sizing</h3>
+  <p>Partitions are the unit of parallelism. Under-partitioning is the #1 cause of EDA bottlenecks.</p>
+
+  <div class="formula">
+    <span class="comment">// Rule of thumb: 1 partition ≈ 10–30 MB/s throughput</span><br>
+    Min partitions = Design throughput ÷ Per-partition throughput<br>
+    Min partitions = 25,000 msg/s ÷ 1,000 msg/s/partition = <strong>25 partitions</strong><br><br>
+    <span class="comment">// Round to power of 2 for even key distribution</span><br>
+    Recommended   = <strong>32 partitions</strong> (with 3 brokers → ~11 partitions/broker)<br><br>
+    <span class="comment">// Consumer group sizing: consumers ≤ partitions</span><br>
+    Consumer pods  = 32 (one per partition for max parallelism)
+  </div>
+
+  <h3 style="margin-top:2rem;">Step 4 — Consumer Sizing</h3>
+  <div class="formula">
+    <span class="comment">// Each consumer must process its share</span><br>
+    Per-consumer rate = 10,000 ÷ 32 = 312.5 msg/s<br>
+    Per-consumer with safety = 312.5 × 2.5 = <strong>~781 msg/s per pod</span><br><br>
+    <span class="comment">// Processing time budget (p99 target = 200ms end-to-end)</span><br>
+    Consumer processing time budget ≤ 80ms (40% of budget)<br>
+    Broker propagation budget       ≤ 20ms<br>
+    Downstream write budget         ≤ 50ms<br>
+    Network + serialization         ≤ 50ms
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Sizing Parameter</th>
+        <th>Recommended Value</th>
+        <th>Rationale</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Kafka Brokers</td>
+        <td class="mono">broker count</td>
+        <td><span class="badge badge-orange">6 brokers</span></td>
+        <td>RF=3, min ISR=2; allows 2-broker failure</td>
+      </tr>
+      <tr>
+        <td>Kafka Partitions</td>
+        <td class="mono">num.partitions</td>
+        <td><span class="badge badge-orange">32</span></td>
+        <td>Max parallelism; power-of-2 for key routing</td>
+      </tr>
+      <tr>
+        <td>Consumer Pods</td>
+        <td class="mono">replicas</td>
+        <td><span class="badge badge-blue">32 (HPA min 16)</span></td>
+        <td>1-to-1 with partitions; HPA for demand bursts</td>
+      </tr>
+      <tr>
+        <td>Consumer CPU</td>
+        <td class="mono">resources.requests</td>
+        <td><span class="badge badge-green">1 vCPU / 2 GB RAM</span></td>
+        <td>CPU for deserialization; RAM for batch buffers</td>
+      </tr>
+      <tr>
+        <td>Retention</td>
+        <td class="mono">log.retention.hours</td>
+        <td><span class="badge badge-purple">168 h (7 days)</span></td>
+        <td>Replay window + incident investigation</td>
+      </tr>
+      <tr>
+        <td>Segment size</td>
+        <td class="mono">log.segment.bytes</td>
+        <td><span class="badge badge-orange">512 MB</span></td>
+        <td>Balances compaction overhead vs. seek time</td>
+      </tr>
+      <tr>
+        <td>Fetch latency</td>
+        <td class="mono">fetch.max.wait.ms</td>
+        <td><span class="badge badge-green">5 ms</span></td>
+        <td>Low-latency mode; trade batch efficiency</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ WORKED EXAMPLE ═════════════════════════════════ -->
+<section id="worked">
+  <p class="section-label">03 · Hands-On Calculation</p>
+  <h2>Worked Example: 10K RPS Order-Processing Platform</h2>
+  <p>A real-world e-commerce order service. Events flow through Kafka to inventory, payment, and notification consumers, then persist to PostgreSQL and Redis.</p>
+
+  <div class="example-box">
+    <div class="example-header">
+      <div class="dot" style="background:var(--accent2)"></div>
+      <div class="dot" style="background:var(--accent)"></div>
+      <div class="dot" style="background:var(--green)"></div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);margin-left:.5rem">capacity-model.calc</span>
+    </div>
+    <div class="example-body">
+      <div class="calc-row"><span class="label">Peak RPS (measured p99 day)</span><span class="value">10,000 req/s</span></div>
+      <div class="calc-row"><span class="label">Average event payload</span><span class="value">768 bytes</span></div>
+      <div class="calc-row"><span class="label">Inbound bandwidth</span><span class="value">7.5 MB/s</span></div>
+      <div class="calc-row"><span class="label">With Kafka replication ×3</span><span class="value">22.5 MB/s broker write I/O</span></div>
+      <div class="calc-row"><span class="label">Daily event volume</span><span class="value">864,000,000 events</span></div>
+      <div class="calc-row"><span class="label">Daily raw storage</span><span class="value">≈ 664 GB / day</span></div>
+      <div class="calc-row"><span class="label">7-day retention storage</span><span class="value">≈ 4.6 TB (compressed ~1.4 TB)</span></div>
+      <div class="calc-row"><span class="label">Kafka brokers (6-node cluster)</span><span class="value">6 × 8 vCPU / 64 GB / 2 TB NVMe</span></div>
+      <div class="calc-row"><span class="label">Consumer pods (order-svc)</span><span class="value">32 pods × (1 vCPU / 2 GB)</span></div>
+      <div class="calc-row"><span class="label">DB write IOPS (PostgreSQL)</span><span class="value">~25,000 IOPS (with write batching)</span></div>
+      <div class="calc-row"><span class="label">Redis ops/sec (cache layer)</span><span class="value">~50,000 ops/s (5:1 read:write)</span></div>
+      <div class="calc-row highlight"><span class="label"><strong>Total infra cost estimate (cloud)</strong></span><span class="value">$18K–$25K / month (AWS us-east-1)</span></div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>Architect's Note</strong>
+    Always include a <em>safety multiplier of 2–3×</em> for burst traffic. A viral event, flash sale, or retry storm can instantly 3× your normal peak. Design for the burst, bill for the average using autoscaling.
+  </div>
+</section>
+
+<!-- ══ LATENCY BUDGET ═════════════════════════════════ -->
+<section id="latency">
+  <p class="section-label">04 · Latency Engineering</p>
+  <h2>p99 Latency Budget Decomposition</h2>
+  <p>A p99 latency target means 99 out of every 100 requests must complete within the budget. Achieving this requires explicitly budgeting every network hop, compute stage, and I/O operation — and designing for tail latency, not averages.</p>
+
+  <div class="callout">
+    <strong>p99 vs p50 — Why It Matters</strong>
+    At 10,000 RPS, a p99 of 200ms means <em>100 requests per second</em> are slow. At 10K RPS with a 1-second SLA breach window, 1% tail latency is 86,400 slow requests per day. Size for the tail, not the median.
+  </div>
+
+  <h3 style="margin-top:1.5rem;">Example: 200ms p99 Budget (end-to-end)</h3>
+
+  <div class="latency-bar">
+    <div class="latency-label"><span>Client → Load Balancer (TLS + TCP)</span><span>10ms (5%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:5%;--bar-color:var(--accent3)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Load Balancer → Producer Service</span><span>5ms (2.5%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:2.5%;--bar-color:var(--accent3)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Producer Serialization + Validation</span><span>15ms (7.5%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:7.5%;--bar-color:var(--accent)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Kafka Produce (acks=1, async)</span><span>10ms (5%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:5%;--bar-color:var(--accent)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Broker Replication + Commit</span><span>15ms (7.5%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:7.5%;--bar-color:var(--accent2)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Consumer Poll + Deserialization</span><span>20ms (10%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:10%;--bar-color:var(--accent2)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Business Logic Processing</span><span>60ms (30%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:30%;--bar-color:var(--accent2)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>DB Write (PostgreSQL with connection pool)</span><span>40ms (20%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:20%;--bar-color:var(--purple)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Cache Write (Redis)</span><span>5ms (2.5%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:2.5%;--bar-color:var(--green)"></div></div>
+  </div>
+  <div class="latency-bar">
+    <div class="latency-label"><span>Response Path + Jitter Budget</span><span>20ms (10%)</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:10%;--bar-color:var(--muted)"></div></div>
+  </div>
+
+  <h3 style="margin-top:2rem;">Tail Latency Mitigation Techniques</h3>
+  <div class="card-grid" style="margin-top:1rem;">
+    <div class="card" style="--card-accent:var(--green)">
+      <div class="card-icon">🔁</div>
+      <h3>Hedged Requests</h3>
+      <p>Send a duplicate request to a second replica after a short delay (e.g., p90 latency). Return whichever responds first. Reduces p99 at the cost of ~2× downstream load.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--accent3)">
+      <div class="card-icon">🎛️</div>
+      <h3>Backpressure + Rate Limiting</h3>
+      <p>Use token bucket or leaky bucket algorithms at the ingress to prevent consumer overload and queue depth blow-out during traffic spikes.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--purple)">
+      <div class="card-icon">🏃</div>
+      <h3>Connection Pooling</h3>
+      <p>Pre-warm DB and broker connections. At 10K RPS, TCP handshake overhead per request is fatal. PgBouncer (transaction mode) dramatically reduces DB latency tail.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--accent)">
+      <div class="card-icon">📦</div>
+      <h3>Micro-batching</h3>
+      <p>Kafka consumers can batch 100–1000 messages per poll cycle, amortizing deserialization and DB round-trip costs. Trade slight latency for 10–50× throughput gain.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ INFRASTRUCTURE ═════════════════════════════════ -->
+<section id="infra">
+  <p class="section-label">05 · Infrastructure Sizing</p>
+  <h2>Infrastructure Sizing Reference</h2>
+  <p>Cloud resource sizing for a 10K RPS event-driven platform using Kubernetes, Kafka, and managed databases. All numbers assume AWS us-east-1 on-demand pricing as a baseline.</p>
+
+  <table class="data-table">
+    <thead>
+      <tr><th>Tier</th><th>Component</th><th>Size</th><th>Count</th><th>Key Metrics</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-blue">Ingress</span></td>
+        <td>AWS ALB / Nginx</td>
+        <td class="mono">—</td>
+        <td>2+ AZs</td>
+        <td>25K conn/s, 10 Gbps</td>
+        <td>Enable HTTP/2, connection keep-alive</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-orange">Compute</span></td>
+        <td>Producer Services</td>
+        <td class="mono">c6i.xlarge</td>
+        <td>12 pods</td>
+        <td>4 vCPU / 8 GB</td>
+        <td>HPA on CPU 65%; stateless, scale freely</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-orange">Compute</span></td>
+        <td>Consumer Pods</td>
+        <td class="mono">c6i.2xlarge</td>
+        <td>32 pods</td>
+        <td>8 vCPU / 16 GB</td>
+        <td>KEDA scaling on consumer lag metric</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">Broker</span></td>
+        <td>Kafka Brokers</td>
+        <td class="mono">r6i.2xlarge</td>
+        <td>6 nodes</td>
+        <td>8 vCPU / 64 GB / 2TB NVMe</td>
+        <td>Spread across 3 AZs; RF=3</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">Broker</span></td>
+        <td>ZooKeeper / KRaft</td>
+        <td class="mono">m6i.large</td>
+        <td>3 nodes</td>
+        <td>2 vCPU / 8 GB</td>
+        <td>Prefer KRaft (Kafka 3.x) to remove ZK dep</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">Storage</span></td>
+        <td>PostgreSQL (RDS)</td>
+        <td class="mono">db.r6g.4xlarge</td>
+        <td>1 primary + 2 replica</td>
+        <td>16 vCPU / 128 GB / 64K IOPS</td>
+        <td>Read replicas for analytics; PgBouncer for pooling</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-green">Storage</span></td>
+        <td>Redis (ElastiCache)</td>
+        <td class="mono">cache.r6g.xlarge</td>
+        <td>3-node cluster</td>
+        <td>4 vCPU / 26 GB</td>
+        <td>Cluster mode; eviction policy = allkeys-lru</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-red">Observability</span></td>
+        <td>Prometheus + Grafana</td>
+        <td class="mono">m6i.2xlarge</td>
+        <td>2 nodes</td>
+        <td>8 vCPU / 32 GB</td>
+        <td>Thanos for long-term storage; 15s scrape interval</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="margin-top:2rem;">
+    <strong>Scaling Strategy</strong>
+    Use <strong>KEDA (Kubernetes Event-Driven Autoscaler)</strong> to scale consumer pods based on Kafka consumer group lag. This gives you event-driven autoscaling — pods scale up before latency degrades, not after. Target: consumer lag &lt; 5,000 messages (≈ 0.5s at 10K RPS).
+  </div>
+</section>
+
+<!-- ══ OTHER METHODS ══════════════════════════════════ -->
+<section id="methods">
+  <p class="section-label">06 · Estimation Methods in Software Development</p>
+  <h2>The Full Estimation Toolkit</h2>
+  <p>Size estimation extends beyond infrastructure. A complete Solution Architect must command all major effort, cost, and capacity estimation techniques across the SDLC.</p>
+
+  <div class="card-grid">
+    <div class="card" style="--card-accent:var(--accent)">
+      <div class="card-icon">🎯</div>
+      <h3>Story Points &amp; Planning Poker</h3>
+      <p><span class="badge badge-orange">Effort Sizing</span></p>
+      <p style="margin-top:.7rem">Relative complexity scoring (1, 2, 3, 5, 8, 13, 21) using Fibonacci sequence. Teams vote simultaneously to avoid anchoring bias. Best for sprint-level planning in Agile. Velocity (story points/sprint) is tracked to forecast delivery timelines.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--accent2)">
+      <div class="card-icon">📊</div>
+      <h3>Function Point Analysis (FPA)</h3>
+      <p><span class="badge badge-red">Functional Sizing</span></p>
+      <p style="margin-top:.7rem">IFPUG / COSMIC standard. Counts External Inputs, Outputs, Inquiries, Internal Logical Files, and External Interface Files. Each is weighted and summed into Unadjusted Function Points, then multiplied by a Value Adjustment Factor. Language-agnostic and contractually defensible.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--accent3)">
+      <div class="card-icon">📏</div>
+      <h3>COCOMO II</h3>
+      <p><span class="badge badge-blue">Algorithmic Estimation</span></p>
+      <p style="margin-top:.7rem">Constructive Cost Model. <code style="background:var(--surface2);padding:.1rem .3rem;border-radius:2px;font-size:.8rem">Effort = A × Size^B × ∏EM</code>. Uses KSLOC as input with 22 cost drivers (reliability, complexity, team capability). Highly calibrated for large, historically-informed projects. Available in Basic, Intermediate, and Detailed modes.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--purple)">
+      <div class="card-icon">🎲</div>
+      <h3>Three-Point (PERT) Estimation</h3>
+      <p><span class="badge badge-purple">Probabilistic</span></p>
+      <p style="margin-top:.7rem">Uses Optimistic (O), Most Likely (M), and Pessimistic (P) estimates. PERT formula: <code style="background:var(--surface2);padding:.1rem .3rem;border-radius:2px;font-size:.8rem">E = (O + 4M + P) / 6</code>. Standard deviation = (P-O)/6. Forces explicit uncertainty modeling. Ideal for risk-heavy or novel work.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--green)">
+      <div class="card-icon">🔢</div>
+      <h3>T-Shirt Sizing</h3>
+      <p><span class="badge badge-green">Lightweight</span></p>
+      <p style="margin-top:.7rem">XS / S / M / L / XL / XXL buckets used in PI planning and portfolio backlogs. Deliberately imprecise — optimizes for speed over accuracy. Translates to rough time ranges (S = 1–3 sprints; L = 1–2 quarters). Calibrate buckets to team-specific historical data.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--accent)">
+      <div class="card-icon">🧠</div>
+      <h3>Expert Judgment / Delphi</h3>
+      <p><span class="badge badge-orange">Qualitative</span></p>
+      <p style="margin-top:.7rem">Iterative anonymous expert polling until consensus converges. Eliminates social bias and HiPPO (Highest Paid Person's Opinion) effects. Best when historical data is scarce and the domain is highly specialized. Combine with quantitative methods for calibration.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--accent2)">
+      <div class="card-icon">📈</div>
+      <h3>Analogous (Parametric) Estimation</h3>
+      <p><span class="badge badge-red">Historical</span></p>
+      <p style="margin-top:.7rem">Scale estimates from a reference project using adjustment factors. Requires a maintained project data repository. Formula: <code style="background:var(--surface2);padding:.1rem .3rem;border-radius:2px;font-size:.8rem">Estimate = Ref × (New Size / Ref Size)^α</code>. Accuracy improves dramatically with calibrated organizational data.</p>
+    </div>
+    <div class="card" style="--card-accent:var(--accent3)">
+      <div class="card-icon">⚡</div>
+      <h3>Back-of-Envelope / Fermi</h3>
+      <p><span class="badge badge-blue">Quick Sanity Check</span></p>
+      <p style="margin-top:.7rem">Order-of-magnitude reasoning used in system design interviews and early architecture discussions. Start with knowns (RPS, data size), derive unknowns via chained approximations. Accuracy within 1 order of magnitude is sufficient for architectural decisions. Essential skill for SA interviews.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:2.5rem;">Capacity Planning Specific Methods</h3>
+  <table class="data-table">
+    <thead>
+      <tr><th>Method</th><th>Best For</th><th>Inputs Required</th><th>Accuracy</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Load Testing Extrapolation</strong></td>
+        <td>Pre-production capacity validation</td>
+        <td>k6 / Gatling load test results</td>
+        <td><span class="badge badge-green">High (±10%)</span></td>
+      </tr>
+      <tr>
+        <td><strong>Queueing Theory Models</strong></td>
+        <td>Broker &amp; service queue depth</td>
+        <td>Arrival rate, service rate, # servers</td>
+        <td><span class="badge badge-orange">Medium (±25%)</span></td>
+      </tr>
+      <tr>
+        <td><strong>Monte Carlo Simulation</strong></td>
+        <td>Cost &amp; effort range forecasting</td>
+        <td>Distribution parameters per task</td>
+        <td><span class="badge badge-orange">Medium–High</span></td>
+      </tr>
+      <tr>
+        <td><strong>Traffic Shaping Models</strong></td>
+        <td>Network bandwidth planning</td>
+        <td>RPS, payload size, protocol overhead</td>
+        <td><span class="badge badge-green">High (±15%)</span></td>
+      </tr>
+      <tr>
+        <td><strong>USE Method (Brendan Gregg)</strong></td>
+        <td>Bottleneck identification</td>
+        <td>Utilization, Saturation, Errors per resource</td>
+        <td><span class="badge badge-blue">Diagnostic</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══ CHECKLIST ══════════════════════════════════════ -->
+<section id="checklist">
+  <p class="section-label">07 · SA Interview Readiness</p>
+  <h2>Sizing &amp; Estimation Checklist</h2>
+  <p>Use this checklist when approaching any system design or capacity planning problem in interviews or production planning sessions.</p>
+
+  <div class="two-col">
+    <div>
+      <h3>Requirements Gathering</h3>
+      <ul class="checklist">
+        <li>Clarify peak vs. average RPS (never assume they're equal)</li>
+        <li>Establish latency targets per percentile (p50, p95, p99)</li>
+        <li>Define consistency requirements (strong vs. eventual)</li>
+        <li>Identify data retention and compliance constraints</li>
+        <li>Determine geographic distribution (single vs. multi-region)</li>
+        <li>Understand read:write ratio (drives storage &amp; caching strategy)</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Capacity Calculations</h3>
+      <ul class="checklist">
+        <li>Apply 2–3× safety multiplier on all peak figures</li>
+        <li>Calculate storage growth rate (monthly, annual)</li>
+        <li>Compute bandwidth at every tier (inbound + replication)</li>
+        <li>Size connection pools to prevent thread exhaustion</li>
+        <li>Partition count must ≥ max desired consumer parallelism</li>
+        <li>Validate with Little's Law (N = λ × W) at each stage</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Latency Engineering</h3>
+      <ul class="checklist">
+        <li>Decompose end-to-end budget into per-hop allocations</li>
+        <li>Design for p99 tail latency, not median</li>
+        <li>Account for GC pauses (JVM consumers; use G1GC or ZGC)</li>
+        <li>Enable async I/O wherever possible (non-blocking consumers)</li>
+        <li>Pre-warm connections; avoid cold-start penalties under load</li>
+        <li>Use hedged requests for critical paths (read operations)</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Resilience &amp; Observability</h3>
+      <ul class="checklist">
+        <li>Plan for broker failure: RF=3, min.insync.replicas=2</li>
+        <li>Define DLQ (Dead Letter Queue) strategy for poison pills</li>
+        <li>Set up consumer lag alerting (KEDA / CloudWatch alarms)</li>
+        <li>Establish SLO dashboards: error rate, latency, throughput</li>
+        <li>Run chaos engineering drills before production traffic</li>
+        <li>Document runbooks for consumer lag &gt; threshold events</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:2.5rem;">
+    <strong>Interview Pro Tip</strong>
+    In SA interviews, always <em>show your arithmetic</em>. State assumptions first ("I'll assume 1KB avg event size, 80/20 read-write split"), then derive bottom-up. Interviewers reward structured reasoning over memorized answers. Use Back-of-Envelope + Little's Law as your default starting point, then refine.
+  </div>
+</section>
+
+<footer>
+  Solution Architect Field Manual · Size Estimation · Event-Driven Architecture · 2026
+</footer>
+
+<script>
+  // Intersection Observer for section fade-in
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.07 });
+
+  sections.forEach(s => observer.observe(s));
+
+  // Animate latency bars on scroll
+  const bars = document.querySelectorAll('.bar-fill');
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.width = e.target.style.width; // trigger reflow
+      }
+    });
+  }, { threshold: 0.5 });
+
+  bars.forEach(b => barObserver.observe(b));
+</script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
