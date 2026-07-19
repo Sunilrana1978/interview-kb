@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google ADK: Production-Grade Agent Architecture Guide</title>
+  <meta name="description" content="An advanced guide to building production-grade AI agents using the Google Agent Development Kit (ADK), covering persistence, human-in-the-loop, evaluation, and cloud deployment.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #060814;
+      --bg-card: rgba(15, 23, 42, 0.45);
+      --bg-card-hover: rgba(15, 23, 42, 0.65);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dark: #475569;
+      --primary: #f43f5e;
+      --primary-glow: rgba(244, 63, 94, 0.35);
+      --secondary: #ec4899;
+      --accent: #10b981;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.08);
+      --error: #ef4444;
+      --error-bg: rgba(239, 68, 68, 0.08);
+      --font-sans: 'Inter', sans-serif;
+      --font-header: 'Outfit', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      --sidebar-width: 320px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Ambient Glow Backgrounds */
+    .ambient-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary-glow) 0%, rgba(244, 63, 94, 0) 70%);
+      filter: blur(90px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    .glow-1 { top: -150px; right: -150px; }
+    .glow-2 { bottom: 15%; left: -250px; background: radial-gradient(circle, rgba(236, 72, 153, 0.15) 0%, rgba(236, 72, 153, 0) 70%); }
+
+    /* Reading Progress Bar */
+    .progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.03);
+      z-index: 1000;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      width: 0%;
+      transition: width 0.1s ease;
+    }
+
+    /* Layout Wrapper */
+    .app-wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sticky Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      position: fixed;
+      top: 4px;
+      bottom: 0;
+      left: 0;
+      background: rgba(6, 8, 20, 0.85);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-color);
+      padding: 2.5rem 1.5rem;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-family: var(--font-header);
+      box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+    }
+
+    .brand-title {
+      font-family: var(--font-header);
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nav-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-tab-btn.active {
+      color: #fff;
+      background: rgba(244, 63, 94, 0.1);
+      border-color: rgba(244, 63, 94, 0.25);
+      box-shadow: inset 0 0 8px rgba(244, 63, 94, 0.05);
+    }
+
+    .nav-tab-btn .level-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      font-weight: bold;
+    }
+
+    .nav-tab-btn.active .level-badge {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .toc-container {
+      margin-top: 1rem;
+    }
+
+    .toc-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+
+    .toc-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toc-item a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s ease;
+      display: block;
+      padding-left: 0.5rem;
+      border-left: 2px solid transparent;
+    }
+
+    .toc-item a:hover {
+      color: var(--text-main);
+      border-left-color: var(--primary);
+    }
+
+    .toc-item.active a {
+      color: var(--primary);
+      font-weight: 600;
+      border-left-color: var(--primary);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 3rem 4rem;
+      max-width: 1100px;
+      position: relative;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      padding: 4rem 3rem;
+      background: linear-gradient(135deg, rgba(244, 63, 94, 0.04) 0%, rgba(236, 72, 153, 0.04) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      margin-bottom: 4rem;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #f43f5e;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-header);
+      font-size: 2.8rem;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, #ffffff, #fda4af, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 750px;
+      margin-bottom: 2rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 2rem;
+      font-size: 0.85rem;
+      color: var(--text-dark);
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.5rem;
+    }
+
+    /* Layout Components */
+    h2 {
+      font-family: var(--font-header);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 4.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    h2 .level-anchor {
+      font-size: 0.8rem;
+      background: var(--primary);
+      color: #fff;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h3 {
+      font-family: var(--font-header);
+      font-size: 1.45rem;
+      font-weight: 600;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      font-size: 1rem;
+    }
+
+    strong {
+      color: #fff;
+    }
+
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(244, 63, 94, 0.2);
+      box-shadow: 0 4px 24px rgba(244, 63, 94, 0.05);
+    }
+
+    /* Callouts */
+    .callout {
+      padding: 1.25rem 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      border: 1px solid transparent;
+    }
+
+    .callout-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .callout-content {
+      flex: 1;
+    }
+
+    .callout-content strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-family: var(--font-header);
+    }
+
+    .callout-content p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: inherit;
+      opacity: 0.9;
+    }
+
+    .callout-info {
+      background: rgba(244, 63, 94, 0.05);
+      border-color: rgba(244, 63, 94, 0.2);
+      color: #cbd5e1;
+    }
+    .callout-info .callout-icon { color: var(--primary); }
+    .callout-info strong { color: #fda4af; }
+
+    .callout-caution {
+      background: rgba(239, 68, 68, 0.05);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #fee2e2;
+    }
+    .callout-caution .callout-icon { color: var(--error); }
+    .callout-caution strong { color: #ef4444; }
+
+    /* Code Blocks */
+    .code-container {
+      position: relative;
+      margin: 1.5rem 0;
+      background: #04050d;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-dark);
+      font-family: var(--font-mono);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
+    }
+
+    .copy-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #e2e8f0;
+      display: block;
+      line-height: 1.5;
+    }
+
+    /* Embedded code formatting */
+    code span.keyword { color: #f43f5e; font-weight: 500; }
+    code span.string { color: #10b981; }
+    code span.comment { color: #64748b; font-style: italic; }
+    code span.number { color: #f59e0b; }
+    code span.builtin { color: #38bdf8; }
+    code span.decorator { color: #c084fc; }
+    code span.def { color: #60a5fa; font-weight: 500; }
+
+    /* Inline Code */
+    p code, li code {
+      display: inline;
+      padding: 0.2rem 0.4rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: #f472b6;
+    }
+
+    /* Diagram Containers */
+    .diagram-container {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .diagram-svg {
+      width: 100%;
+      max-width: 750px;
+      height: auto;
+    }
+
+    .diagram-text {
+      font-family: var(--font-sans);
+      fill: var(--text-main);
+      font-size: 13px;
+    }
+
+    .diagram-text-muted {
+      font-family: var(--font-sans);
+      fill: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .diagram-title {
+      font-family: var(--font-header);
+      fill: #fff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* Interactive Live Evaluation Simulator */
+    .eval-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .eval-control-panel {
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .eval-status-display {
+      background: #04050d;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      max-height: 380px;
+      overflow-y: auto;
+      color: #34d399;
+    }
+
+    .eval-btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-family: var(--font-header);
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px var(--primary-glow);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .eval-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* Quizzes */
+    .quiz-container {
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.3) 0%, rgba(244, 63, 94, 0.03) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 3rem 0;
+    }
+
+    .quiz-title {
+      font-family: var(--font-header);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+    }
+
+    .quiz-question {
+      margin-bottom: 1.5rem;
+    }
+
+    .quiz-q-text {
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.75rem;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .quiz-option {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .quiz-option:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .quiz-option input {
+      accent-color: var(--primary);
+    }
+
+    .quiz-option.selected {
+      background: rgba(244, 63, 94, 0.08);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: #fff;
+    }
+
+    .quiz-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .quiz-btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-family: var(--font-header);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px var(--primary-glow);
+      transition: all 0.2s ease;
+    }
+
+    .quiz-feedback {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      display: none;
+      font-size: 0.9rem;
+    }
+
+    .quiz-feedback.success {
+      background: var(--success-bg);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #a7f3d0;
+      display: block;
+    }
+
+    .quiz-feedback.error {
+      background: var(--error-bg);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      display: block;
+    }
+
+    .view-section {
+      display: block;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 3rem 0;
+      margin-top: 6rem;
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-dark);
+      font-size: 0.85rem;
+    }
+  </style>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar" id="readingProgress"></div>
+  </div>
+
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">ADK</div>
+        <div class="brand-title">ADK Production</div>
+      </div>
+
+      <nav class="nav-tabs">
+        <button class="nav-tab-btn active" onclick="filterLevel('all', this)">
+          All Advanced Topics
+        </button>
+        <button class="nav-tab-btn" onclick="filterLevel('persistence', this)">
+          <span class="level-badge">Store</span>
+          Persistence & State
+        </button>
+        <button class="nav-tab-btn" onclick="filterLevel('hitl', this)">
+          <span class="level-badge">HITL</span>
+          Human in the Loop
+        </button>
+        <button class="nav-tab-btn" onclick="filterLevel('evaluation', this)">
+          <span class="level-badge">Eval</span>
+          Evaluations & CI
+        </button>
+        <button class="nav-tab-btn" onclick="filterLevel('deployment', this)">
+          <span class="level-badge">Cloud</span>
+          Production Cloud
+        </button>
+      </nav>
+
+      <div class="toc-container">
+        <div class="toc-title">Table of Contents</div>
+        <ul class="toc-list" id="tocList">
+          <!-- Populated by JavaScript -->
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <section class="hero-section" id="intro">
+        <div class="hero-badge">
+          <svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 4l7.53 13H4.47L12 6zm-1 6h2v4h-2zm0-4h2v2h-2z"/></svg>
+          Google ADK Production Architecture
+        </div>
+        <h1 class="hero-title">Production-Grade Agent Architectures</h1>
+        <p class="hero-subtitle">
+          Unlock enterprise readiness for your Google ADK agent applications. Learn to deploy stateful distributed databases, implement Human-in-the-Loop approvals, run validation suites, and scale microservices on Vertex AI and Cloud Run.
+        </p>
+      </section>
+
+      <!-- PERSISTENCE SECTION -->
+      <div id="persistence-section" class="view-section">
+        <h2 id="persistence-header"><span class="level-anchor">Store</span> Production Persistence & Distributed State</h2>
+        <p>
+          In testing environments, ADK uses <code>InMemorySessionService</code> to hold conversation variables. For resilient production deployments, you must configure a persistent database adapter (such as PostgreSQL or Spanner) using the <code>DatabaseSessionService</code>.
+        </p>
+
+        <h3 id="session-service">1. Configuring Persistent DatabaseSessionService</h3>
+        <p>
+          By connecting the ADK runtime to a managed SQL store, conversation state, context memory keys, and execution trajectories survive runtime crashes and can scale horizontally across server instances:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>persistence_config.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.adk.services <span class="keyword">import</span> DatabaseSessionService
+<span class="keyword">from</span> google.adk.runtime <span class="keyword">import</span> AgentRuntime
+<span class="keyword">from</span> google.adk.agents <span class="keyword">import</span> Agent
+
+<span class="comment"># Define DB connection parameter string for Cloud SQL / Spanner</span>
+db_connection_uri = <span class="string">"postgresql+pg8000://user:pass@/dbname?host=/cloudsql/project:region:instance"</span>
+
+<span class="comment"># Initialize persistent state store</span>
+session_service = DatabaseSessionService(
+    connection_uri=db_connection_uri,
+    pool_size=10,
+    max_overflow=20
+)
+
+<span class="comment"># Attach session store directly to the ADK Runtime config</span>
+runtime = AgentRuntime(
+    session_service=session_service,
+    default_model=<span class="string">"gemini-2.5-flash"</span>
+)</code></pre>
+        </div>
+
+        <h3 id="state-isolation">2. State Access Isolation</h3>
+        <p>
+          Always use <code>ToolContext</code> to write and read variables within tool call functions. Never mutate application global variables, as tool calls run concurrently across multiple threads/sessions:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>tools/isolated_state.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.adk.tools <span class="keyword">import</span> ToolContext
+
+<span class="keyword">def</span> <span class="def">retrieve_client_history</span>(client_id: str, ctx: ToolContext) -> dict:
+    <span class="comment">"""Retrieves customer transaction records safely.
+
+    Args:
+        client_id: Client identifier string.
+        ctx: Thread-isolated ToolContext injected at runtime.
+    """</span>
+    <span class="comment"># Safe read from state store</span>
+    cached_payload = ctx.get_state(f<span class="string">"client_{client_id}_history"</span>, None)
+    
+    <span class="keyword">if</span> cached_payload:
+        <span class="keyword">return</span> cached_payload
+        
+    <span class="comment"># Logic to call database backend...</span>
+    fresh_payload = {<span class="string">"status"</span>: <span class="string">"loaded"</span>, <span class="string">"transactions"</span>: []}
+    
+    <span class="comment"># Safe write back</span>
+    ctx.set_state(f<span class="string">"client_{client_id}_history"</span>, fresh_payload)
+    <span class="keyword">return</span> fresh_payload</code></pre>
+        </div>
+
+        <!-- Quiz Persistence -->
+        <div class="quiz-container">
+          <div class="quiz-title">
+            <svg style="width: 20px; height: 20px; fill: var(--primary);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            Advanced State Check
+          </div>
+          <div class="quiz-question">
+            <div class="quiz-q-text">Why must global variables be avoided in tool calls inside production ADK apps?</div>
+            <div class="quiz-options">
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q_ap" value="a">
+                <span>A) Tool calls are run in multiple concurrent session contexts, causing race conditions and cross-talk.</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q_ap" value="b">
+                <span>B) The compiler restricts global keyword definitions.</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q_ap" value="c">
+                <span>C) Global variables are automatically wiped after every execution step.</span>
+              </label>
+            </div>
+          </div>
+          <div class="quiz-actions">
+            <button class="quiz-btn" onclick="checkQuiz('q_ap', 'a', 'Correct! In production, multiple users query the runtime concurrently. Storing states in globals leaks data between client connections.')">Check Answer</button>
+          </div>
+          <div class="quiz-feedback" id="feedback-q_ap"></div>
+        </div>
+      </div>
+
+      <!-- HUMAN IN THE LOOP SECTION -->
+      <div id="hitl-section" class="view-section">
+        <h2 id="hitl-header"><span class="level-anchor">HITL</span> Human-in-the-Loop Interruption & Approval Gates</h2>
+        <p>
+          Critical transactions (e.g. money transfers, deleting files, or writing database records) require human verification. ADK workflows use <code>RequestInput</code> nodes to cleanly pause operations and await authorized payloads.
+        </p>
+
+        <h3 id="hitl-concepts-flow">1. HITL Interruption Lifecycle</h3>
+        <p>
+          The diagram below illustrates how an execution is suspended when hitting an approval gate:
+        </p>
+
+        <!-- SVG HITL Diagram -->
+        <div class="diagram-container">
+          <svg class="diagram-svg" viewBox="0 0 750 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="750" height="200" rx="12" fill="#0b0e17" stroke="rgba(255,255,255,0.05)"/>
+            
+            <!-- Step 1 -->
+            <rect x="30" y="60" width="160" height="70" rx="6" fill="rgba(244, 63, 94, 0.1)" stroke="#f43f5e" stroke-width="1.5"/>
+            <text x="110" y="90" text-anchor="middle" class="diagram-title">Agent Nodes</text>
+            <text x="110" y="110" text-anchor="middle" class="diagram-text-muted">Processes Query</text>
+
+            <!-- Connector 1 -->
+            <path d="M 190 95 L 250 95" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-h)"/>
+
+            <!-- Pause Node -->
+            <rect x="260" y="60" width="200" height="70" rx="6" fill="rgba(236, 72, 153, 0.15)" stroke="#ec4899" stroke-width="2"/>
+            <text x="360" y="90" text-anchor="middle" class="diagram-title">RequestInput Node</text>
+            <text x="360" y="110" text-anchor="middle" class="diagram-text" fill="#fda4af">PAUSES & returns Session ID</text>
+
+            <!-- Human Input loop -->
+            <path d="M 360 130 C 360 180, 520 180, 520 120" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow-h)"/>
+            <text x="450" y="170" text-anchor="middle" class="diagram-text-muted">User inputs approval payload</text>
+
+            <!-- Step 3 -->
+            <rect x="540" y="60" width="180" height="70" rx="6" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" stroke-width="1.5"/>
+            <text x="630" y="90" text-anchor="middle" class="diagram-title">Resume / Execution</text>
+            <text x="630" y="110" text-anchor="middle" class="diagram-text-muted">Workflow completes task</text>
+
+            <defs>
+              <marker id="arrow-h" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e"/>
+              </marker>
+            </defs>
+          </svg>
+        </div>
+
+        <h3 id="hitl-code">2. Implementing Workflow Approvals</h3>
+        <p>
+          Define workflow paths that explicitly branch or pause until approval states are satisfied:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>hitl_workflow.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.adk <span class="keyword">import</span> Agent, Workflow
+<span class="keyword">from</span> google.adk.workflows <span class="keyword">import</span> RequestInput
+
+<span class="comment"># Define execution nodes</span>
+transaction_parser = Agent(
+    name=<span class="string">"transaction_parser"</span>,
+    instruction=<span class="string">"Extract transfer amount and target account info."</span>
+)
+
+execute_transfer = Agent(
+    name=<span class="string">"execute_transfer"</span>,
+    instruction=<span class="string">"Execute bank transaction using parsed parameters."</span>
+)
+
+<span class="comment"># Human validation placeholder gate</span>
+approval_gate = RequestInput(
+    name=<span class="string">"approval_gate"</span>,
+    prompt_message=<span class="string">"Please review the transaction parameters and confirm: (Y/N)"</span>
+)
+
+<span class="comment"># Construct graph: Pause at gate before committing critical transfers</span>
+payment_workflow = Workflow(
+    name=<span class="string">"payment_workflow"</span>,
+    edges=[
+        (<span class="string">"START"</span>, transaction_parser),
+        (transaction_parser, approval_gate),
+        (approval_gate, execute_transfer),
+        (execute_transfer, <span class="string">"END"</span>)
+    ]
+)</code></pre>
+        </div>
+      </div>
+
+      <!-- EVALUATION SECTION -->
+      <div id="evaluation-section" class="view-section">
+        <h2 id="evaluation-header"><span class="level-anchor">Eval</span> Agent Evaluation & CI/CD Testing</h2>
+        <p>
+          Production agent models require continuous quality validation to prevent regressions. Google ADK provides the <code>evaluation</code> framework to measure semantic correctness and trace tool execution paths.
+        </p>
+
+        <h3 id="trajectory-eval">1. Tool Trajectory Evaluation</h3>
+        <p>
+          Unlike standard language evaluation (like ROUGE or BLEU), <strong>Tool Trajectory Evaluation</strong> tests that the agent selects the correct tools, calls them in the exact order requested, and passes valid arguments:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>eval_script.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.adk.evaluation <span class="keyword">import</span> AgentEvaluator, GoldenTestCase
+<span class="keyword">from</span> agents.weather <span class="keyword">import</span> weather_agent
+
+<span class="comment"># Create test cases asserting semantic outputs AND exact tool trajectories</span>
+test_cases = [
+    GoldenTestCase(
+        input_query=<span class="string">"What's the temp in Boston?"</span>,
+        expected_output=<span class="string">"68F"</span>,
+        expected_tool_trajectory=[
+            <span class="comment"># Asserts that 'get_temperature' is called with 'Boston'</span>
+            (<span class="string">"get_temperature"</span>, {<span class="string">"city"</span>: <span class="string">"Boston"</span>})
+        ]
+    )
+]
+
+evaluator = AgentEvaluator(agent=weather_agent)
+report = evaluator.run(test_cases)
+print(f<span class="string">"Overall Accuracy: {report.accuracy_score * 100}%"</span>)</code></pre>
+        </div>
+
+        <h3 id="interactive-eval">2. Interactive Trajectory Evaluator Simulator</h3>
+        <p>
+          Simulate a validation pipeline to see how ADK checks LLM trajectories against target golden configurations:
+        </p>
+
+        <!-- Evaluation Playground -->
+        <div class="eval-grid">
+          <div class="eval-control-panel">
+            <h4 style="font-family: var(--font-header); font-size: 1.1rem; color: #fff;">Configure Test Suit</h4>
+            <p style="font-size:0.85rem; margin-bottom:0.75rem;">Modify assertions to trigger target pass/fail metrics:</p>
+            
+            <label class="option-checkbox">
+              <input type="checkbox" id="eval-strict-args" checked> Match Exact Arguments (e.g. Boston vs Chicago)
+            </label>
+            <label class="option-checkbox">
+              <input type="checkbox" id="eval-correct-sequence" checked> Force Correct Sequence Order
+            </label>
+            <label class="option-checkbox">
+              <input type="checkbox" id="eval-allow-hallucinations"> Ignore Intermediate Tool Hallucinations
+            </label>
+
+            <button class="eval-btn" onclick="simulateEvalRun()">
+              <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+              Run Trajectory Evaluation
+            </button>
+          </div>
+
+          <div class="eval-status-display" id="evalDisplay">
+            Click 'Run Trajectory Evaluation' to trigger simulated test suite...
+          </div>
+        </div>
+      </div>
+
+      <!-- DEPLOYMENT SECTION -->
+      <div id="deployment-section" class="view-section">
+        <h2 id="deployment-header"><span class="level-anchor">Cloud</span> Production Cloud Deployment & VPC Security</h2>
+        <p>
+          To run agents at scale, package the execution graph as a containerized server and deploy to Google Cloud platforms.
+        </p>
+
+        <h3 id="runtime-architecture">1. Production Topology</h3>
+        <p>
+          This is the standard enterprise blueprint for deploying ADK workloads:
+        </p>
+
+        <!-- SVG Architecture Diagram -->
+        <div class="diagram-container">
+          <svg class="diagram-svg" viewBox="0 0 750 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="750" height="240" rx="12" fill="#0b0e17" stroke="rgba(255,255,255,0.05)"/>
+            
+            <!-- User -->
+            <rect x="25" y="90" width="80" height="60" rx="6" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)"/>
+            <text x="65" y="120" text-anchor="middle" class="diagram-title">User / App</text>
+            <text x="65" y="138" text-anchor="middle" class="diagram-text-muted">Client UI</text>
+
+            <!-- Connector 1 -->
+            <path d="M 105 120 L 160 120" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-d)"/>
+
+            <!-- Gateway -->
+            <rect x="170" y="80" width="130" height="80" rx="6" fill="rgba(244, 63, 94, 0.08)" stroke="#f43f5e" stroke-width="1.5"/>
+            <text x="235" y="115" text-anchor="middle" class="diagram-title">Apigee / HTTPS</text>
+            <text x="235" y="135" text-anchor="middle" class="diagram-text-muted">API Gateway</text>
+
+            <!-- Connector 2 -->
+            <path d="M 300 120 L 350 120" stroke="#f43f5e" stroke-width="2" marker-end="url(#arrow-d)"/>
+
+            <!-- Cloud Run -->
+            <rect x="360" y="70" width="170" height="100" rx="8" fill="rgba(236, 72, 153, 0.08)" stroke="#ec4899" stroke-width="2"/>
+            <text x="445" y="105" text-anchor="middle" class="diagram-title">Cloud Run</text>
+            <text x="445" y="125" text-anchor="middle" class="diagram-text" fill="#fda4af">ADK Workflow</text>
+            <text x="445" y="145" text-anchor="middle" class="diagram-text" fill="#fda4af">Runtime Server</text>
+
+            <!-- Spanner Connector -->
+            <path d="M 445 170 L 445 200 C 445 200, 580 200, 580 160" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow-d)"/>
+            <text x="500" y="215" text-anchor="middle" class="diagram-text-muted">State Sync</text>
+
+            <!-- Spanner -->
+            <rect x="560" y="100" width="160" height="60" rx="6" fill="rgba(16, 185, 129, 0.08)" stroke="#10b981" stroke-width="1.5"/>
+            <text x="640" y="125" text-anchor="middle" class="diagram-title">Cloud Spanner</text>
+            <text x="640" y="145" text-anchor="middle" class="diagram-text-muted">Persistent DB</text>
+
+            <defs>
+              <marker id="arrow-d" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#f43f5e"/>
+              </marker>
+            </defs>
+          </svg>
+        </div>
+
+        <h3 id="dockerfile">2. Containerization (Dockerfile)</h3>
+        <p>
+          Deploy your ADK application using a standardized production Python environment:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>Dockerfile</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+# Run the ADK Runtime Server listening on target ports
+EXPOSE 8080
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]</code></pre>
+        </div>
+
+        <h3 id="security">3. VPC Service Controls & IAM</h3>
+        <p>
+          To secure enterprise database operations and Gemini connections:
+        </p>
+        <ul>
+          <li><strong>Least Privilege IAM Roles</strong>: Run Cloud Run containers under a custom Service Account restricted to the <code>roles/aiplatform.user</code> role (to request Vertex AI models) and <code>roles/spanner.databaseUser</code> (for persistence).</li>
+          <li><strong>VPC Network egress</strong>: Direct database requests inside a private VPC network using Serverless VPC Access Connectors, blocking external internet vectors to your database.</li>
+        </ul>
+      </div>
+
+      <footer>
+        <div>Google Agent Development Kit Production Guide</div>
+        <div>Created for enterprise revision &bull; July 2026</div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // Navigation filter
+    function filterLevel(level, btn) {
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const persistence = document.getElementById('persistence-section');
+      const hitl = document.getElementById('hitl-section');
+      const evaluation = document.getElementById('evaluation-section');
+      const deployment = document.getElementById('deployment-section');
+
+      if (level === 'all') {
+        persistence.classList.remove('hidden');
+        hitl.classList.remove('hidden');
+        evaluation.classList.remove('hidden');
+        deployment.classList.remove('hidden');
+      } else {
+        persistence.classList.add('hidden');
+        hitl.classList.add('hidden');
+        evaluation.classList.add('hidden');
+        deployment.classList.add('hidden');
+
+        document.getElementById(level + '-section').classList.remove('hidden');
+      }
+
+      buildTOC();
+    }
+
+    // Dynamic TOC builder
+    function buildTOC() {
+      const tocList = document.getElementById('tocList');
+      tocList.innerHTML = '';
+      
+      const headings = document.querySelectorAll('main h2:not(.hidden), main h3:not(.hidden)');
+      headings.forEach(heading => {
+        let parent = heading.parentElement;
+        if (parent && parent.classList.contains('hidden')) return;
+
+        if (!heading.id) {
+          heading.id = heading.textContent.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        }
+
+        const li = document.createElement('li');
+        li.className = 'toc-item' + (heading.tagName === 'H2' ? ' h2-toc' : ' h3-toc');
+        if (heading.tagName === 'H3') {
+          li.style.paddingLeft = '10px';
+        }
+        
+        const a = document.createElement('a');
+        a.href = '#' + heading.id;
+        let text = heading.textContent;
+        if (text.includes('Store') || text.includes('HITL') || text.includes('Eval') || text.includes('Cloud')) {
+          text = text.replace(/Store|HITL|Eval|Cloud/, '').trim();
+        }
+        a.textContent = text;
+        
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+    }
+
+    // Scroll progress
+    window.addEventListener('scroll', () => {
+      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('readingProgress').style.width = scrolled + '%';
+
+      const headings = document.querySelectorAll('main h2, main h3');
+      let activeId = '';
+      
+      headings.forEach(heading => {
+        const top = heading.getBoundingClientRect().top;
+        if (top < 150) {
+          activeId = heading.id;
+        }
+      });
+
+      document.querySelectorAll('.toc-item').forEach(item => {
+        item.classList.remove('active');
+        const link = item.querySelector('a');
+        if (link && link.getAttribute('href') === '#' + activeId) {
+          item.classList.add('active');
+        }
+      });
+    });
+
+    // Copy to clipboard helper
+    function copyCode(btn) {
+      const codeBlock = btn.parentElement.nextElementSibling.querySelector('code');
+      navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => {
+          btn.innerText = originalText;
+        }, 1500);
+      });
+    }
+
+    // Quiz evaluation
+    function selectOption(label) {
+      const options = label.parentElement.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('selected'));
+      label.classList.add('selected');
+      const radio = label.querySelector('input');
+      radio.checked = true;
+    }
+
+    function checkQuiz(name, correctVal, explanation) {
+      const selectedRadio = document.querySelector(`input[name="${name}"]:checked`);
+      const feedback = document.getElementById(`feedback-${name}`);
+
+      if (!selectedRadio) {
+        feedback.className = 'quiz-feedback error';
+        feedback.innerText = 'Please select an option before checking.';
+        feedback.style.display = 'block';
+        return;
+      }
+
+      if (selectedRadio.value === correctVal) {
+        feedback.className = 'quiz-feedback success';
+        feedback.innerHTML = '<strong>' + explanation + '</strong>';
+      } else {
+        feedback.className = 'quiz-feedback error';
+        feedback.innerHTML = '<strong>Incorrect. Try again!</strong> Review the target concept requirements.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    // Simulated Evaluation Run logger
+    function simulateEvalRun() {
+      const strictArgs = document.getElementById('eval-strict-args').checked;
+      const sequence = document.getElementById('eval-correct-sequence').checked;
+      const hallucinations = document.getElementById('eval-allow-hallucinations').checked;
+      
+      const display = document.getElementById('evalDisplay');
+      display.innerHTML = '[System] Initializing AgentEvaluator...\n';
+      
+      let logs = [
+        '[System] Loading 12 Golden Test Cases from workspace...',
+        '[Agent] Querying model "gemini-2.5-flash"...',
+        '[Agent] Executing tool trajectory path...'
+      ];
+
+      let step = 0;
+      const interval = setInterval(() => {
+        if (step < logs.length) {
+          display.innerHTML += logs[step] + '\n';
+          display.scrollTop = display.scrollHeight;
+          step++;
+        } else {
+          clearInterval(interval);
+          
+          // Generate simulated results based on checkboxes
+          display.innerHTML += '\n--- EVALUATION COMPLETED ---\n';
+          
+          if (!strictArgs) {
+            display.innerHTML += '<span style="color: #ef4444;">[FAIL] Case 4: Tool "get_temperature" called with arg "boston" instead of "Boston" (Case Mismatch).</span>\n';
+          }
+          if (!sequence) {
+            display.innerHTML += '<span style="color: #ef4444;">[FAIL] Case 8: Sequence out of order. Expected [fetch_data, format_data], got [format_data].</span>\n';
+          }
+          if (!hallucinations) {
+            display.innerHTML += '<span style="color: #ef4444;">[FAIL] Case 11: LLM hallucinated extra call to "check_health" prior to target action.</span>\n';
+          }
+
+          if (strictArgs && sequence && hallucinations) {
+            display.innerHTML += '<span style="color: #10b981;">[PASS] All 12 Golden Test Cases passed successfully. Trajectory matches 100%.</span>\n';
+            display.innerHTML += '<span style="color: #10b981;">Accuracy Score: 1.000 / 1.000</span>\n';
+          } else {
+            let score = 1.0;
+            if (!strictArgs) score -= 0.15;
+            if (!sequence) score -= 0.2;
+            if (!hallucinations) score -= 0.1;
+            display.innerHTML += `<span style="color: #f59e0b;">Accuracy Score: ${score.toFixed(3)} / 1.000</span>\n`;
+          }
+          
+          display.scrollTop = display.scrollHeight;
+        }
+      }, 500);
+    }
+
+    // Initialize page
+    window.onload = () => {
+      buildTOC();
+    };
+  </script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

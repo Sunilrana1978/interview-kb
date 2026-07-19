@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vertex AI RAG Engine — Lifecycle & Operations Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+  :root{
+    --ink:#161a23; --paper:#f7f6f2; --panel:#ffffff; --line:#dedad2;
+    --teal:#0f6e63; --amber:#b4530a; --muted:#5a5f6b; --code-bg:#12161f; --code-fg:#d8e0e8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;line-height:1.65;font-size:16px;}
+  .wrap{max-width:880px;margin:0 auto;padding:56px 32px 100px;}
+  code, pre{font-family:'IBM Plex Mono',monospace;}
+  h1{font-size:2.1rem;line-height:1.15;letter-spacing:-.01em;border-bottom:3px solid var(--amber);padding-bottom:18px;margin-bottom:8px;}
+  h1 + p{color:var(--muted);font-size:1.05rem;margin-top:14px;}
+  h2{font-size:1.4rem;margin-top:56px;padding-top:8px;border-top:1px solid var(--line);color:var(--ink);}
+  h2:first-of-type{border-top:none;}
+  h3{font-size:1.1rem;margin-top:32px;color:var(--teal);}
+  p, li{max-width:760px;}
+  ul, ol{padding-left:22px;}
+  li{margin-bottom:5px;}
+  a{color:var(--teal);}
+  hr{border:none;border-top:1px solid var(--line);margin:40px 0;}
+  code{background:#efece4;padding:2px 6px;border-radius:3px;font-size:.88em;}
+  pre{background:var(--code-bg);color:var(--code-fg);padding:18px 20px;border-radius:3px;overflow-x:auto;font-size:13px;max-width:800px;}
+  pre code{background:none;padding:0;color:inherit;}
+  table{border-collapse:collapse;width:100%;margin:20px 0;font-size:.9rem;}
+  th, td{border:1px solid var(--line);padding:10px 14px;text-align:left;vertical-align:top;}
+  thead th{background:var(--ink);color:var(--paper);font-family:'IBM Plex Mono',monospace;font-size:.78rem;text-transform:uppercase;letter-spacing:.03em;font-weight:500;}
+  tbody tr:nth-child(even) td{background:#fbfaf7;}
+  blockquote{border-left:3px solid var(--amber);background:#fbf1e6;padding:12px 18px;margin:20px 0;max-width:760px;}
+  input[type=checkbox]{margin-right:8px;}
+  .toc{background:var(--panel);border:1px solid var(--line);padding:20px 26px;border-radius:3px;margin:24px 0;}
+  .toc p{margin:0 0 8px;font-family:'IBM Plex Mono',monospace;font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--teal);}
+  .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;}
+</style>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<div class="wrap">
+<h1 id="vertex-ai-rag-engine-lifecycle-operations-guide">Vertex AI RAG Engine — Lifecycle &amp; Operations Guide</h1>
+<p>A complete reference for taking a Vertex AI RAG Engine (also branded Knowledge Engine) system from design through steady-state operations. Covers corpus management, RagManagedDb tiers, ADK integration, CI/CD, and post-deployment runbooks.</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<p><strong>Part A — Implementation Lifecycle</strong>
+1. Planning &amp; Design
+2. Prerequisites &amp; Environment Setup
+3. Provisioning the RAG Corpus
+4. Data Ingestion Pipeline
+5. Retrieval Configuration
+6. Agent Integration (ADK)
+7. Evaluation &amp; Testing
+8. CI/CD &amp; Promotion Across Environments
+9. Security &amp; Compliance Sign-off</p>
+<p><strong>Part B — Post-Deployment Operations</strong>
+10. Monitoring &amp; Observability
+11. Corpus Freshness &amp; Reindexing
+12. Incident Response &amp; Runbooks
+13. Scaling &amp; Capacity Management (RagManagedDb tiers)
+14. Cost Management
+15. Backup, Versioning &amp; Rollback
+16. Access Review &amp; Governance Cadence
+17. Change Management / Release Process
+18. Troubleshooting Reference
+19. Appendix — CLI / Python Cheatsheet</p>
+<hr />
+<h2 id="part-a-implementation-lifecycle">Part A — Implementation Lifecycle</h2>
+<h3 id="1-planning-design">1. Planning &amp; Design</h3>
+<p><strong>Understand the corpus model.</strong> A <strong>corpus</strong> is a single ingested collection — think of it as a folder of related files optimized for similarity search. You can query one corpus for targeted retrieval, or several at once for broader recall. Decide upfront:</p>
+<ul>
+<li>One corpus per domain/topic vs. one corpus with metadata filtering</li>
+<li>Which corpora a given agent needs to query — the <code>VertexAiRagRetrieval</code> tool accepts a list of <code>RagResource</code> entries, so a single retrieval tool can span multiple corpora if broader recall is the goal</li>
+<li>Whether retrieval needs tuning per use case (a factual-lookup agent wants a tight distance threshold; an exploratory research agent wants a looser one and higher top-k)</li>
+</ul>
+<p><strong>Vector store tier decision (see Section 13 for detail).</strong> By default, RAG Engine uses <strong>RagManagedDb</strong>, a fully managed Spanner instance offered in two tiers:
+- <strong>Basic</strong> — cost-effective, fixed configuration (~0.1 nodes); ideal for experiments, small data, latency-insensitive workloads
+- <strong>Scaled</strong> — production-grade with autoscaling (1–10 nodes); designed for large datasets and performance-sensitive apps</p>
+<p>Choose this at design time, not after load-testing surprises you — moving from Basic to Scaled tier is a capacity change you want planned, not reactive.</p>
+<p><strong>Source inventory.</strong> RAG Engine ingests from local files, Cloud Storage, or Google Drive. Map each source to:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Ingestion path</th>
+<th>Refresh mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local files</td>
+<td>One-time <code>rag.upload_file()</code></td>
+<td>Manual re-upload</td>
+</tr>
+<tr>
+<td>Cloud Storage</td>
+<td><code>rag.import_files()</code> from <code>gs://</code> URI</td>
+<td>Scheduled re-import job</td>
+</tr>
+<tr>
+<td>Google Drive</td>
+<td><code>rag.import_files()</code> from Drive resource</td>
+<td>Scheduled re-import job</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Naming convention.</strong> Fix corpus display names early:</p>
+<pre><code>corpus-&lt;domain&gt;-&lt;env&gt;
+</code></pre>
+<hr />
+<h3 id="2-prerequisites-environment-setup">2. Prerequisites &amp; Environment Setup</h3>
+<p><strong>Enable APIs and set environment:</strong></p>
+<pre><code class="language-bash">gcloud services enable aiplatform.googleapis.com --project=YOUR_PROJECT_ID
+</code></pre>
+<pre><code class="language-bash">export GOOGLE_GENAI_USE_VERTEXAI=True
+export GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
+export GOOGLE_CLOUD_LOCATION=us-central1
+</code></pre>
+<p><strong>IAM roles:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Purpose</th>
+<th>Assign to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>roles/aiplatform.user</code></td>
+<td>Create/manage corpora, import files, query</td>
+<td>Ingestion pipeline SA, platform team</td>
+</tr>
+<tr>
+<td><code>roles/aiplatform.viewer</code></td>
+<td>Read-only inspection of corpora</td>
+<td>Auditors, read-only tooling</td>
+</tr>
+<tr>
+<td><code>roles/storage.objectViewer</code></td>
+<td>Read source GCS bucket</td>
+<td>Ingestion SA (on the source bucket)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Agent Engine deployment identity.</strong> If deploying the agent to Vertex AI Agent Engine, deployment automatically grants the new agent identity permission to query its configured RAG corpus — verify this binding explicitly rather than assuming it, especially in a locked-down project where default grants may be restricted by org policy.</p>
+<p><strong>Staging resources.</strong> RAG Engine workflows typically provision:
+- A <strong>source GCS bucket</strong> for raw documents
+- A <strong>staging GCS bucket</strong> for Agent Engine deployment artifacts</p>
+<p>Keep both environment-scoped (<code>gs://source-docs-dev</code>, <code>gs://source-docs-prod</code>), never shared across environments.</p>
+<hr />
+<h3 id="3-provisioning-the-rag-corpus">3. Provisioning the RAG Corpus</h3>
+<pre><code class="language-python">from vertexai.preview import rag
+import vertexai
+
+vertexai.init(project=&quot;YOUR_PROJECT_ID&quot;, location=&quot;us-central1&quot;)
+
+corpus = rag.create_corpus(
+    display_name=&quot;corpus-support-prod&quot;,
+    description=&quot;Production support knowledge base&quot;,
+)
+print(corpus.name)  # projects/PROJECT/locations/us-central1/ragCorpora/CORPUS_ID
+</code></pre>
+<p><strong>Vector DB tier configuration</strong> is set at corpus creation — confirm the tier parameter against current SDK documentation before provisioning, since this surface is under <code>vertexai.preview</code> and has moved between releases. Treat corpus creation as a Terraform-adjacent, script-driven step (wrap the Python call in your CI pipeline) rather than a manual console action, so corpus IDs are captured as pipeline outputs, not tribal knowledge.</p>
+<p><strong>Post-create validation:</strong> list files on the new corpus (should be empty) to confirm it's queryable before wiring any ingestion job to it.</p>
+<hr />
+<h3 id="4-data-ingestion-pipeline">4. Data Ingestion Pipeline</h3>
+<pre><code class="language-python">rag.import_files(
+    corpus_name=corpus.name,
+    paths=[&quot;gs://your-bucket/docs/&quot;],
+    chunk_size=512,
+    chunk_overlap=100,
+)
+</code></pre>
+<p><strong>Ingestion pipeline stages:</strong></p>
+<pre><code>Source (local / GCS / Drive)
+   → Import (rag.import_files)
+   → Chunk (configurable size/overlap)
+   → Embed
+   → Index → Corpus
+   → Queryable
+</code></pre>
+<ul>
+<li><strong>Chunk size and overlap are tunable</strong> here, unlike Gemini File Search or Vertex AI Search — this is the main reason to choose RAG Engine over those options. Start from a documented baseline (e.g., 512/100) and adjust based on eval results (Section 7), not intuition.</li>
+<li><strong>Re-import strategy:</strong> RAG Engine does not distinguish "incremental" vs. "full" the way Vertex AI Search does — plan your own logic for detecting changed/deleted source files and re-importing only what's needed, or accept periodic full re-imports for smaller corpora.</li>
+<li><strong>File-level tooling:</strong> the RAG corpus tools support listing and deleting individual files by corpus — build a small maintenance script around this rather than relying on full corpus rebuilds for every content correction.</li>
+</ul>
+<hr />
+<h3 id="5-retrieval-configuration">5. Retrieval Configuration</h3>
+<pre><code class="language-python">from google.adk.tools.retrieval.vertex_ai_rag_retrieval import VertexAiRagRetrieval
+
+retrieval_tool = VertexAiRagRetrieval(
+    name=&quot;retrieve_documentation&quot;,
+    description=&quot;Retrieve relevant documents from the knowledge base&quot;,
+    rag_resources=[rag.RagResource(rag_corpus=corpus.name)],
+    similarity_top_k=10,
+    vector_distance_threshold=0.6,
+)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Effect</th>
+<th>Tuning guidance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>similarity_top_k</code></td>
+<td>How many chunks are retrieved</td>
+<td>Higher = more recall, more prompt-context cost; start at 5–10</td>
+</tr>
+<tr>
+<td><code>vector_distance_threshold</code></td>
+<td>Minimum similarity to include a chunk</td>
+<td>Lower threshold = stricter relevance; tune against eval set, not by feel</td>
+</tr>
+<tr>
+<td><code>rag_resources</code></td>
+<td>Which corpus/corpora to query</td>
+<td>Multiple entries broaden recall across corpora in one call</td>
+</tr>
+</tbody>
+</table>
+<p>Document your chosen values and the eval results that justified them — these are the parameters most likely to be "tuned" ad hoc by a well-meaning engineer later without re-running the eval suite.</p>
+<hr />
+<h3 id="6-agent-integration-adk">6. Agent Integration (ADK)</h3>
+<pre><code class="language-python">from google.adk.agents import Agent
+
+root_agent = Agent(
+    model=&quot;gemini-2.5-flash&quot;,
+    name=&quot;rag_agent&quot;,
+    instruction=&quot;You are a helpful assistant. Use the retrieval tool to answer questions based on the provided documents. Always cite the source document.&quot;,
+    tools=[retrieval_tool],
+)
+</code></pre>
+<p><strong>Critical constraint:</strong> the <code>VertexAiRagRetrieval</code> tool can only be used by itself within an agent instance — it does not combine with other tools (like <code>GoogleSearch</code>) on the same agent. If you need both retrieval and general search, use an orchestrator agent that delegates to a RAG-specialist sub-agent and a search-specialist sub-agent, mirroring the pattern used for Gemini File Search.</p>
+<p><strong>Deployment to Agent Engine:</strong></p>
+<pre><code class="language-python">from vertexai.preview import reasoning_engines
+
+remote_agent = reasoning_engines.ReasoningEngine.create(
+    root_agent,
+    requirements=[&quot;google-cloud-aiplatform[adk,agent_engines]&quot;],
+)
+</code></pre>
+<p>This packages the agent, pushes it to Agent Runtime, and (per Google's standard flow) automatically grants the new agent identity permission to query the configured RAG corpus — confirm this grant in IAM rather than assuming it silently succeeded.</p>
+<hr />
+<h3 id="7-evaluation-testing">7. Evaluation &amp; Testing</h3>
+<table>
+<thead>
+<tr>
+<th>Test type</th>
+<th>What it checks</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Retrieval precision/recall @ k</td>
+<td>Right chunks retrieved for labeled questions</td>
+<td>Every chunking/embedding change</td>
+</tr>
+<tr>
+<td>Answer groundedness + citation accuracy</td>
+<td>Generated answer traces to retrieved chunks, citations point to correct source</td>
+<td>Every prompt/model change</td>
+</tr>
+<tr>
+<td>Threshold sensitivity</td>
+<td>How <code>vector_distance_threshold</code> changes affect recall vs. noise</td>
+<td>Before any parameter change ships</td>
+</tr>
+<tr>
+<td>Multi-corpus interference</td>
+<td>If querying multiple corpora, does cross-corpus retrieval degrade relevance?</td>
+<td>Whenever a new corpus is added to a shared retrieval tool</td>
+</tr>
+<tr>
+<td>Load/latency test</td>
+<td>End-to-end retrieval + generation latency under expected concurrency</td>
+<td>Before each production promotion</td>
+</tr>
+</tbody>
+</table>
+<p>Build a fixed labeled question set per corpus and re-run it on every chunking, embedding, or threshold change — this is the guardrail against silent retrieval-quality drift, which is the dominant failure mode for tunable RAG systems.</p>
+<hr />
+<h3 id="8-cicd-promotion-across-environments">8. CI/CD &amp; Promotion Across Environments</h3>
+<p><strong>Pipeline shape:</strong></p>
+<pre><code>PR merged → CI script creates/updates corpus in dev (idempotent)
+  → import test fixtures → run eval suite
+  → promote agent config + corpus reference to staging
+  → run eval suite + load test → manual approval
+  → promote to prod → smoke test → monitor
+</code></pre>
+<ul>
+<li>Corpus creation and file import are Python/API calls, not Terraform resources today — wrap them in your CI pipeline as an explicit, idempotent step (check "does a corpus with this display name already exist" before creating) rather than a one-off manual script.</li>
+<li>Each environment gets its <strong>own corpus</strong> created from the same pipeline definition — never point a staging agent at the production corpus ID, even temporarily for testing.</li>
+<li>Store the corpus resource name as a pipeline output/secret consumed by agent deployment config, never hardcoded in agent source.</li>
+</ul>
+<hr />
+<h3 id="9-security-compliance-sign-off">9. Security &amp; Compliance Sign-off</h3>
+<p>Before go-live, confirm:</p>
+<ul>
+<li>[ ] Ingestion service account has read-only access to source buckets, and <code>aiplatform.user</code> scoped appropriately</li>
+<li>[ ] Agent Engine's auto-granted corpus access is confirmed in IAM, not assumed</li>
+<li>[ ] Audit logging enabled on <code>aiplatform.googleapis.com</code> for corpus create/import/query operations</li>
+<li>[ ] A documented process exists for removing a specific file from a corpus (for takedown/compliance requests)</li>
+<li>[ ] Chosen RagManagedDb tier (Basic/Scaled) matches the data sensitivity and durability requirements agreed with stakeholders</li>
+</ul>
+<hr />
+<h2 id="part-b-post-deployment-operations">Part B — Post-Deployment Operations</h2>
+<h3 id="10-monitoring-observability">10. Monitoring &amp; Observability</h3>
+<p><strong>Key signals to dashboard (Cloud Monitoring / Vertex AI dashboards):</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Retrieval latency (p50/p95/p99)</td>
+<td>User-facing performance; correlate spikes with corpus size growth</td>
+</tr>
+<tr>
+<td>Import job success/failure</td>
+<td>Silent import failures leave the corpus stale with no visible symptom</td>
+</tr>
+<tr>
+<td>Chunk count / corpus size trend</td>
+<td>Sudden drops indicate accidental file deletion; sudden spikes indicate duplicate ingestion</td>
+</tr>
+<tr>
+<td>Retrieval empty-result rate</td>
+<td>Rising trend suggests threshold miscalibration or corpus gaps</td>
+</tr>
+<tr>
+<td>RagManagedDb node utilization (Scaled tier)</td>
+<td>Approaching the 10-node autoscale ceiling signals a tier/capacity conversation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Logging.</strong> Enable Cloud Audit Logs (Data Access) on <code>aiplatform.googleapis.com</code> scoped to RAG corpus operations — every <code>import_files</code>, <code>delete_file</code>, and query call should be attributable.</p>
+<p><strong>Alerting thresholds</strong> (starting points):
+- Import job failure → page on-call (stale-corpus risk compounds silently, same as Vertex AI Search)
+- Empty-result rate &gt; 15% over 1 hour → alert (usually a threshold or corpus regression)
+- RagManagedDb node utilization sustained &gt; 80% (Scaled tier) → capacity review</p>
+<hr />
+<h3 id="11-corpus-freshness-reindexing">11. Corpus Freshness &amp; Reindexing</h3>
+<ul>
+<li>Maintain a <strong>freshness SLA per source</strong>, and monitor actual import-to-queryable latency against it — same discipline as Vertex AI Search, but note RAG Engine gives you no built-in incremental/full distinction, so your own tooling must track which source files have already been imported.</li>
+<li>Since file-level delete/list tools exist on the corpus, prefer <strong>targeted re-import of changed files</strong> over full corpus rebuilds for routine content updates — full rebuilds should be reserved for scheduled reconciliation (e.g., monthly) to catch drift.</li>
+<li>Log every ingestion run's source path list, chunk count delta, and corpus size before/after — this is your primary tool when a document seems to have "disappeared" from retrieval.</li>
+</ul>
+<hr />
+<h3 id="12-incident-response-runbooks">12. Incident Response &amp; Runbooks</h3>
+<p><strong>Runbook: Document not being retrieved</strong>
+1. Confirm the file was actually imported — list files on the corpus and check for the expected file reference.
+2. If present but not surfacing, check <code>vector_distance_threshold</code> — a recently tightened threshold is a common silent cause of "the document exists but never gets retrieved."
+3. If absent, check the last ingestion job's logs for a parsing/format failure on that specific file.</p>
+<p><strong>Runbook: Retrieval quality regression (wrong/irrelevant chunks surfacing)</strong>
+1. Check whether <code>chunk_size</code>, <code>chunk_overlap</code>, <code>similarity_top_k</code>, or <code>vector_distance_threshold</code> changed recently — diff against the documented baseline in Section 5.
+2. Re-run the labeled eval suite against the current corpus state to quantify the regression.
+3. Roll back the parameter change first (cheapest fix); only re-chunk/re-import if the regression persists after rollback.</p>
+<p><strong>Runbook: Agent errors combining retrieval with other tools</strong>
+1. Confirm the agent definition doesn't combine <code>VertexAiRagRetrieval</code> with another tool on the same agent instance — this is a hard platform limitation, not a bug.
+2. If both capabilities are needed, refactor to an orchestrator + specialist sub-agent pattern.</p>
+<p><strong>Runbook: Latency degradation on Scaled tier</strong>
+1. Check RagManagedDb node utilization against the autoscale ceiling (10 nodes).
+2. Check for a concurrent large import job competing with query serving.
+3. If sustained and infrastructure-side, escalate to Google Cloud support with project ID, corpus resource name, and time window.</p>
+<p><strong>Escalation path:</strong> on-call engineer → platform team lead → Google Cloud support (for confirmed backend/infrastructure issues).</p>
+<hr />
+<h3 id="13-scaling-capacity-management-ragmanageddb-tiers">13. Scaling &amp; Capacity Management (RagManagedDb tiers)</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Configuration</th>
+<th>Best for</th>
+<th>Scaling behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Basic</td>
+<td>Fixed, ~0.1 nodes</td>
+<td>Experiments, small corpora, latency-insensitive use</td>
+<td>No autoscaling — plan for a tier upgrade before production traffic</td>
+</tr>
+<tr>
+<td>Scaled</td>
+<td>Autoscaling, 1–10 nodes</td>
+<td>Large datasets, performance-sensitive production apps</td>
+<td>Scales within its band; sustained ceiling utilization requires a capacity conversation with Google, not just a config change</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Decide tier per environment: Basic in dev/staging is usually sufficient; Scaled is the default assumption for production once real user traffic is expected.</li>
+<li>Re-evaluate tier choice whenever corpus size or query volume materially changes — a corpus that started as an experiment on Basic tier and quietly became production-critical is a common capacity-planning gap.</li>
+</ul>
+<hr />
+<h3 id="14-cost-management">14. Cost Management</h3>
+<ul>
+<li>Cost drivers: corpus storage (via RagManagedDb), embedding generation on import, and query-time retrieval + generation (Gemini model calls).</li>
+<li>Track cost per corpus, not just per project, so you can attribute spend to the domain/team that owns each corpus — mirrors the same discipline as Vertex AI Search.</li>
+<li>Scaled-tier RagManagedDb has a materially different cost profile than Basic — confirm the tier matches actual need before defaulting to Scaled "just in case."</li>
+<li>Review low-traffic corpora periodically; a corpus receiving few queries but frequent re-imports is a common silent cost sink, same failure pattern as under-used Vertex AI Search data stores.</li>
+</ul>
+<hr />
+<h3 id="15-backup-versioning-rollback">15. Backup, Versioning &amp; Rollback</h3>
+<ul>
+<li>The corpus is rebuildable from source (GCS/Drive) plus your ingestion pipeline definition — treat the <strong>source system + pipeline code</strong> as the real backup, not the corpus itself.</li>
+<li>Version-control your ingestion pipeline script (chunk size, overlap, source paths) and your retrieval tool configuration (<code>top_k</code>, <code>distance_threshold</code>) — these are the actual "configuration" that needs rollback capability.</li>
+<li>For a bad chunking/re-import, keep the previous corpus alive under a versioned name (<code>corpus-support-prod-v2</code>) until the new one is validated, then cut the agent over via a config change rather than deleting the old corpus immediately — this gives you an instant rollback path.</li>
+<li>Document a file-level deletion procedure (for takedown/compliance) that confirms removal from the corpus index, not just from the source bucket.</li>
+</ul>
+<hr />
+<h3 id="16-access-review-governance-cadence">16. Access Review &amp; Governance Cadence</h3>
+<table>
+<thead>
+<tr>
+<th>Activity</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Review IAM bindings on ingestion and query-serving identities</td>
+<td>Quarterly</td>
+</tr>
+<tr>
+<td>Confirm Agent Engine auto-granted corpus permissions are still scoped correctly</td>
+<td>Quarterly</td>
+</tr>
+<tr>
+<td>Review corpus inventory (unused/orphaned corpora)</td>
+<td>Semi-annually</td>
+</tr>
+<tr>
+<td>Audit log review for anomalous import/query patterns</td>
+<td>Monthly, or continuous via alerting</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="17-change-management-release-process">17. Change Management / Release Process</h3>
+<ol>
+<li>All corpus provisioning, chunking config, and retrieval parameter changes go through PR review — no ad hoc console/notebook changes against production corpora.</li>
+<li>Any change to <code>chunk_size</code>, <code>chunk_overlap</code>, <code>similarity_top_k</code>, or <code>vector_distance_threshold</code> requires an eval suite run against the labeled question set before merge.</li>
+<li>Production promotions require a documented rollback plan — usually reverting the parameter change or cutting the agent back to the previous versioned corpus.</li>
+<li>Maintain a per-corpus changelog: what changed, when, why, eval results before/after, approver.</li>
+</ol>
+<hr />
+<h3 id="18-troubleshooting-reference">18. Troubleshooting Reference</h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>First check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Document never retrieved despite being imported</td>
+<td>Threshold too strict, or chunking split it awkwardly</td>
+<td>Compare <code>vector_distance_threshold</code> to eval baseline; inspect chunk boundaries</td>
+</tr>
+<tr>
+<td>Retrieval quality regression after a change</td>
+<td>Chunk size/overlap or threshold change</td>
+<td>Diff against documented baseline; re-run eval suite</td>
+</tr>
+<tr>
+<td>Agent throws a tool-combination error</td>
+<td><code>VertexAiRagRetrieval</code> combined with another tool on one agent</td>
+<td>Refactor to orchestrator + sub-agent pattern</td>
+</tr>
+<tr>
+<td>Rising latency on Scaled tier</td>
+<td>Node utilization near ceiling, or concurrent large import</td>
+<td>Check RagManagedDb utilization + recent import job status</td>
+</tr>
+<tr>
+<td>Corpus size unexpectedly shrank</td>
+<td>Accidental file deletion or bad reconciliation logic in custom ingestion script</td>
+<td>Check ingestion job logs for delete calls</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="19-appendix-cli-python-cheatsheet">19. Appendix — CLI / Python Cheatsheet</h2>
+<pre><code class="language-python">from vertexai.preview import rag
+import vertexai
+
+vertexai.init(project=&quot;YOUR_PROJECT_ID&quot;, location=&quot;us-central1&quot;)
+
+# Create corpus
+corpus = rag.create_corpus(display_name=&quot;corpus-support-prod&quot;)
+
+# Import files
+rag.import_files(corpus_name=corpus.name, paths=[&quot;gs://your-bucket/docs/&quot;],
+                  chunk_size=512, chunk_overlap=100)
+
+# List files in a corpus
+rag.list_files(corpus_name=corpus.name)
+
+# Delete a specific file
+rag.delete_file(name=&quot;projects/.../ragFiles/FILE_ID&quot;)
+
+# Delete a corpus entirely
+rag.delete_corpus(name=corpus.name)
+</code></pre>
+<pre><code class="language-bash"># Enable API
+gcloud services enable aiplatform.googleapis.com
+
+# Check IAM bindings
+gcloud projects get-iam-policy YOUR_PROJECT_ID \
+  --flatten=&quot;bindings[].members&quot; \
+  --filter=&quot;bindings.members:sa-rag-ingest@*&quot;
+</code></pre>
+<blockquote>
+<p>This surface lives under <code>vertexai.preview</code> — confirm exact method signatures, tier-configuration parameters, and quota limits against current Google Cloud documentation before running in production, since preview APIs move faster than stable ones.</p>
+</blockquote>
+</div>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>
