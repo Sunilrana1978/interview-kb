@@ -499,6 +499,11 @@ html.dark .card-title { color: #5b9cf6; }
       <span class="sidebar-badge" id="all-badge"></span>
     </button>
     <div class="sidebar-divider"></div>
+    <button class="sidebar-item" data-filter="cat-ai">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
+      AI &amp; RAG
+      <span class="sidebar-badge">12</span>
+    </button>
     <button class="sidebar-item" data-filter="cat-cloud">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
       Cloud &amp; AWS
@@ -518,11 +523,6 @@ html.dark .card-title { color: #5b9cf6; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
       Data Engineering
       <span class="sidebar-badge">3</span>
-    </button>
-    <button class="sidebar-item" data-filter="cat-ai">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg>
-      AI &amp; RAG
-      <span class="sidebar-badge">12</span>
     </button>
     <button class="sidebar-item" data-filter="cat-security">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -559,6 +559,77 @@ html.dark .card-title { color: #5b9cf6; }
           <span class="hero-stat-num">8</span>
           <span class="hero-stat-label">Topics</span>
         </div>
+      </div>
+    </div>
+
+    <!-- AI / RAG -->
+    <div class="section cat-ai" data-section data-cat="cat-ai">
+      <div class="section-header">
+        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg></div>
+        <span class="section-title">AI &amp; RAG</span>
+        <span class="section-count" data-count></span>
+      </div>
+      <div class="grid">
+        <a class="card" href="guides/rag-production-questions.html">
+          <div class="card-top"><div class="card-title">RAG Production Questions</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Interview questions for RAG systems running in production environments</div>
+          <div class="card-footer"><span class="card-tag">RAG</span></div>
+        </a>
+        <a class="card" href="guides/nike_rag_interview_reference.html">
+          <div class="card-top"><div class="card-title">RAG Interview Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">RAG system design, vector stores, chunking, and retrieval patterns</div>
+          <div class="card-footer"><span class="card-tag">RAG</span></div>
+        </a>
+        <a class="card" href="guides/gcp-rag-options.html">
+          <div class="card-top"><div class="card-title">RAG on Google Cloud</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Comparing retrieval backend options for RAG systems on GCP</div>
+          <div class="card-footer"><span class="card-tag">GCP</span><span class="card-tag">RAG</span></div>
+        </a>
+        <a class="card" href="guides/vertex-ai-rag-engine-lifecycle-ops.html">
+          <div class="card-top"><div class="card-title">Vertex AI RAG Engine Ops</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Lifecycle and operations reference for Vertex AI's managed RAG Engine</div>
+          <div class="card-footer"><span class="card-tag">Vertex AI</span></div>
+        </a>
+        <a class="card" href="guides/vertex-ai-search-lifecycle-ops.html">
+          <div class="card-top"><div class="card-title">Vertex AI Search Ops</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Lifecycle and operations reference for Vertex AI Search</div>
+          <div class="card-footer"><span class="card-tag">Vertex AI</span></div>
+        </a>
+        <a class="card" href="guides/gemini-sdk.html">
+          <div class="card-top"><div class="card-title">Gemini SDK: Two Routes</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Developer API vs Vertex AI — choosing the right Gemini integration path</div>
+          <div class="card-footer"><span class="card-tag">Gemini</span></div>
+        </a>
+        <a class="card" href="guides/google_adk_tutorial.html">
+          <div class="card-top"><div class="card-title">Google ADK Study Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Comprehensive tutorial covering the Google Agent Development Kit</div>
+          <div class="card-footer"><span class="card-tag">ADK</span></div>
+        </a>
+        <a class="card" href="guides/google-adk-3day-study-guide.html">
+          <div class="card-top"><div class="card-title">Google ADK 3-Day Study Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Structured 3-day curriculum from ADK basics to advanced agent patterns</div>
+          <div class="card-footer"><span class="card-tag">ADK</span></div>
+        </a>
+        <a class="card" href="guides/adk_step_by_step_codelab.html">
+          <div class="card-top"><div class="card-title">ADK Step-by-Step Codelab</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Hands-on production codelab for building agents with Google's Agent Development Kit</div>
+          <div class="card-footer"><span class="card-tag">ADK</span></div>
+        </a>
+        <a class="card" href="guides/google_adk_production_guide.html">
+          <div class="card-top"><div class="card-title">Google ADK Production Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Production-grade architecture patterns for deploying ADK agents at scale</div>
+          <div class="card-footer"><span class="card-tag">ADK</span></div>
+        </a>
+        <a class="card" href="guides/agent-engine-deployment-guide.html">
+          <div class="card-top"><div class="card-title">Agent Engine Deployment Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Deploying ADK agents to Vertex AI Agent Engine with React frontend integration</div>
+          <div class="card-footer"><span class="card-tag">Vertex AI</span></div>
+        </a>
+        <a class="card" href="guides/google_antigravity_tutorial.html">
+          <div class="card-top"><div class="card-title">Google Antigravity SDK Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
+          <div class="card-desc">Basic to advanced study guide for Google's Antigravity SDK</div>
+          <div class="card-footer"><span class="card-tag">Antigravity</span></div>
+        </a>
       </div>
     </div>
 
@@ -707,77 +778,6 @@ html.dark .card-title { color: #5b9cf6; }
           <div class="card-top"><div class="card-title">Retail Data Architect Study Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
           <div class="card-desc">Data architecture patterns for retail and e-commerce domains</div>
           <div class="card-footer"><span class="card-tag">Retail</span></div>
-        </a>
-      </div>
-    </div>
-
-    <!-- AI / RAG -->
-    <div class="section cat-ai" data-section data-cat="cat-ai">
-      <div class="section-header">
-        <div class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/><circle cx="18" cy="6" r="3"/></svg></div>
-        <span class="section-title">AI &amp; RAG</span>
-        <span class="section-count" data-count></span>
-      </div>
-      <div class="grid">
-        <a class="card" href="guides/rag-production-questions.html">
-          <div class="card-top"><div class="card-title">RAG Production Questions</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Interview questions for RAG systems running in production environments</div>
-          <div class="card-footer"><span class="card-tag">RAG</span></div>
-        </a>
-        <a class="card" href="guides/nike_rag_interview_reference.html">
-          <div class="card-top"><div class="card-title">RAG Interview Reference</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">RAG system design, vector stores, chunking, and retrieval patterns</div>
-          <div class="card-footer"><span class="card-tag">RAG</span></div>
-        </a>
-        <a class="card" href="guides/gcp-rag-options.html">
-          <div class="card-top"><div class="card-title">RAG on Google Cloud</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Comparing retrieval backend options for RAG systems on GCP</div>
-          <div class="card-footer"><span class="card-tag">GCP</span><span class="card-tag">RAG</span></div>
-        </a>
-        <a class="card" href="guides/vertex-ai-rag-engine-lifecycle-ops.html">
-          <div class="card-top"><div class="card-title">Vertex AI RAG Engine Ops</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Lifecycle and operations reference for Vertex AI's managed RAG Engine</div>
-          <div class="card-footer"><span class="card-tag">Vertex AI</span></div>
-        </a>
-        <a class="card" href="guides/vertex-ai-search-lifecycle-ops.html">
-          <div class="card-top"><div class="card-title">Vertex AI Search Ops</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Lifecycle and operations reference for Vertex AI Search</div>
-          <div class="card-footer"><span class="card-tag">Vertex AI</span></div>
-        </a>
-        <a class="card" href="guides/gemini-sdk.html">
-          <div class="card-top"><div class="card-title">Gemini SDK: Two Routes</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Developer API vs Vertex AI — choosing the right Gemini integration path</div>
-          <div class="card-footer"><span class="card-tag">Gemini</span></div>
-        </a>
-        <a class="card" href="guides/google_adk_tutorial.html">
-          <div class="card-top"><div class="card-title">Google ADK Study Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Comprehensive tutorial covering the Google Agent Development Kit</div>
-          <div class="card-footer"><span class="card-tag">ADK</span></div>
-        </a>
-        <a class="card" href="guides/google-adk-3day-study-guide.html">
-          <div class="card-top"><div class="card-title">Google ADK 3-Day Study Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Structured 3-day curriculum from ADK basics to advanced agent patterns</div>
-          <div class="card-footer"><span class="card-tag">ADK</span></div>
-        </a>
-        <a class="card" href="guides/adk_step_by_step_codelab.html">
-          <div class="card-top"><div class="card-title">ADK Step-by-Step Codelab</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Hands-on production codelab for building agents with Google's Agent Development Kit</div>
-          <div class="card-footer"><span class="card-tag">ADK</span></div>
-        </a>
-        <a class="card" href="guides/google_adk_production_guide.html">
-          <div class="card-top"><div class="card-title">Google ADK Production Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Production-grade architecture patterns for deploying ADK agents at scale</div>
-          <div class="card-footer"><span class="card-tag">ADK</span></div>
-        </a>
-        <a class="card" href="guides/agent-engine-deployment-guide.html">
-          <div class="card-top"><div class="card-title">Agent Engine Deployment Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Deploying ADK agents to Vertex AI Agent Engine with React frontend integration</div>
-          <div class="card-footer"><span class="card-tag">Vertex AI</span></div>
-        </a>
-        <a class="card" href="guides/google_antigravity_tutorial.html">
-          <div class="card-top"><div class="card-title">Google Antigravity SDK Guide</div><div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div></div>
-          <div class="card-desc">Basic to advanced study guide for Google's Antigravity SDK</div>
-          <div class="card-footer"><span class="card-tag">Antigravity</span></div>
         </a>
       </div>
     </div>
