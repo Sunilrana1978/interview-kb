@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep — Columbia Sportswear Principal Integration Architect</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a18; --ink-mid: #4a4a45; --ink-light: #8a8a82;
+    --bg: #f5f2ec; --bg-card: #faf8f4;
+    --accent: #c8402a; --accent-light: #f0e8e5;
+    --teal: #1a6b5a; --teal-light: #e0ede9;
+    --amber: #b06c12; --amber-light: #f5ead8;
+    --purple: #4a3a8c; --purple-light: #edeaf8;
+    --blue: #1a4a8c; --blue-light: #e0e9f5;
+    --border: rgba(26,26,24,0.12); --border-strong: rgba(26,26,24,0.22);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.65; min-height: 100vh; }
+
+  nav { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; gap: 0; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
+  .nav-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; color: var(--ink-light); padding: 14px 16px; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.2s, border-color 0.2s; letter-spacing: 0.02em; }
+  .nav-btn:hover { color: var(--ink); }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  header { background: var(--ink); color: var(--bg); padding: 3.5rem 4rem 3rem; position: relative; overflow: hidden; }
+  header::before { content: ''; position: absolute; top: -60px; right: -60px; width: 320px; height: 320px; border-radius: 50%; border: 40px solid rgba(200,64,42,0.18); pointer-events: none; }
+  header::after { content: ''; position: absolute; bottom: -40px; left: 30%; width: 180px; height: 180px; border-radius: 50%; border: 24px solid rgba(255,255,255,0.05); pointer-events: none; }
+  .header-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 700; line-height: 1.2; max-width: 680px; margin-bottom: 1rem; }
+  header p { font-size: 14px; color: rgba(245,242,236,0.6); max-width: 500px; font-weight: 300; }
+  .header-meta { display: flex; gap: 2rem; margin-top: 2rem; flex-wrap: wrap; }
+  .meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .meta-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,242,236,0.4); }
+  .meta-val { font-size: 13px; color: rgba(245,242,236,0.85); font-weight: 500; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+  .page { display: none; }
+  .page.active { display: block; animation: fadeUp 0.35s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section { margin-bottom: 3.5rem; }
+  .section-header { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+  .section-number { font-family: 'Playfair Display', serif; font-size: 13px; color: var(--accent); font-weight: 600; }
+  .section-title { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 600; color: var(--ink); }
+  .section-line { flex: 1; height: 1px; background: var(--border); }
+  .section-subtitle { font-size: 13.5px; color: var(--ink-light); margin-bottom: 1.5rem; line-height: 1.6; }
+
+  .positioning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .pos-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem; transition: border-color 0.2s, transform 0.2s; }
+  .pos-card:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .pos-card:nth-child(1) { border-top: 3px solid var(--accent); }
+  .pos-card:nth-child(2) { border-top: 3px solid var(--teal); }
+  .pos-card:nth-child(3) { border-top: 3px solid var(--purple); }
+  .pos-card:nth-child(4) { border-top: 3px solid var(--amber); }
+  .pos-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 6px; }
+  .pos-val { font-size: 13.5px; color: var(--ink); line-height: 1.55; }
+  .pivot-phrase { background: var(--ink); color: var(--bg); border-radius: 10px; padding: 1.25rem 1.5rem; margin-top: 14px; font-family: 'Playfair Display', serif; font-size: 1rem; font-style: italic; line-height: 1.55; position: relative; }
+  .pivot-phrase::before { content: '"'; font-size: 4rem; color: var(--accent); position: absolute; top: -10px; left: 16px; font-family: 'Playfair Display', serif; line-height: 1; }
+  .pivot-phrase p { padding-left: 1.5rem; }
+
+  .qa-list { display: flex; flex-direction: column; gap: 16px; }
+  .qa-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: box-shadow 0.2s; }
+  .qa-card:hover { box-shadow: 0 4px 20px rgba(26,26,24,0.07); }
+  .qa-card-header { display: flex; align-items: flex-start; gap: 12px; padding: 1.1rem 1.25rem; cursor: pointer; user-select: none; }
+  .badge { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .badge-arch { background: var(--purple-light); color: var(--purple); }
+  .badge-event { background: var(--teal-light); color: var(--teal); }
+  .badge-lead { background: var(--amber-light); color: var(--amber); }
+  .badge-mod { background: var(--accent-light); color: var(--accent); }
+  .badge-biz { background: var(--blue-light); color: var(--blue); }
+  .badge-mentor { background: var(--teal-light); color: var(--teal); }
+  .qa-question { font-size: 14px; font-weight: 500; color: var(--ink); flex: 1; line-height: 1.45; }
+  .qa-toggle { font-size: 18px; color: var(--ink-light); flex-shrink: 0; transition: transform 0.25s; line-height: 1; margin-top: 1px; }
+  .qa-body { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; }
+  .qa-body.open { max-height: 2400px; }
+  .qa-card.open .qa-toggle { transform: rotate(45deg); }
+  .qa-inner { padding: 0 1.25rem 1.25rem; border-top: 1px solid var(--border); }
+  .answer-label { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 6px; margin-top: 1rem; }
+  .opening-line { background: var(--teal-light); border-left: 3px solid var(--teal); border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: var(--teal); font-style: italic; margin: 1rem 0 10px; line-height: 1.6; }
+  .star-grid { display: grid; grid-template-columns: 90px 1fr; gap: 8px 14px; margin: 10px 0; }
+  .star-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-light); padding-top: 2px; }
+  .star-val { font-size: 13.5px; color: var(--ink-mid); line-height: 1.7; }
+  .star-val strong { color: var(--ink); font-weight: 500; }
+  .keyword-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .kw { font-size: 11px; background: var(--purple-light); color: var(--purple); padding: 3px 9px; border-radius: 12px; font-weight: 500; }
+  .columbia-tip { margin-top: 14px; padding: 10px 14px; background: var(--accent-light); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; font-size: 12.5px; color: var(--accent); line-height: 1.6; }
+  .columbia-tip strong { color: var(--accent); }
+
+  .pattern-cat { margin-bottom: 2.5rem; }
+  .pattern-cat-title { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .pattern-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .pattern-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+  .pattern-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+  .pattern-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .pattern-tag { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 10px; }
+  .pattern-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .pattern-desc { font-size: 13px; color: var(--ink-mid); line-height: 1.65; }
+  .pattern-when { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-light); }
+  .pattern-use { font-size: 12.5px; color: var(--ink-mid); line-height: 1.55; }
+  .pattern-tools { display: flex; flex-wrap: wrap; gap: 5px; }
+  .tool-pill { font-size: 11px; background: var(--bg); border: 1px solid var(--border); color: var(--ink-mid); padding: 2px 8px; border-radius: 10px; }
+  .pattern-showcase { background: var(--amber-light); border-radius: 8px; padding: 10px 12px; margin-top: auto; }
+  .pattern-showcase-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--amber); margin-bottom: 5px; }
+  .pattern-showcase-text { font-size: 12.5px; color: var(--amber); line-height: 1.6; font-style: italic; }
+
+  .ask-grid { display: flex; flex-direction: column; gap: 12px; }
+  .ask-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.25rem 1.1rem 1.5rem; border-left: 3px solid var(--teal); transition: transform 0.2s, border-color 0.2s; }
+  .ask-card:hover { transform: translateX(4px); border-left-color: var(--ink); }
+  .ask-theme { font-size: 10px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 5px; }
+  .ask-text { font-size: 13.5px; color: var(--ink); line-height: 1.55; font-style: italic; font-family: 'Playfair Display', serif; }
+  .ask-why { font-family: 'DM Sans', sans-serif; font-style: normal; font-size: 12px; color: var(--ink-light); margin-top: 5px; line-height: 1.5; }
+
+  .tips-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .tip-card { background: var(--ink); color: var(--bg); border-radius: 12px; padding: 1.25rem; }
+  .tip-icon { font-size: 22px; margin-bottom: 10px; color: var(--accent); }
+  .tip-title { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+  .tip-body { font-size: 12.5px; color: rgba(245,242,236,0.65); line-height: 1.6; }
+
+  footer { text-align: center; padding: 2rem; font-size: 12px; color: var(--ink-light); border-top: 1px solid var(--border); }
+
+  @media (max-width: 680px) {
+    header { padding: 2.5rem 1.5rem 2rem; }
+    main { padding: 2rem 1rem 4rem; }
+    .positioning-grid, .pattern-grid, .tips-grid { grid-template-columns: 1fr; }
+    .star-grid { grid-template-columns: 65px 1fr; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<header>
+  <div class="header-eyebrow">Interview Preparation Guide</div>
+  <h1>Principal Enterprise Integration Architect</h1>
+  <p>Columbia Sportswear Company &mdash; Digital Technology (CDT) Team</p>
+  <div class="header-meta">
+    <div class="meta-item"><span class="meta-label">Your background</span><span class="meta-val">Software / Solutions Architect</span></div>
+    <div class="meta-item"><span class="meta-label">Focus domains</span><span class="meta-val">Supply Chain, DTC, Planning, Product Creation</span></div>
+    <div class="meta-item"><span class="meta-label">Key platforms</span><span class="meta-val">AWS / Azure &middot; Event-driven &middot; API &amp; Data Movement</span></div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showPage('positioning',this)">01 &mdash; Positioning</button>
+  <button class="nav-btn" onclick="showPage('qa',this)">02 &mdash; Q&amp;A Deep Dive</button>
+  <button class="nav-btn" onclick="showPage('patterns',this)">03 &mdash; Integration Patterns</button>
+  <button class="nav-btn" onclick="showPage('ask',this)">04 &mdash; Questions to Ask</button>
+  <button class="nav-btn" onclick="showPage('tips',this)">05 &mdash; Final Tips</button>
+</nav>
+
+<main>
+
+<!-- PAGE 1 -->
+<div class="page active" id="page-positioning">
+  <div class="section">
+    <div class="section-header"><span class="section-number">01</span><h2 class="section-title">How to position your experience</h2><div class="section-line"></div></div>
+    <div class="positioning-grid">
+      <div class="pos-card"><div class="pos-label">Your strength</div><div class="pos-val">Solutions Architect background — you design end-to-end systems, balance trade-offs, and bridge business + technical teams across complex, multi-stakeholder environments.</div></div>
+      <div class="pos-card"><div class="pos-label">Their need</div><div class="pos-val">A Principal Integration Architect who owns API, event, and data flow patterns across Supply Chain, Planning, DTC, and Product Creation domains for four global brands.</div></div>
+      <div class="pos-card"><div class="pos-label">The bridge</div><div class="pos-val">Frame your solutions work as "enterprise integration at scale" — canonical models, event-driven patterns, vendor + cloud ecosystems, and lifecycle ownership from design through operations.</div></div>
+      <div class="pos-card"><div class="pos-label">Language to use</div><div class="pos-val">Use their vocabulary: canonical domain models, transitional architectures, integration reliability, data literacy, eventing. These are in the JD for a reason — mirror them back.</div></div>
+    </div>
+    <div class="pivot-phrase"><p>"In my role I owned the integration architecture — not just the solution shape, but the full lifecycle: design, delivery, and ongoing operations at enterprise scale."</p></div>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page" id="page-qa">
+  <div class="section">
+    <div class="section-header"><span class="section-number">02</span><h2 class="section-title">Interview questions &amp; expanded answers</h2><div class="section-line"></div></div>
+    <p class="section-subtitle">Each answer uses the STAR framework with a strong opening line, detailed talking points, and Columbia-specific framing. Adapt examples to your own real experience — the structure and language are what matter.</p>
+
+    <div class="qa-list">
+
+      <div class="qa-card" onclick="toggleQA(this)">
+        <div class="qa-card-header">
+          <span class="badge badge-arch">Architecture</span>
+          <p class="qa-question">Walk me through an enterprise integration architecture you designed — what were the key decisions?</p>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-body"><div class="qa-inner">
+          <div class="opening-line">"I'll walk you through a supply chain integration programme I architected — it's a good example because it forced every major integration trade-off in one engagement."</div>
+          <div class="star-grid">
+            <div class="star-label">Situation</div>
+            <div class="star-val">The client operated a fragmented supply chain: on-premise SAP ERP, a 3PL warehouse system, a demand planning tool, and a supplier portal — all wired together via brittle point-to-point file transfers and nightly batch jobs. <strong>Any upstream delay cascaded into missed fulfilment windows downstream.</strong></div>
+            <div class="star-label">Task</div>
+            <div class="star-val">Design an integration architecture that decoupled these systems, introduced real-time inventory visibility, and supported an 18-month migration to a cloud-native order management platform — without disrupting live trading.</div>
+            <div class="star-label">Action</div>
+            <div class="star-val">I started by building a <strong>canonical domain model for the Order and Inventory domain</strong> — a single agreed schema all systems would produce and consume, breaking the cycle of every system having its own interpretation of what an "order" was. I then chose an <strong>event-driven backbone using AWS EventBridge</strong> with SNS/SQS for reliable fan-out delivery and dead-letter queues for failure handling. I introduced an API gateway layer for synchronous partner integrations and an <strong>event-sourced audit trail</strong> for downstream finance and compliance consumers. For migration, I used a <strong>strangler-fig approach</strong> — routing traffic through the new gateway while legacy batch flows were replaced one domain at a time. Each cutover included a parallel-run period with automated event reconciliation before the legacy route was decommissioned.</div>
+            <div class="star-label">Result</div>
+            <div class="star-val">Inventory update latency dropped from overnight batch to <strong>under 3 minutes</strong>. Eliminated 14 point-to-point integrations. The platform handled its first post-migration peak trading period with zero integration failures — compared to 3 major incidents in the prior year's peak.</div>
+          </div>
+          <div class="keyword-row"><span class="kw">Canonical domain model</span><span class="kw">Event-driven</span><span class="kw">Strangler fig</span><span class="kw">AWS EventBridge</span><span class="kw">API gateway</span><span class="kw">Supply chain</span><span class="kw">Event sourcing</span></div>
+          <div class="columbia-tip"><strong>Columbia tip:</strong> Reference Supply Chain or DTC as the domain. Use "canonical domain model" explicitly — it's in their JD and signals architecture maturity. Quantify the before/after on latency, reliability, or integration count reduced.</div>
+        </div></div>
+      </div>
+
+      <div class="qa-card" onclick="toggleQA(this)">
+        <div class="qa-card-header">
+          <span class="badge badge-event">Event-driven</span>
+          <p class="qa-question">How have you designed event-driven or async messaging architectures? What pitfalls did you encounter?</p>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-body"><div class="qa-inner">
+          <div class="opening-line">"Event-driven architecture is where I've done some of my deepest work — including learning the hard lessons around ordering guarantees and schema drift in production systems."</div>
+          <div class="star-grid">
+            <div class="star-label">Situation</div>
+            <div class="star-val">We were decomposing a monolithic order processing system into microservices. The challenge: ensuring order lifecycle events — created, allocated, picked, packed, shipped, returned — were processed reliably across eight downstream consumers including finance, warehouse, CRM, and customer notifications, each with different latency and consistency requirements.</div>
+            <div class="star-label">Task</div>
+            <div class="star-val">Design an event backbone that was reliable, observable, and schema-safe — without introducing tight coupling between producers and consumers or a central point of failure.</div>
+            <div class="star-label">Action</div>
+            <div class="star-val">I implemented a <strong>pub/sub pattern using Apache Kafka</strong> with topic partitioning by order ID to guarantee per-order message ordering across consumers. Every event carried an <strong>idempotency key</strong> to handle at-least-once delivery safely — consumers could deduplicate without losing events. We adopted <strong>Avro schemas registered in a schema registry</strong> with backward-compatibility enforcement — every schema change passed a compatibility gate before deployment, preventing consumer breakage. I added <strong>dead-letter topics with automated alerting and a replay mechanism</strong> so failed events could be reprocessed without manual intervention. The hardest production issue we hit: consumer lag during a traffic spike caused stale reads in the warehouse system — we solved this with <strong>lag-based autoscaling of consumer groups</strong> using a custom CloudWatch metric.</div>
+            <div class="star-label">Result</div>
+            <div class="star-val">Zero duplicate order events processed post-launch across six months. Schema registry prevented two breaking changes that would have caused consumer outages. Consumer autoscaling kept p99 processing latency under 800ms during 4x normal traffic — a peak the old synchronous system could not have handled.</div>
+          </div>
+          <div class="keyword-row"><span class="kw">Pub/sub</span><span class="kw">Apache Kafka</span><span class="kw">Idempotency</span><span class="kw">Schema registry</span><span class="kw">Dead-letter queue</span><span class="kw">Consumer lag</span><span class="kw">Autoscaling</span><span class="kw">Avro</span></div>
+          <div class="columbia-tip"><strong>Columbia tip:</strong> Event-driven architecture is explicitly required. Go beyond the happy path — interviewers at principal level want to hear about idempotency, schema evolution, and operational failure modes. That depth shows you've run these in production, not just designed them on a whiteboard.</div>
+        </div></div>
+      </div>
+
+      <div class="qa-card" onclick="toggleQA(this)">
+        <div class="qa-card-header">
+          <span class="badge badge-lead">Leadership</span>
+          <p class="qa-question">Tell me about a time you influenced a technical direction without direct authority.</p>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-body"><div class="qa-inner">
+          <div class="opening-line">"Most of my architecture influence has happened without direct authority — I've learned that the best technical decisions come from building consensus, not from having the loudest voice in the room."</div>
+          <div class="star-grid">
+            <div class="star-label">Situation</div>
+            <div class="star-val">Three independent engineering teams were each building their own customer data integration — resulting in three different canonical models for the same Customer entity. Each team had a legitimate reason for their choices based on their system's constraints, but product and analytics were unaware of the divergence. The risk: downstream DTC personalisation and reporting would receive conflicting customer records.</div>
+            <div class="star-label">Task</div>
+            <div class="star-val">Bring three autonomous teams to a single shared Customer domain model and common integration pattern — without slowing any of their delivery timelines or being perceived as a central bottleneck.</div>
+            <div class="star-label">Action</div>
+            <div class="star-val">I resisted the urge to propose a solution immediately. Instead, I <strong>mapped the three models side by side</strong> and documented the conflicts — not solutions, just facts — then shared it with all three tech leads before any meeting. I ran a <strong>facilitated design session</strong> where the map was the conversation anchor, not my proposal. I asked questions rather than advocating: "What would break for you if the Customer entity included these fields?" I <strong>actively listened</strong> for the constraints behind each team's choices. A shared model emerged from the conversation itself — I wrote it up, got written sign-off from each team and the product director, and worked with each squad to define a 2-sprint migration path that didn't disrupt their delivery commitments. I then introduced a <strong>lightweight API design review process</strong> — a 30-minute pre-build conversation — to catch this class of divergence earlier.</div>
+            <div class="star-label">Result</div>
+            <div class="star-val">Single canonical Customer model adopted across all three teams within 6 weeks. The design review process caught 4 additional divergence risks in the following quarter before they reached production. The product director cited this as a turning point in cross-team technical collaboration.</div>
+          </div>
+          <div class="keyword-row"><span class="kw">Canonical model</span><span class="kw">Facilitation</span><span class="kw">Design review</span><span class="kw">Cross-team alignment</span><span class="kw">API governance</span><span class="kw">Stakeholder management</span></div>
+          <div class="columbia-tip"><strong>Columbia tip:</strong> Columbia explicitly wants someone who can "drive common vision across teams." The workshop-and-listen approach resonates strongly with their collaborative culture. Avoid hero narratives — show you brought people along, not that you overrode them.</div>
+        </div></div>
+      </div>
+
+      <div class="qa-card" onclick="toggleQA(this)">
+        <div class="qa-card-header">
+          <span class="badge badge-mod">Modernization</span>
+          <p class="qa-question">How have you approached modernizing or simplifying a legacy integration platform?</p>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-body"><div class="qa-inner">
+          <div class="opening-line">"Legacy modernisation is never just a technology problem — it's a risk management programme. I've learned to approach it as a series of controlled, reversible steps rather than a big-bang cutover."</div>
+          <div class="star-grid">
+            <div class="star-label">Situation</div>
+            <div class="star-val">A retail client was running a 12-year-old on-premise ESB (IBM MQ + custom adapters) connecting ERP, POS, e-commerce, and finance systems. There were 60+ active integration flows, minimal documentation, and two engineers holding all the tribal knowledge. The business had a hard 2-year deadline for cloud migration. Any disruption to order or inventory flows would directly impact trading revenue.</div>
+            <div class="star-label">Task</div>
+            <div class="star-val">Design a transitional architecture and migration roadmap that would move integrations to a cloud-native platform without disrupting live trading — sequenced by business value and risk, not technical convenience.</div>
+            <div class="star-label">Action</div>
+            <div class="star-val">I began with a <strong>dependency mapping and business criticality assessment</strong> — scoring each of the 60 integration flows by transaction volume, revenue impact, failure consequence, and change frequency. This produced a migration wave plan: high-value, lower-risk flows first; complex, deeply coupled flows last. For the technical migration pattern I chose <strong>Strangler Fig</strong>: introduced an API gateway as the stable routing layer, then incrementally redirected traffic flow by flow as each was rebuilt on the cloud platform. The legacy ESB became a passthrough rather than the hub. For DTC order flows — the highest value, highest risk — I designed a <strong>CQRS pattern with event sourcing</strong> to support both the legacy read model (needed by existing reporting) and the new microservice write model simultaneously during the transition. Each cutover included a <strong>parallel-run period</strong> — both old and new routes processed events, and an automated reconciliation service flagged discrepancies. We only decommissioned the legacy route after 5 consecutive clean days.</div>
+            <div class="star-label">Result</div>
+            <div class="star-val">42 of 60 flows migrated in 14 months with zero trading incidents. Legacy ESB decommissioned on schedule, saving $340K/year in licensing and infrastructure. The new cloud platform handled 3x peak load on the first post-migration Black Friday — a load the old ESB had historically struggled with.</div>
+          </div>
+          <div class="keyword-row"><span class="kw">Strangler fig</span><span class="kw">CQRS</span><span class="kw">Event sourcing</span><span class="kw">API gateway</span><span class="kw">Dependency mapping</span><span class="kw">Parallel run</span><span class="kw">ESB migration</span><span class="kw">Transitional architecture</span></div>
+          <div class="columbia-tip"><strong>Columbia tip:</strong> The JD says "identify opportunities to simplify and modernize integration platforms." Frame your answer as a managed programme with a sequenced roadmap — not a rewrite. Show you managed risk and business continuity alongside technical ambition. Use the phrase "transitional architecture."</div>
+        </div></div>
+      </div>
+
+      <div class="qa-card" onclick="toggleQA(this)">
+        <div class="qa-card-header">
+          <span class="badge badge-biz">Business alignment</span>
+          <p class="qa-question">How do you translate business requirements into integration architecture decisions?</p>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-body"><div class="qa-inner">
+          <div class="opening-line">"I treat integration architecture as a business capability problem first and a technical problem second — the pattern choice should follow from the business constraints, not lead them."</div>
+          <div class="star-grid">
+            <div class="star-label">Situation</div>
+            <div class="star-val">A product creation team needed to integrate PLM (Product Lifecycle Management) with the supplier collaboration portal. The stated requirement was: "suppliers should see approved specs the same day they're finalised." Taken literally, this sounded like a real-time synchronous integration — complex, expensive, and fragile given the scale of supplier volume involved.</div>
+            <div class="star-label">Task</div>
+            <div class="star-val">Understand the actual latency and reliability requirements behind the business language, surface hidden constraints, and propose a pragmatic integration architecture that solved the real problem — not the stated one.</div>
+            <div class="star-label">Action</div>
+            <div class="star-val">I ran a <strong>structured requirements discovery session</strong> with both business stakeholders and technical leads — asking the questions that aren't in the brief: "What happens to the supplier if a spec arrives 2 hours late? What if it arrives twice? What's the business cost of a spec error reaching a supplier before review is complete?" The answers were revealing: <strong>same-day delivery was acceptable, not real-time</strong> — but correctness was critical, because a bad spec reaching a supplier could cause production errors worth tens of thousands. This completely changed the architecture decision. Rather than a synchronous REST integration (fast but fragile and potentially delivering incomplete specs), I designed an <strong>event-driven async pattern with a review-and-publish workflow</strong>. Specs were published as immutable, versioned events only after a formal approval step — consumers received a reliable, auditable feed with full provenance. No partial updates, no race conditions.</div>
+            <div class="star-label">Result</div>
+            <div class="star-val">Integration built and deployed 40% faster than the original REST-sync estimate due to reduced complexity. Zero spec correction incidents in the first 6 months — compared to 3–4 per month with the prior manual email-based process. Business stakeholders described it as "finally getting the right information at the right time."</div>
+          </div>
+          <div class="keyword-row"><span class="kw">Requirements discovery</span><span class="kw">Async event</span><span class="kw">PLM integration</span><span class="kw">Immutable events</span><span class="kw">Product creation</span><span class="kw">Publish workflow</span></div>
+          <div class="columbia-tip"><strong>Columbia tip:</strong> Columbia lists Product Creation as a core domain — this story maps directly. The discovery process is the key differentiator: questioning the stated requirement to find the real one is what separates a principal architect from a senior engineer. Show that skill explicitly.</div>
+        </div></div>
+      </div>
+
+      <div class="qa-card" onclick="toggleQA(this)">
+        <div class="qa-card-header">
+          <span class="badge badge-mentor">Mentorship</span>
+          <p class="qa-question">How have you upskilled or mentored engineering teams on integration and data architecture patterns?</p>
+          <span class="qa-toggle">+</span>
+        </div>
+        <div class="qa-body"><div class="qa-inner">
+          <div class="opening-line">"My goal as a principal architect is to make myself unnecessary — by building the team's capability to make good integration decisions without needing me in every room."</div>
+          <div class="star-grid">
+            <div class="star-label">Situation</div>
+            <div class="star-val">Joining a programme with 5 engineering squads, I found significant variation in integration quality — some teams produced well-structured RESTful APIs with clear contracts, others used chatty synchronous chains, undocumented payload schemas, and point-to-point database reads across service boundaries. The variation was creating hidden coupling and causing integration failures that were only discovered at system test.</div>
+            <div class="star-label">Task</div>
+            <div class="star-val">Build shared integration capability across all squads without becoming a bottleneck, without slowing delivery, and without creating the impression of an ivory-tower architecture team imposing standards from above.</div>
+            <div class="star-label">Action</div>
+            <div class="star-val">I took three parallel approaches: First, I established a <strong>fortnightly architecture guild</strong> — a 45-minute peer-led session where teams brought live integration design decisions for group discussion. No presentations, no readouts; just real problems and real trade-offs with facilitated discussion. I rotated facilitation to develop leadership across the squads. Second, I built a <strong>living integration pattern library</strong> — short, opinionated, searchable docs covering our approved patterns (async event, API gateway, canonical model, dead-letter handling, outbox) with worked examples, anti-patterns, and decision criteria. Teams could self-serve before starting integration work. Third, I introduced <strong>lightweight pre-build design reviews</strong> — a 30-minute conversation with the squad's tech lead before integration work began. Enough to catch structural issues when they were cheap to fix, not enough to create a gate. I also <strong>paired with junior engineers</strong> during delivery on two squads — not to write the code, but to ask the architecture questions out loud while they worked.</div>
+            <div class="star-label">Result</div>
+            <div class="star-val">Integration-related issues caught pre-build rose by 60% (vs post-merge or post-test). Three senior engineers from the guild began running their own cross-squad design sessions by month 4. The pattern library became the onboarding reference for all new engineers — time to first integration contribution dropped from 3 weeks to 1. I used the phrase "scale the organisation's data and integration literacy" to describe the programme internally — it became how the team talked about what we were doing together.</div>
+          </div>
+          <div class="keyword-row"><span class="kw">Architecture guild</span><span class="kw">Pattern library</span><span class="kw">Design review</span><span class="kw">Mentoring</span><span class="kw">Integration literacy</span><span class="kw">API governance</span><span class="kw">Coaching</span></div>
+          <div class="columbia-tip"><strong>Columbia tip:</strong> The JD says "scale the organization's data &amp; integration literacy" — use that exact phrase in your answer. It signals you've read the JD carefully and already think in their terms. Show you multiplied capability across a team, not just solved individual problems.</div>
+        </div></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page" id="page-patterns">
+  <div class="section">
+    <div class="section-header"><span class="section-number">03</span><h2 class="section-title">Legacy &rarr; Modern integration patterns</h2><div class="section-line"></div></div>
+    <p class="section-subtitle">These are the patterns Columbia will expect you to know and have used. Each card includes what it is, when to use it, the tooling, and a ready-to-use sentence that showcases your hands-on experience. Pick 3–4 you've genuinely used and make them your story anchors.</p>
+
+    <div class="pattern-cat">
+      <div class="pattern-cat-title">Migration &amp; coexistence strategies</div>
+      <div class="pattern-grid">
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Strangler Fig</div>
+              <span class="pattern-tag" style="background:var(--teal-light);color:var(--teal);">Low-risk migration</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">Incrementally replace a legacy system by routing traffic through a new layer. New capabilities are built alongside the old system — which remains live — until it can be safely decommissioned, domain by domain.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Cannot afford a big-bang cutover. Business must remain live during migration. Classic for ESB, monolith decomposition, on-premise ERP integrations. The safe default for most enterprise migration programmes.</p>
+            <div class="pattern-tools"><span class="tool-pill">AWS API Gateway</span><span class="tool-pill">Azure API Management</span><span class="tool-pill">Kong / Nginx</span><span class="tool-pill">Feature flags</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"I used Strangler Fig to migrate 42 legacy ESB flows to a cloud-native platform over 14 months with zero trading incidents — routing all traffic through an API gateway and cutting over flow by flow, with a parallel-run reconciliation gate before each decommission."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Anti-Corruption Layer (ACL)</div>
+              <span class="pattern-tag" style="background:var(--purple-light);color:var(--purple);">Data integrity</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">A translation boundary that prevents the legacy system's messy data model from infecting the modern domain model. The ACL translates between legacy schemas and your canonical model in both directions — modern systems never see legacy internals.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Legacy system has inconsistent or poorly modelled data (very common in ERP, WMS, PLM). Essential when you want the modern platform to use a clean canonical model without inheriting years of technical debt.</p>
+            <div class="pattern-tools"><span class="tool-pill">MuleSoft DataWeave</span><span class="tool-pill">AWS Glue</span><span class="tool-pill">Custom transformer service</span><span class="tool-pill">Apache Camel</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"I designed an ACL between SAP ERP and a new cloud-native OMS — it translated SAP's internal material codes and org-structure fields into our canonical Product and Order domain model, protecting the modern platform from any SAP schema changes."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Parallel Run</div>
+              <span class="pattern-tag" style="background:var(--amber-light);color:var(--amber);">Risk mitigation</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">Both legacy and modern integrations run simultaneously. Outputs are compared via automated event reconciliation — discrepancies are flagged before the legacy route is decommissioned. Provides a reversible, evidence-based cutover gate.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">High-value, high-risk flows where correctness must be proven before full cutover. Critical for financial flows, supply chain allocation, and order state transitions where errors have direct revenue or compliance impact.</p>
+            <div class="pattern-tools"><span class="tool-pill">Custom reconciliation service</span><span class="tool-pill">AWS Step Functions</span><span class="tool-pill">Data diff tooling</span><span class="tool-pill">Kafka dual-publish</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"For every migrated flow I ran a 2-week parallel period — old and new routes both processed events, and an automated reconciliation service flagged discrepancies. We only decommissioned the legacy route after 5 consecutive clean days with zero divergence."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Change Data Capture (CDC)</div>
+              <span class="pattern-tag" style="background:var(--accent-light);color:var(--accent);">Legacy bridge</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">Stream changes from a legacy database as events without modifying the legacy application. CDC monitors the database transaction log and publishes row-level changes as domain events — zero changes to legacy source code required.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Legacy system cannot be modified (COTS, ERP, mainframe). Source API doesn't exist or can't support the required throughput. Ideal for WMS, ERP, and legacy mainframe systems where application-layer access is limited.</p>
+            <div class="pattern-tools"><span class="tool-pill">Debezium</span><span class="tool-pill">AWS DMS</span><span class="tool-pill">Oracle GoldenGate</span><span class="tool-pill">Kafka Connect</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"We couldn't touch the legacy WMS source code, so I used Debezium CDC on the SQL Server database to capture inventory changes as events, published them to Kafka, and consumed them in the new inventory microservice — zero modifications to the legacy system."</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pattern-cat">
+      <div class="pattern-cat-title">Async &amp; event-driven patterns</div>
+      <div class="pattern-grid">
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Event-Driven Architecture</div>
+              <span class="pattern-tag" style="background:var(--teal-light);color:var(--teal);">Decoupling</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">Producers publish domain events to a broker; consumers react independently. No direct coupling between systems. The broker provides durability, ordering guarantees, and fan-out to multiple consumers from a single event publication.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Multiple consumers need the same event. Producer should not know about consumers. High throughput, loose coupling required. Supply chain events (order placed, shipment dispatched, inventory adjusted) are natural fits for this pattern.</p>
+            <div class="pattern-tools"><span class="tool-pill">Apache Kafka</span><span class="tool-pill">AWS EventBridge</span><span class="tool-pill">Azure Service Bus</span><span class="tool-pill">AWS SNS/SQS</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"I designed an EDA backbone for order fulfilment — the OMS published OrderConfirmed events to Kafka, consumed independently by warehouse, finance, and notifications services, eliminating synchronous coupling and making each consumer independently deployable and scalable."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Saga Pattern</div>
+              <span class="pattern-tag" style="background:var(--purple-light);color:var(--purple);">Distributed transactions</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">Manages multi-step business transactions across services using local transactions and compensating actions for failure rollback. Two flavours: choreography (decentralised, event-driven) and orchestration (central coordinator defines the sequence).</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Cannot use distributed ACID transactions across service boundaries. Order checkout (reserve inventory → capture payment → create order), supply chain allocation, and returns processing are classic saga candidates.</p>
+            <div class="pattern-tools"><span class="tool-pill">AWS Step Functions</span><span class="tool-pill">Temporal</span><span class="tool-pill">Apache Camel</span><span class="tool-pill">Custom orchestrator</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"For the DTC checkout flow I implemented an orchestration saga using AWS Step Functions — coordinating inventory reservation, payment capture, and order creation with explicit compensating transactions at each step, giving us reliable consistency without distributed locks."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">CQRS + Event Sourcing</div>
+              <span class="pattern-tag" style="background:var(--blue-light);color:var(--blue);">Read/write split</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">CQRS separates the write model (commands) from the read model (queries). Event sourcing persists state as an immutable sequence of events — current state is derived by replaying events. Enables parallel legacy and modern models during migration.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Auditability or regulatory traceability is required. Read and write loads differ significantly. Need to support legacy read model and new write model simultaneously during a system migration — the classic transitional architecture use case.</p>
+            <div class="pattern-tools"><span class="tool-pill">EventStoreDB</span><span class="tool-pill">Kafka + projections</span><span class="tool-pill">AWS DynamoDB Streams</span><span class="tool-pill">Axon Framework</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"During ERP migration I used CQRS to run the legacy read model and the new microservice write model in parallel — legacy reporting kept querying the existing read store while new orders wrote through the modern command service, giving us a clean, low-risk cutover path."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Outbox Pattern</div>
+              <span class="pattern-tag" style="background:var(--teal-light);color:var(--teal);">Reliable messaging</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">Guarantees that a database write and a message publication happen atomically. The service writes to an "outbox" table in the same DB transaction; a relay process reads the outbox and publishes to the broker — eliminating the dual-write race condition that causes lost events.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Must guarantee "write to DB and publish event" are atomic — no lost events under failure or load. Critical for financial events, order state changes, and any flow where a lost event has business impact.</p>
+            <div class="pattern-tools"><span class="tool-pill">Debezium outbox connector</span><span class="tool-pill">Kafka Connect</span><span class="tool-pill">Custom relay service</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"We had a dual-write bug causing lost order events under load peaks. I introduced the outbox pattern — the order service writes to both orders table and an outbox table in one transaction; Debezium CDC relay publishes outbox records to Kafka — lost events dropped to zero permanently."</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pattern-cat">
+      <div class="pattern-cat-title">API &amp; gateway patterns</div>
+      <div class="pattern-grid">
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">API Gateway / Facade</div>
+              <span class="pattern-tag" style="background:var(--teal-light);color:var(--teal);">Stable entry point</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">A single, stable entry point for external consumers that abstracts the backend topology. Routes requests transparently to legacy or modern services — enabling incremental backend migration without ever changing the consumer-facing contract.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">External consumers (partners, mobile apps, DTC channels) need stable API contracts while backend systems evolve or migrate. Central to the Strangler Fig pattern and every enterprise modernisation programme.</p>
+            <div class="pattern-tools"><span class="tool-pill">AWS API Gateway</span><span class="tool-pill">Azure API Management</span><span class="tool-pill">Kong</span><span class="tool-pill">MuleSoft</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"I introduced AWS API Gateway as the stable facade for our supplier portal — routing to the legacy ERP adapter initially, then cutting over to the new microservice without any supplier-facing API contract change or partner re-integration effort."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Backend for Frontend (BFF)</div>
+              <span class="pattern-tag" style="background:var(--purple-light);color:var(--purple);">DTC / mobile</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">A dedicated API layer tailored to each frontend consumer type (mobile app, web, partner portal). Each BFF aggregates and transforms data from multiple backend services, reducing over-fetching, N+1 calls, and frontend-backend coupling.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">DTC channels with different data needs — mobile needs lightweight, fast payloads; web needs richer data; wholesale portal needs bulk query support. Protects backend services from being shaped by frontend concerns.</p>
+            <div class="pattern-tools"><span class="tool-pill">Node.js / Express</span><span class="tool-pill">GraphQL / AppSync</span><span class="tool-pill">Azure API Management</span><span class="tool-pill">AWS Lambda</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"For a DTC mobile relaunch I designed a BFF in Node.js that aggregated product, inventory, and pricing from three backend services into a single optimised mobile payload — reducing API calls from 6 per screen to 1 and cutting perceived load time by 40%."</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pattern-cat">
+      <div class="pattern-cat-title">Data integration &amp; canonical model patterns</div>
+      <div class="pattern-grid">
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Canonical Data Model</div>
+              <span class="pattern-tag" style="background:var(--amber-light);color:var(--amber);">Data contract</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">A single agreed-upon schema for a domain entity (Order, Product, Customer, Shipment) that all systems produce and consume. Each system adapts to the canonical model at its own boundary — preventing schema proliferation across a multi-system landscape.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Multiple systems represent the same domain entity with different schemas. Essential in multi-brand, multi-system environments — exactly Columbia's situation with 4 brands and systems spanning ERP, PLM, WMS, OMS, and DTC.</p>
+            <div class="pattern-tools"><span class="tool-pill">Confluent Schema Registry</span><span class="tool-pill">OpenAPI / AsyncAPI</span><span class="tool-pill">JSON Schema</span><span class="tool-pill">Avro / Protobuf</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"I led the design of a canonical Order domain model covering ERP, OMS, and DTC — published as an OpenAPI spec, enforced via schema registry. Three teams with divergent order schemas converged on it within 6 weeks, eliminating an entire class of downstream data conflict."</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-head">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div class="pattern-name">Data Mesh / Domain Ownership</div>
+              <span class="pattern-tag" style="background:var(--blue-light);color:var(--blue);">Scale pattern</span>
+            </div>
+          </div>
+          <div class="pattern-body">
+            <p class="pattern-desc">Each business domain owns and publishes its data as a product with a defined contract. Consumers subscribe to domain data products rather than calling source systems directly — eliminating central data team bottlenecks and distributing data ownership appropriately.</p>
+            <div class="pattern-when">When to use</div>
+            <p class="pattern-use">Large organisations with multiple autonomous business domains generating and consuming shared data. Applicable to Columbia's multi-brand, multi-domain environment where Supply Chain, Planning, and DTC all produce and consume overlapping data.</p>
+            <div class="pattern-tools"><span class="tool-pill">AWS Lake Formation</span><span class="tool-pill">Azure Purview</span><span class="tool-pill">Databricks</span><span class="tool-pill">dbt</span><span class="tool-pill">DataHub</span></div>
+            <div class="pattern-showcase">
+              <div class="pattern-showcase-label">Showcase sentence</div>
+              <div class="pattern-showcase-text">"I introduced data mesh principles to distribute ownership of supply chain data — the inventory team published a certified inventory data product consumed by planning, DTC, and finance, eliminating 5 redundant ETL pipelines and reducing data latency from daily batch to near-real-time."</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page" id="page-ask">
+  <div class="section">
+    <div class="section-header"><span class="section-number">04</span><h2 class="section-title">Questions to ask the interviewer</h2><div class="section-line"></div></div>
+    <p class="section-subtitle">Strong questions signal strategic thinking and genuine interest. These are ordered from most to least impactful — aim to ask 3–4 across a typical interview slot.</p>
+    <div class="ask-grid">
+      <div class="ask-card">
+        <div class="ask-theme">Integration landscape</div>
+        <div class="ask-text">"What does the current integration platform look like — iPaaS, custom middleware, or a mix? And what's the primary driver pushing you to evolve it now?"</div>
+        <div class="ask-why">Shows you're thinking about the real problem they need solved, not just the title. Positions you as someone who assesses before prescribing.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-theme">Modernisation maturity</div>
+        <div class="ask-text">"Where are you in the legacy-to-modern journey — have canonical domain models been established for the key domains, or is that still early work? Which domain feels most urgent?"</div>
+        <div class="ask-why">Signals architecture maturity and lets you connect your experience with canonical models and migration patterns directly to their situation.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-theme">Scope &amp; governance</div>
+        <div class="ask-text">"How does the Enterprise Integration Architecture team work with brand-level engineering teams for Mountain Hardwear, Sorel, and prAna — federated model or centralised standards with local delivery?"</div>
+        <div class="ask-why">Shows you understand multi-brand complexity and the governance challenge. Signals you're thinking about how to be effective, not just about the role description.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-theme">Domain priorities</div>
+        <div class="ask-text">"Which domain — Supply Chain, DTC, or Product Creation — has the most pressing integration challenges right now, and what's the root cause of that urgency?"</div>
+        <div class="ask-why">Lets you reference relevant patterns from your experience naturally. Opens a conversation where you can demonstrate strategic thinking rather than just answering questions.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-theme">First 90 days</div>
+        <div class="ask-text">"What does success look like in the first 90 days — is it more about landscape understanding and relationship building, delivering against a specific initiative, or establishing architectural standards?"</div>
+        <div class="ask-why">Demonstrates you're already thinking about delivery and alignment, not just the offer. Shows executive maturity and orientation to outcomes.</div>
+      </div>
+      <div class="ask-card">
+        <div class="ask-theme">AI &amp; innovation</div>
+        <div class="ask-text">"The role mentions embracing AI to drive innovation — are there specific integration or data movement problems where you're already exploring GenAI or ML-assisted automation?"</div>
+        <div class="ask-why">Ties directly to their stated requirement and opens a forward-looking conversation where you can share your own perspective on AI in integration workflows.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 5 -->
+<div class="page" id="page-tips">
+  <div class="section">
+    <div class="section-header"><span class="section-number">05</span><h2 class="section-title">Final preparation tips</h2><div class="section-line"></div></div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon">&#9670;</div>
+        <div class="tip-title">Master their vocabulary</div>
+        <div class="tip-body">Use their exact phrases: canonical domain models, transitional architectures, integration reliability, data &amp; integration literacy. These signal you already think like an architect at Columbia — don't paraphrase when you can mirror.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">&#9670;</div>
+        <div class="tip-title">Know the four brands</div>
+        <div class="tip-body">Columbia, Mountain Hardwear, Sorel, prAna — 500+ stores, global supply chain. The multi-brand complexity is their biggest integration challenge. Show you've thought about federated vs centralised governance.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">&#9670;</div>
+        <div class="tip-title">Channel Gert Boyle</div>
+        <div class="tip-body">"It's perfect. Now make it better." Bring a continuous improvement mindset. Show you build feedback loops and observability into every architecture — not just deliver and move on.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">&#9670;</div>
+        <div class="tip-title">Lead with outcomes</div>
+        <div class="tip-body">Every answer should close with a number: latency reduced by X%, integrations eliminated from 60 to 18, deployment time from 3 weeks to 2 days. Data-driven storytelling is explicitly in the JD — honour it.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">&#9670;</div>
+        <div class="tip-title">Prepare your pattern stories</div>
+        <div class="tip-body">Pick 3–4 integration patterns from the Patterns tab that you've genuinely used. Know the problem, the tool, and the measurable outcome for each. These become your versatile story building blocks for any question.</div>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">&#9670;</div>
+        <div class="tip-title">Show trade-off thinking</div>
+        <div class="tip-body">Senior architects are judged on trade-off reasoning, not just pattern knowledge. For every decision, be ready to say: "I chose X over Y because of Z constraint — and here's what I'd choose if that constraint changed."</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>Prepared for Columbia Sportswear Principal Enterprise Integration Architect interview &mdash; Solutions Architect track</footer>
+
+<script>
+  function showPage(id, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function toggleQA(card) {
+    const body = card.querySelector('.qa-body');
+    const isOpen = card.classList.contains('open');
+    document.querySelectorAll('.qa-card.open').forEach(c => {
+      c.classList.remove('open');
+      c.querySelector('.qa-body').classList.remove('open');
+    });
+    if (!isOpen) {
+      card.classList.add('open');
+      body.classList.add('open');
+    }
+  }
+</script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

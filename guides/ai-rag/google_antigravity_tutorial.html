@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Antigravity SDK: Basic to Advanced Study Guide</title>
+  <meta name="description" content="A comprehensive 3-day interactive revision guide and tutorial for the Google Antigravity SDK (AGY). Learn how to build autonomous agentic applications.">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-dark: #0b0f19;
+      --bg-card: rgba(22, 28, 45, 0.4);
+      --bg-card-hover: rgba(22, 28, 45, 0.6);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(99, 102, 241, 0.15);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dark: #64748b;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --secondary: #a855f7;
+      --accent: #14b8a6;
+      --success: #10b981;
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --error: #ef4444;
+      --error-bg: rgba(239, 68, 68, 0.1);
+      --warning: #f59e0b;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --font-sans: 'Inter', sans-serif;
+      --font-header: 'Outfit', sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      --sidebar-width: 320px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Ambient Glow Backgrounds */
+    .ambient-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--primary-glow) 0%, rgba(99, 102, 241, 0) 70%);
+      filter: blur(80px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    
+    .glow-1 { top: -100px; right: -100px; }
+    .glow-2 { bottom: 20%; left: -200px; background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 70%); }
+
+    /* Reading Progress Bar */
+    .progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 1000;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      width: 0%;
+      transition: width 0.1s ease;
+    }
+
+    /* Layout Wrapper */
+    .app-wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sticky Sidebar Navigation */
+    .sidebar {
+      width: var(--sidebar-width);
+      position: fixed;
+      top: 4px;
+      bottom: 0;
+      left: 0;
+      background: rgba(11, 15, 25, 0.8);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--border-color);
+      padding: 2rem 1.5rem;
+      overflow-y: auto;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: #fff;
+      font-family: var(--font-header);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-family: var(--font-header);
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #fff, var(--text-muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .nav-tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .nav-tab-btn.active {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.1);
+      border-color: rgba(99, 102, 241, 0.3);
+      box-shadow: inset 0 0 8px rgba(99, 102, 241, 0.05);
+    }
+
+    .nav-tab-btn .day-badge {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      font-weight: bold;
+    }
+
+    .nav-tab-btn.active .day-badge {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .toc-container {
+      margin-top: 1rem;
+    }
+
+    .toc-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dark);
+      margin-bottom: 0.75rem;
+      font-weight: 700;
+    }
+
+    .toc-list {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .toc-item a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85rem;
+      transition: color 0.2s ease;
+      display: block;
+      padding-left: 0.5rem;
+      border-left: 2px solid transparent;
+    }
+
+    .toc-item a:hover {
+      color: var(--text-main);
+      border-left-color: var(--primary);
+    }
+
+    .toc-item.active a {
+      color: var(--primary);
+      font-weight: 600;
+      border-left-color: var(--primary);
+    }
+
+    /* Main Content Area */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 3rem 4rem;
+      max-width: 1100px;
+      position: relative;
+    }
+
+    /* Hero Section */
+    .hero-section {
+      position: relative;
+      padding: 4rem 3rem;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(168, 85, 247, 0.05) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      margin-bottom: 4rem;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 0.4rem 1rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #818cf8;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+      font-family: var(--font-header);
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, #ffffff, #c084fc, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 700px;
+      margin-bottom: 2rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 2rem;
+      font-size: 0.85rem;
+      color: var(--text-dark);
+      border-top: 1px solid var(--border-color);
+      padding-top: 1.5rem;
+    }
+
+    .hero-meta-item strong {
+      color: var(--text-muted);
+    }
+
+    /* Layout Components */
+    h2 {
+      font-family: var(--font-header);
+      font-size: 2rem;
+      font-weight: 700;
+      margin-top: 4rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    h2 .day-anchor {
+      font-size: 0.8rem;
+      background: var(--primary);
+      color: #fff;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    h3 {
+      font-family: var(--font-header);
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      color: #fff;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      font-size: 1rem;
+    }
+
+    strong {
+      color: #fff;
+    }
+
+    ul, ol {
+      margin-bottom: 1.5rem;
+      padding-left: 1.5rem;
+      color: var(--text-muted);
+    }
+
+    li {
+      margin-bottom: 0.5rem;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(99, 102, 241, 0.2);
+      box-shadow: 0 4px 24px rgba(99, 102, 241, 0.05);
+    }
+
+    /* Callouts */
+    .callout {
+      padding: 1.25rem 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+      display: flex;
+      gap: 1rem;
+      border: 1px solid transparent;
+    }
+
+    .callout-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+      margin-top: 2px;
+    }
+
+    .callout-content {
+      flex: 1;
+    }
+
+    .callout-content strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      font-family: var(--font-header);
+    }
+
+    .callout-content p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: inherit;
+      opacity: 0.9;
+    }
+
+    .callout-info {
+      background: rgba(99, 102, 241, 0.05);
+      border-color: rgba(99, 102, 241, 0.2);
+      color: #cbd5e1;
+    }
+    .callout-info .callout-icon { color: var(--primary); }
+    .callout-info strong { color: #818cf8; }
+
+    .callout-warning {
+      background: var(--warning-bg);
+      border-color: rgba(245, 158, 11, 0.2);
+      color: #ffedd5;
+    }
+    .callout-warning .callout-icon { color: var(--warning); }
+    .callout-warning strong { color: #f59e0b; }
+
+    .callout-caution {
+      background: var(--error-bg);
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #fee2e2;
+    }
+    .callout-caution .callout-icon { color: var(--error); }
+    .callout-caution strong { color: #ef4444; }
+
+    /* Code Blocks */
+    .code-container {
+      position: relative;
+      margin: 1.5rem 0;
+      background: #060913;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-dark);
+      font-family: var(--font-mono);
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-sans);
+    }
+
+    .copy-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: #e2e8f0;
+      display: block;
+      line-height: 1.5;
+    }
+
+    /* Embedded code formatting */
+    code span.keyword { color: #f43f5e; font-weight: 500; }
+    code span.string { color: #34d399; }
+    code span.comment { color: #64748b; font-style: italic; }
+    code span.number { color: #f59e0b; }
+    code span.builtin { color: #60a5fa; }
+    code span.decorator { color: #c084fc; }
+    code span.def { color: #a855f7; font-weight: 500; }
+
+    /* Inline Code */
+    p code, li code {
+      display: inline;
+      padding: 0.2rem 0.4rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: #f472b6;
+    }
+
+    /* Interactive Config Playground */
+    .playground-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .playground-controls {
+      background: rgba(22, 28, 45, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .control-label {
+      font-family: var(--font-header);
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .option-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 0.25rem 0;
+      transition: color 0.2s ease;
+    }
+
+    .option-checkbox:hover {
+      color: var(--text-main);
+    }
+
+    .option-checkbox input {
+      accent-color: var(--primary);
+    }
+
+    .playground-preview {
+      display: flex;
+      flex-direction: column;
+      background: #060913;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      max-height: 500px;
+    }
+
+    .preview-header {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 0.75rem 1.2rem;
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      color: var(--text-dark);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .playground-preview pre {
+      flex: 1;
+      margin: 0;
+      padding: 1.25rem;
+      overflow-y: auto;
+    }
+
+    /* Diagram Containers */
+    .diagram-container {
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin: 2rem 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .diagram-svg {
+      width: 100%;
+      max-width: 750px;
+      height: auto;
+    }
+
+    .diagram-text {
+      font-family: var(--font-sans);
+      fill: var(--text-main);
+      font-size: 13px;
+    }
+
+    .diagram-text-muted {
+      font-family: var(--font-sans);
+      fill: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .diagram-title {
+      font-family: var(--font-header);
+      fill: #fff;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    /* Quizzes */
+    .quiz-container {
+      background: linear-gradient(180deg, rgba(22, 28, 45, 0.3) 0%, rgba(99, 102, 241, 0.03) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 3rem 0;
+    }
+
+    .quiz-title {
+      font-family: var(--font-header);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #fff;
+    }
+
+    .quiz-question {
+      margin-bottom: 1.5rem;
+    }
+
+    .quiz-q-text {
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.75rem;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .quiz-option {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .quiz-option:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+
+    .quiz-option input {
+      accent-color: var(--primary);
+    }
+
+    .quiz-option.selected {
+      background: rgba(99, 102, 241, 0.08);
+      border-color: rgba(99, 102, 241, 0.3);
+      color: #fff;
+    }
+
+    .quiz-actions {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .quiz-btn {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: #fff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-family: var(--font-header);
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px var(--primary-glow);
+      transition: all 0.2s ease;
+    }
+
+    .quiz-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .quiz-feedback {
+      margin-top: 1.5rem;
+      padding: 1rem 1.25rem;
+      border-radius: 8px;
+      display: none;
+      font-size: 0.9rem;
+    }
+
+    .quiz-feedback.success {
+      background: var(--success-bg);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      color: #a7f3d0;
+      display: block;
+    }
+
+    .quiz-feedback.error {
+      background: var(--error-bg);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      display: block;
+    }
+
+    /* Day Timelines */
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+      margin: 2rem 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.5rem;
+      bottom: 0.5rem;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2rem;
+      top: 0.35rem;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--bg-dark);
+      border: 2px solid var(--primary);
+      transform: translateX(-4px);
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Filter Views */
+    .view-section {
+      display: block;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Revision Mode Header */
+    .revision-mode-badge {
+      display: inline-flex;
+      align-items: center;
+      background: linear-gradient(to right, #ec4899, #f43f5e);
+      color: white;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      margin-left: 0.5rem;
+      text-transform: uppercase;
+    }
+
+    /* Footer styling */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 3rem 0;
+      margin-top: 6rem;
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-dark);
+      font-size: 0.85rem;
+    }
+
+    /* Mobile toggle */
+    .mobile-menu-btn {
+      display: none;
+    }
+
+    @media (max-width: 1024px) {
+      .app-wrapper {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        position: relative;
+        top: 0;
+        bottom: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 1.5rem;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 2rem;
+      }
+      .playground-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar" id="readingProgress"></div>
+  </div>
+
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">AG</div>
+        <div class="brand-title">Antigravity SDK</div>
+        <span class="revision-mode-badge">3-Day Guide</span>
+      </div>
+
+      <nav class="nav-tabs">
+        <button class="nav-tab-btn active" onclick="filterDay('all', this)">
+          View All Content
+        </button>
+        <button class="nav-tab-btn" onclick="filterDay('day1', this)">
+          <span class="day-badge">Day 1</span>
+          Fundamentals
+        </button>
+        <button class="nav-tab-btn" onclick="filterDay('day2', this)">
+          <span class="day-badge">Day 2</span>
+          Tools & Extensibility
+        </button>
+        <button class="nav-tab-btn" onclick="filterDay('day3', this)">
+          <span class="day-badge">Day 3</span>
+          Advanced Architecture
+        </button>
+      </nav>
+
+      <div class="toc-container">
+        <div class="toc-title">Table of Contents</div>
+        <ul class="toc-list" id="tocList">
+          <!-- Populated by JavaScript based on visible headers -->
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Hero Banner -->
+      <section class="hero-section" id="intro">
+        <div class="hero-badge">
+          <svg style="width: 12px; height: 12px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2L1 21h22L12 2zm0 4l7.53 13H4.47L12 6zm-1 6h2v4h-2zm0-4h2v2h-2z"/></svg>
+          Google Antigravity SDK study path
+        </div>
+        <h1 class="hero-title">Building Autonomous Agentic Systems</h1>
+        <p class="hero-subtitle">
+          Welcome to the basic-to-advanced study guide for the Google Antigravity SDK. 
+          This interactive tutorial is designed to take you from a complete beginner to writing production-grade, multi-agent workflows in 3 days.
+        </p>
+        <div class="hero-meta">
+          <div class="hero-meta-item">Est. Revision Time: <strong>3 Days (4-6 hrs/day)</strong></div>
+          <div class="hero-meta-item">Prerequisites: <strong>Python 3.10+, Asyncio</strong></div>
+          <div class="hero-meta-item">Default Model: <strong>gemini-3.5-flash</strong></div>
+        </div>
+      </section>
+
+      <!-- DAY 1 CONTENT -->
+      <div id="day1-section" class="view-section">
+        <h2 id="day1-header"><span class="day-anchor">Day 1</span> Fundamentals & Core Pillars</h2>
+        <p>
+          On your first day, we focus on establishing a solid mental model of the SDK's architecture and starting your first chat interactions.
+        </p>
+
+        <h3 id="day1-concepts">1. The Three Pillars of Antigravity</h3>
+        <p>
+          The Google Antigravity SDK architecture is built on three core pillars that separate configuration, lifecycle orchestration, and protocol transport:
+        </p>
+
+        <!-- SVG Architecture Diagram -->
+        <div class="diagram-container">
+          <svg class="diagram-svg" viewBox="0 0 700 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background grids -->
+            <rect width="700" height="240" rx="12" fill="#0f172a" stroke="rgba(255,255,255,0.05)"/>
+            
+            <!-- Pillars -->
+            <!-- 1. Agent -->
+            <rect x="30" y="40" width="160" height="140" rx="8" fill="rgba(99, 102, 241, 0.1)" stroke="#6366f1" stroke-width="1.5"/>
+            <text x="110" y="70" text-anchor="middle" class="diagram-title">Agent</text>
+            <text x="110" y="100" text-anchor="middle" class="diagram-text-muted">High-Level API</text>
+            <text x="110" y="120" text-anchor="middle" class="diagram-text">Orchestrates Config</text>
+            <text x="110" y="140" text-anchor="middle" class="diagram-text">Manages Lifecycle</text>
+            <text x="110" y="160" text-anchor="middle" class="diagram-text">Loads Tools & Hooks</text>
+
+            <!-- Connector 1 -->
+            <path d="M 190 110 L 250 110" stroke="#a855f7" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+            
+            <!-- 2. Conversation -->
+            <rect x="260" y="40" width="180" height="140" rx="8" fill="rgba(168, 85, 247, 0.1)" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="350" y="70" text-anchor="middle" class="diagram-title">Conversation</text>
+            <text x="350" y="100" text-anchor="middle" class="diagram-text-muted">Stateful Session</text>
+            <text x="350" y="120" text-anchor="middle" class="diagram-text">Maintains History</text>
+            <text x="350" y="140" text-anchor="middle" class="diagram-text">Tracks Turns & Context</text>
+            <text x="350" y="160" text-anchor="middle" class="diagram-text">Compaction Hooks</text>
+
+            <!-- Connector 2 -->
+            <path d="M 440 110 L 490 110" stroke="#14b8a6" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+            <!-- 3. Connection -->
+            <rect x="500" y="40" width="170" height="140" rx="8" fill="rgba(20, 184, 166, 0.1)" stroke="#14b8a6" stroke-width="1.5"/>
+            <text x="585" y="70" text-anchor="middle" class="diagram-title">Connection</text>
+            <text x="585" y="100" text-anchor="middle" class="diagram-text-muted">Abstract Transport</text>
+            <text x="585" y="120" text-anchor="middle" class="diagram-text">Communicates w/ LLM</text>
+            <text x="585" y="140" text-anchor="middle" class="diagram-text">Sends Raw Steps</text>
+            <text x="585" y="160" text-anchor="middle" class="diagram-text">Local/Cloud Backend</text>
+            
+            <!-- Definitions for markers -->
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#fff"/>
+              </marker>
+            </defs>
+          </svg>
+        </div>
+
+        <ul>
+          <li><strong>Agent</strong>: The primary developer-facing interface. You initialize it using a configuration (e.g., <code>LocalAgentConfig</code>) and it automatically configures tools, loads policies, and provisions required connectors.</li>
+          <li><strong>Conversation</strong>: Represents a single, continuous interactive thread. It holds the historical log (or trajectory) of what the agent has said and done, handles context window compaction when limits are reached, and hosts the active chat session.</li>
+          <li><strong>Connection</strong>: The physical or logical channel used to send payloads to the Gemini API or a local simulation runtime. By separating <code>Conversation</code> from <code>Connection</code>, the SDK allows developers to switch between running agents locally or hosting them in the cloud without modifying application logic.</li>
+        </ul>
+
+        <h3 id="day1-setup">2. Installation & Setup</h3>
+        <p>
+          To configure your local environment, install the Google Antigravity package and verify your Gemini credentials:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>Terminal</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="comment"># 1. Install the SDK</span>
+pip install google-antigravity
+
+<span class="comment"># 2. Set the API key (Get one from https://aistudio.google.com/app/api-keys)</span>
+export GEMINI_API_KEY="your-api-key-here"</code></pre>
+        </div>
+
+        <div class="callout callout-info">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-content">
+            <strong>API Key Provisioning</strong>
+            <p>If you don't have an API key, get one at <a href="https://aistudio.google.com/app/api-keys" target="_blank" style="color: #6366f1;">Google AI Studio</a>. You can also pass the API key directly in Python code via <code>LocalAgentConfig(api_key="...")</code>, though using environment variables is the recommended practice.</p>
+          </div>
+        </div>
+
+        <h3 id="day1-hello">3. Your First Agent: Hello World & Streaming</h3>
+        <p>
+          Because the SDK relies on asynchronous operations, always execute agent flows inside an <code>async/await</code> context. Below are examples for basic chat, token-by-token streaming, and thought-by-thought reasoning:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>hello_world.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">import</span> asyncio
+<span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig
+
+<span class="keyword">async def</span> <span class="def">main</span>():
+    <span class="comment"># Initialize using default local configuration (uses gemini-3.5-flash)</span>
+    config = LocalAgentConfig()
+    
+    <span class="keyword">async with</span> Agent(config) <span class="keyword">as</span> agent:
+        <span class="comment"># 1. Basic Turn-Based Chat</span>
+        response = <span class="keyword">await</span> agent.chat(<span class="string">"Hello! What is your default model?"</span>)
+        print(<span class="string">"Agent response:"</span>, <span class="keyword">await</span> response.text())
+        
+        <span class="comment"># 2. Streaming Response</span>
+        stream_response = <span class="keyword">await</span> agent.chat(<span class="string">"Write a 1-sentence joke."</span>)
+        print(<span class="string">"Streaming: "</span>, end=<span class="string">""</span>)
+        <span class="keyword">async for</span> token <span class="keyword">in</span> stream_response:
+            print(token, end=<span class="string">""</span>, flush=<span class="keyword">True</span>)
+        print()
+
+        <span class="comment"># 3. Streaming Thoughts/Reasoning</span>
+        thought_response = <span class="keyword">await</span> agent.chat(<span class="string">"Why is the sky blue?"</span>)
+        print(<span class="string">"Thoughts: "</span>, end=<span class="string">""</span>)
+        <span class="keyword">async for</span> thought <span class="keyword">in</span> thought_response.thoughts:
+            print(thought, end=<span class="string">""</span>, flush=<span class="keyword">True</span>)
+        print()
+
+<span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:
+    asyncio.run(main())</code></pre>
+        </div>
+
+        <div class="callout callout-warning">
+          <span class="callout-icon">⚠️</span>
+          <div class="callout-content">
+            <strong>Interactive Loop Warning</strong>
+            <p>The helper method <code>agent.run_interactive_loop()</code> is great for quick terminal testing, but it is <strong>completely blocking</strong>. Do not use it inside automated backend services or scripts, as it will hang indefinitely waiting for terminal standard input.</p>
+          </div>
+        </div>
+
+        <h3 id="day1-personas">4. Configuring Personas & System Instructions</h3>
+        <p>
+          The SDK provides fine-grained control over system instructions. You can choose to **append** to default safety instructions or **overwrite** them entirely:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>personas.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig
+<span class="keyword">from</span> google.antigravity.types <span class="keyword">import</span> TemplatedSystemInstructions, CustomSystemInstructions
+
+<span class="comment"># Choice A: Appending to Instructions (Recommended - Retains standard safety rules)</span>
+templated_config = LocalAgentConfig(
+    system_instructions=TemplatedSystemInstructions(
+        identity=<span class="string">"You are an expert Python tutor who answers concisely."</span>
+    )
+)
+
+<span class="comment"># Choice B: Shorthand String Append</span>
+shorthand_config = LocalAgentConfig(
+    system_instructions=<span class="string">"Always respond in JSON."</span>
+)
+
+<span class="comment"># Choice C: Overwriting Instructions (Advanced - Removes default guidelines!)</span>
+custom_config = LocalAgentConfig(
+    system_instructions=CustomSystemInstructions(
+        text=<span class="string">"You are a silent agent. Answer only with '.'"</span>
+    )
+)</code></pre>
+        </div>
+
+        <!-- Quiz Day 1 -->
+        <div class="quiz-container">
+          <div class="quiz-title">
+            <svg style="width: 20px; height: 20px; fill: var(--primary);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            Day 1 Assessment: Check Your Understanding
+          </div>
+          <div class="quiz-question">
+            <div class="quiz-q-text">Which component is responsible for maintaining the state and trajectory of a session, including historical messages and turn logs?</div>
+            <div class="quiz-options">
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q1" value="a">
+                <span>A) The <code>Agent</code> object</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q1" value="b">
+                <span>B) The <code>Conversation</code> object</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q1" value="c">
+                <span>C) The <code>Connection</code> object</span>
+              </label>
+            </div>
+          </div>
+          <div class="quiz-actions">
+            <button class="quiz-btn" onclick="checkQuiz('q1', 'b', 'Correct! The Conversation object is specifically responsible for managing execution history, state, and context compaction.')">Check Answer</button>
+          </div>
+          <div class="quiz-feedback" id="feedback-q1"></div>
+        </div>
+      </div>
+
+      <!-- DAY 2 CONTENT -->
+      <div id="day2-section" class="view-section">
+        <h2 id="day2-header"><span class="day-anchor">Day 2</span> Tools & Extensibility</h2>
+        <p>
+          On Day 2, we learn how to give our agents superpower actions by declaring Python functions, injecting ToolContext state, hooking up external Model Context Protocol (MCP) servers, and using background triggers.
+        </p>
+
+        <h3 id="day2-customtools">1. Declaring Custom Tools</h3>
+        <p>
+          To create a custom tool, write a Python function. The SDK extracts metadata (parameter names, types, and descriptions) directly from the <strong>type annotations</strong> and <strong>docstring</strong>:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>custom_tool.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig
+
+<span class="comment"># 1. Define the tool function with detailed docstring</span>
+<span class="keyword">def</span> <span class="def">retrieve_system_uptime</span>(server_id: str) -> str:
+    <span class="comment">"""Queries the current system uptime for a remote server.
+
+    Args:
+        server_id: The unique identifier of the target server, e.g., 'prod-db-1'.
+    """</span>
+    <span class="comment"># Simulation logic</span>
+    <span class="keyword">return</span> f<span class="string">"Server {server_id} uptime is 154 days, 4 hours."</span>
+
+<span class="comment"># 2. Register the tool in the agent configuration</span>
+config = LocalAgentConfig(
+    tools=[retrieve_system_uptime]
+)
+
+<span class="keyword">async def</span> <span class="def">run</span>():
+    <span class="keyword">async with</span> Agent(config) <span class="keyword">as</span> agent:
+        response = <span class="keyword">await</span> agent.chat(<span class="string">"Can you check the uptime of server 'prod-db-1'?"</span>)
+        print(<span class="keyword">await</span> response.text())</code></pre>
+        </div>
+
+        <h3 id="day2-state">2. Stateful Tools with ToolContext</h3>
+        <p>
+          Sometimes tools need to remember state across turns. By including <code>ToolContext</code> as an argument, you can access a key-value store tied to the active conversation session:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>stateful_tool.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig, ToolContext
+
+<span class="keyword">def</span> <span class="def">add_to_cart</span>(item_name: str, quantity: int, ctx: ToolContext) -> str:
+    <span class="comment">"""Adds an item to the shopping cart.
+
+    Args:
+        item_name: Name of the product.
+        quantity: Quantity of the item to add.
+        ctx: Injected ToolContext to manage cart state.
+    """</span>
+    <span class="comment"># Retrieve the state (or initialize a new dict)</span>
+    cart = ctx.get_state(<span class="string">"cart"</span>, {})
+    
+    <span class="comment"># Update state</span>
+    cart[item_name] = cart.get(item_name, 0) + quantity
+    ctx.set_state(<span class="string">"cart"</span>, cart)
+    
+    <span class="keyword">return</span> f<span class="string">"Added {quantity}x {item_name}. Current Cart: {cart}"</span>
+
+config = LocalAgentConfig(
+    tools=[add_to_cart],
+    system_instructions=<span class="string">"You are a checkout assistant. Always use the add_to_cart tool."</span>
+)</code></pre>
+        </div>
+
+        <h3 id="day2-mcp">3. Model Context Protocol (MCP) Integration</h3>
+        <p>
+          Model Context Protocol is an open standard that decouples tool servers from client orchestration. The Google Antigravity SDK natively supports connecting to external MCP servers via <strong>Stdio</strong> (spawning local processes) or <strong>SSE</strong> (communicating with remote endpoints over WebSockets/Server-Sent Events):
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>mcp_example.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig, types
+
+<span class="comment"># Define external MCP servers</span>
+mcp_servers = [
+    <span class="comment"># 1. Stdio Server (managed locally by launching a command)</span>
+    types.McpStdioServer(
+        command=<span class="string">"python3"</span>,
+        args=[<span class="string">"/path/to/weather_mcp_server.py"</span>]
+    ),
+    
+    <span class="comment"># 2. SSE Server (connecting to a remote server on the network)</span>
+    types.McpSseServer(
+        url=<span class="string">"https://api.internal.tools/mcp/sse"</span>,
+        headers={<span class="string">"Authorization"</span>: <span class="string">"Bearer sse-secret-token"</span>}
+    )
+]
+
+config = LocalAgentConfig(
+    mcp_servers=mcp_servers
+)</code></pre>
+        </div>
+
+        <h3 id="day2-triggers">4. Proactive Triggers & Periodic Checks</h3>
+        <p>
+          Triggers allow your agent to be proactive, reacting to background events such as periodic timers or directory modifications, and injecting messages into the agent thread:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>triggers.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">import</span> asyncio
+<span class="keyword">import</span> logging
+<span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig
+<span class="keyword">from</span> google.antigravity.triggers <span class="keyword">import</span> every, on_file_change, TriggerContext
+
+<span class="comment"># A. Periodic trigger callback</span>
+<span class="keyword">async def</span> <span class="def">health_check</span>(ctx: TriggerContext):
+    <span class="comment"># Pushes a status update to the active agent conversation</span>
+    <span class="keyword">await</span> ctx.send(<span class="string">"[System Trigger]: Active database connection count is high."</span>)
+
+timer_trigger = every(interval_seconds=300, callback=health_check)
+
+<span class="comment"># B. File Watcher trigger callback</span>
+<span class="keyword">async def</span> <span class="def">config_watch</span>(ctx: TriggerContext, changes):
+    <span class="keyword">for</span> change <span class="keyword">in</span> changes:
+        logging.info(f<span class="string">"File {change.path} was {change.kind}"</span>)
+    <span class="keyword">await</span> ctx.send(<span class="string">"[System Trigger]: configuration file modified."</span>)
+
+<span class="comment"># Watches directory for file edits (requires 'watchfiles' module)</span>
+file_trigger = on_file_change(<span class="string">"/tmp/configs"</span>, config_watch)
+
+config = LocalAgentConfig(
+    triggers=[timer_trigger, file_trigger]
+)</code></pre>
+        </div>
+
+        <!-- Quiz Day 2 -->
+        <div class="quiz-container">
+          <div class="quiz-title">
+            <svg style="width: 20px; height: 20px; fill: var(--primary);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            Day 2 Assessment: Check Your Understanding
+          </div>
+          <div class="quiz-question">
+            <div class="quiz-q-text">How does the Antigravity agent determine what arguments a custom Python tool function accepts, and when it should execute it?</div>
+            <div class="quiz-options">
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q2" value="a">
+                <span>A) By parsing the function name and guessing parameters based on common patterns.</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q2" value="b">
+                <span>B) It forces you to write a separate JSON schema file for every custom tool.</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q2" value="c">
+                <span>C) By using reflection to read the function’s type annotations and docstring documentation.</span>
+              </label>
+            </div>
+          </div>
+          <div class="quiz-actions">
+            <button class="quiz-btn" onclick="checkQuiz('q2', 'c', 'Correct! Antigravity leverages Python type annotations and docstrings to automatically generate JSON-schemas for tool definitions.')">Check Answer</button>
+          </div>
+          <div class="quiz-feedback" id="feedback-q2"></div>
+        </div>
+      </div>
+
+      <!-- DAY 3 CONTENT -->
+      <div id="day3-section" class="view-section">
+        <h2 id="day3-header"><span class="day-anchor">Day 3</span> Advanced Architectures & Production</h2>
+        <p>
+          On Day 3, we dive into production orchestration: routing tasks to nested subagents, intercepting execution with hooks, specifying safety predicates, debugging, tracking token costs, and persisting conversations across restarts.
+        </p>
+
+        <h3 id="day3-subagents">1. Multi-Agent Delegation (Subagents)</h3>
+        <p>
+          To prevent context bloat and separation-of-concerns issues, you can configure an agent to delegate tasks to subagents. Enable this capability in your config:
+        </p>
+
+        <!-- SVG Delegation Flow Diagram -->
+        <div class="diagram-container">
+          <svg class="diagram-svg" viewBox="0 0 750 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="750" height="250" rx="12" fill="#0f172a" stroke="rgba(255,255,255,0.05)"/>
+            
+            <!-- Nodes -->
+            <!-- User -->
+            <rect x="30" y="100" width="80" height="50" rx="6" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.2)"/>
+            <text x="70" y="125" text-anchor="middle" class="diagram-title">User</text>
+            <text x="70" y="140" text-anchor="middle" class="diagram-text-muted">Sends Query</text>
+
+            <!-- Connector 1 -->
+            <path d="M 110 125 L 180 125" stroke="#6366f1" stroke-width="1.5" marker-end="url(#arrow)"/>
+            
+            <!-- Main Agent -->
+            <rect x="190" y="80" width="160" height="90" rx="8" fill="rgba(99, 102, 241, 0.1)" stroke="#6366f1" stroke-width="1.5"/>
+            <text x="270" y="110" text-anchor="middle" class="diagram-title">Main Agent</text>
+            <text x="270" y="130" text-anchor="middle" class="diagram-text">Orchestrates task</text>
+            <text x="270" y="150" text-anchor="middle" class="diagram-text">Spawns Subagents</text>
+
+            <!-- Connector 2 (To Subagent A) -->
+            <path d="M 350 110 Q 420 70 480 70" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <text x="415" y="75" text-anchor="middle" class="diagram-text-muted">Spawn & Delegate</text>
+
+            <!-- Connector 3 (To Subagent B) -->
+            <path d="M 350 140 Q 420 180 480 180" stroke="#14b8a6" stroke-width="1.5" marker-end="url(#arrow)"/>
+            <text x="415" y="175" text-anchor="middle" class="diagram-text-muted">Spawn & Delegate</text>
+
+            <!-- Subagent A -->
+            <rect x="490" y="40" width="180" height="60" rx="6" fill="rgba(168, 85, 247, 0.1)" stroke="#a855f7" stroke-width="1.5"/>
+            <text x="580" y="65" text-anchor="middle" class="diagram-title">Subagent A (Coder)</text>
+            <text x="580" y="85" text-anchor="middle" class="diagram-text">Writes & Refactors code</text>
+
+            <!-- Subagent B -->
+            <rect x="490" y="150" width="180" height="60" rx="6" fill="rgba(20, 184, 166, 0.1)" stroke="#14b8a6" stroke-width="1.5"/>
+            <text x="580" y="175" text-anchor="middle" class="diagram-title">Subagent B (QA)</text>
+            <text x="580" y="195" text-anchor="middle" class="diagram-text">Executes tests & validation</text>
+          </svg>
+        </div>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>subagents.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig, types
+
+config = LocalAgentConfig(
+    capabilities=types.CapabilitiesConfig(
+        enable_subagents=<span class="keyword">True</span>  <span class="comment"># Exposes subagent tools to the primary agent</span>
+    )
+)
+
+<span class="keyword">async def</span> <span class="def">run</span>():
+    <span class="keyword">async with</span> Agent(config) <span class="keyword">as</span> agent:
+        <span class="comment"># The agent will dynamically spawn and coordinate with subagents to execute this task</span>
+        response = <span class="keyword">await</span> agent.chat(<span class="string">"Create a subagent to write a python test script."</span>)
+        print(<span class="keyword">await</span> response.text())</code></pre>
+        </div>
+
+        <h3 id="day3-hooks">2. Lifecycle Hooks & Error Recovery</h3>
+        <p>
+          Hooks intercept events along the agent's turn timeline. You can observe events or dynamically recover from errors:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>hooks_example.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> typing <span class="keyword">import</span> Any, Optional
+<span class="keyword">from</span> google.antigravity.hooks <span class="keyword">import</span> hooks, HookContext
+<span class="keyword">from</span> google.antigravity <span class="keyword">import</span> LocalAgentConfig
+
+<span class="comment"># Hook 1: Pre-turn prompt audit</span>
+<span class="decorator">@hooks.pre_turn</span>
+<span class="keyword">async def</span> <span class="def">pre_turn_hook</span>(data: str):
+    print(f<span class="string">"[HOOK] Processing incoming prompt: {data}"</span>)
+    <span class="keyword">return</span> types.HookResult(allow=<span class="keyword">True</span>)
+
+<span class="comment"># Hook 2: Custom fallback error recovery handler</span>
+<span class="keyword">class</span> <span class="def">SafeFallbackHook</span>(hooks.OnToolErrorHook):
+    <span class="keyword">async def</span> <span class="def">run</span>(self, context: HookContext, data: Any) -> Optional[str]:
+        <span class="keyword">if</span> isinstance(data, ValueError):
+            <span class="comment"># Feed a graceful message back to the LLM instead of crashing</span>
+            <span class="keyword">return</span> <span class="string">"[Notice: Operation failed. Please retry with a valid positive integer.]"</span>
+        <span class="keyword">return</span> <span class="keyword">None</span>  <span class="comment"># Let other exceptions raise normally</span>
+
+config = LocalAgentConfig(
+    hooks=[pre_turn_hook, SafeFallbackHook()]
+)</code></pre>
+        </div>
+
+        <h3 id="day3-safety">3. Safety Policies & Execution Guardrails</h3>
+        <p>
+          By default, the SDK uses the <code>confirm_run_command()</code> policy: <strong>denying</strong> shell execution via <code>run_command</code> while <strong>allowing</strong> other actions. You can customize policies using rules and predicates:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>safety_policies.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity.hooks <span class="keyword">import</span> policy
+<span class="keyword">from</span> google.antigravity <span class="keyword">import</span> LocalAgentConfig
+
+<span class="comment"># Define specific safety rules</span>
+policies = [
+    <span class="comment"># 1. Deny execution of command lines containing 'rm -rf'</span>
+    policy.deny(
+        <span class="string">"run_command"</span>,
+        when=<span class="keyword">lambda</span> args: <span class="string">"rm -rf"</span> <span class="keyword">in</span> args.get(<span class="string">"CommandLine"</span>, <span class="string">""</span>),
+        name=<span class="string">"block_dangerous_deletes"</span>
+    ),
+    
+    <span class="comment"># 2. Block tool execution outside of explicit project folders</span>
+    policy.workspace_only(workspaces=[<span class="string">"/Users/sunilkumar/project/src"</span>]),
+    
+    <span class="comment"># 3. Allow all other actions</span>
+    policy.allow_all()
+]
+
+config = LocalAgentConfig(policies=policies)</code></pre>
+        </div>
+
+        <div class="callout callout-caution">
+          <span class="callout-icon">☣️</span>
+          <div class="callout-content">
+            <strong>Policy Evaluation Order</strong>
+            <p>Policies resolve strictly in order: <strong>Specific Deny ➔ Specific Ask ➔ Specific Allow ➔ Wildcard Deny ➔ Wildcard Ask ➔ Wildcard Allow</strong>. First match short-circuits. If an argument check predicate crashes, the policy <strong>fails closed</strong> and triggers a default denial.</p>
+          </div>
+        </div>
+
+        <h3 id="day3-observability">4. Observability: Token Costs & Storage Layouts</h3>
+        <p>
+          Keep track of usage metadata across conversations. When using reasoning models, ensure you monitor <code>thoughts_token_count</code> as reasoning chains can consume significant token amounts:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>observability.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig
+<span class="keyword">import</span> logging
+
+<span class="comment"># A. Setup SDK-wide logging outputs</span>
+logging.basicConfig(level=logging.INFO)
+logging.getLogger(<span class="string">"google.antigravity"</span>).setLevel(logging.INFO)
+
+<span class="comment"># B. Track token counts post-interaction</span>
+<span class="keyword">async def</span> <span class="def">track_tokens</span>():
+    config = LocalAgentConfig(
+        app_data_dir=<span class="string">"/Users/sunilkumar/project/brain"</span> <span class="comment"># MUST be an absolute path</span>
+    )
+    <span class="keyword">async with</span> Agent(config) <span class="keyword">as</span> agent:
+        response = <span class="keyword">await</span> agent.chat(<span class="string">"Solve this math problem: 15482 * 9482"</span>)
+        
+        usage = agent.conversation.total_usage
+        print(f<span class="string">"Prompt Tokens: {usage.prompt_token_count}"</span>)
+        print(f<span class="string">"Reasoning Tokens: {usage.thoughts_token_count}"</span>)
+        print(f<span class="string">"Answer Tokens: {usage.candidates_token_count}"</span>)
+        print(f<span class="string">"Cumulative Total: {usage.total_token_count}"</span>)</code></pre>
+        </div>
+
+        <h3 id="day3-persistence">5. Persistent Sessions</h3>
+        <p>
+          By defining a <code>save_dir</code>, the SDK automatically pickles or saves the conversation trajectory on disk. Retrieve the <code>conversation_id</code> to seamlessly pick up right where the session left off:
+        </p>
+
+        <div class="code-container">
+          <div class="code-header">
+            <span>persistence.py</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code><span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig
+
+<span class="comment"># --- Session 1: Start and Save ---</span>
+config1 = LocalAgentConfig(save_dir=<span class="string">"/Users/sunilkumar/project/saves"</span>)
+<span class="keyword">async with</span> Agent(config1) <span class="keyword">as</span> agent:
+    <span class="keyword">await</span> agent.chat(<span class="string">"Secret codeword is Antigravity"</span>)
+    saved_id = agent.conversation_id
+
+<span class="comment"># --- Session 2: Load and Resume ---</span>
+config2 = LocalAgentConfig(
+    conversation_id=saved_id,
+    save_dir=<span class="string">"/Users/sunilkumar/project/saves"</span>
+)
+<span class="keyword">async with</span> Agent(config2) <span class="keyword">as</span> agent:
+    response = <span class="keyword">await</span> agent.chat(<span class="string">"What was the secret codeword?"</span>)
+    print(<span class="keyword">await</span> response.text())  <span class="comment"># Outputs: "Secret codeword is Antigravity"</span></code></pre>
+        </div>
+
+        <!-- Quiz Day 3 -->
+        <div class="quiz-container">
+          <div class="quiz-title">
+            <svg style="width: 20px; height: 20px; fill: var(--primary);" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            Day 3 Assessment: Check Your Understanding
+          </div>
+          <div class="quiz-question">
+            <div class="quiz-q-text">What happens if a policy check predicate raises an unhandled exception during verification?</div>
+            <div class="quiz-options">
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q3" value="a">
+                <span>A) The error is ignored, and the tool call proceeds anyway.</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q3" value="b">
+                <span>B) The policy fails closed, blocking the tool call and raising an execution exception.</span>
+              </label>
+              <label class="quiz-option" onclick="selectOption(this)">
+                <input type="radio" name="q3" value="c">
+                <span>C) The agent asks the user directly through terminal input.</span>
+              </label>
+            </div>
+          </div>
+          <div class="quiz-actions">
+            <button class="quiz-btn" onclick="checkQuiz('q3', 'b', 'Correct! To prioritize safety, the SDK is design to fail closed when exception arises during safety evaluation.')">Check Answer</button>
+          </div>
+          <div class="quiz-feedback" id="feedback-q3"></div>
+        </div>
+      </div>
+
+      <!-- PLAYGROUND SECTION -->
+      <section class="card" id="interactive-playground">
+        <h2 style="margin-top:0;">Configuration Playground</h2>
+        <p>Interactive tool to build your custom <code>LocalAgentConfig</code>. Select capabilities below and see the configuration code update in real-time:</p>
+        
+        <div class="playground-grid">
+          <div class="playground-controls">
+            <div class="control-group">
+              <span class="control-label">Core Options</span>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-custom-model" onchange="updatePlayground()"> Customize Model (gemini-3.5-pro)
+              </label>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-save-dir" onchange="updatePlayground()"> Enable Save Directory (Persistence)
+              </label>
+            </div>
+
+            <div class="control-group">
+              <span class="control-label">Capabilities</span>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-subagents" onchange="updatePlayground()" checked> Enable Subagents
+              </label>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-img-gen" onchange="updatePlayground()"> Allow Image Generation (Built-in tool)
+              </label>
+            </div>
+
+            <div class="control-group">
+              <span class="control-label">Safety Policies</span>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-policy-strict" onchange="updatePlayground()"> Strict Deny-By-Default
+              </label>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-workspace" onchange="updatePlayground()"> Restrict to Workspace Folder
+              </label>
+            </div>
+
+            <div class="control-group">
+              <span class="control-label">Extensions</span>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-mcp" onchange="updatePlayground()"> Configure MCP Server
+              </label>
+              <label class="option-checkbox">
+                <input type="checkbox" id="opt-hooks" onchange="updatePlayground()"> Register Audit Logger Hook
+              </label>
+            </div>
+          </div>
+
+          <div class="playground-preview">
+            <div class="preview-header">
+              <span>config.py</span>
+              <button class="copy-btn" onclick="copyPlaygroundCode()">Copy Config</button>
+            </div>
+            <pre><code id="playground-code-block">Loading playground config...</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <div>Google Antigravity SDK Study Guide</div>
+        <div>Created for revision &bull; July 2026</div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // Navigation Day Filter
+    function filterDay(day, btn) {
+      // Toggle nav buttons
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const day1 = document.getElementById('day1-section');
+      const day2 = document.getElementById('day2-section');
+      const day3 = document.getElementById('day3-section');
+
+      if (day === 'all') {
+        day1.classList.remove('hidden');
+        day2.classList.remove('hidden');
+        day3.classList.remove('hidden');
+      } else if (day === 'day1') {
+        day1.classList.remove('hidden');
+        day2.classList.add('hidden');
+        day3.classList.add('hidden');
+      } else if (day === 'day2') {
+        day1.classList.add('hidden');
+        day2.classList.remove('hidden');
+        day3.classList.add('hidden');
+      } else if (day === 'day3') {
+        day1.classList.add('hidden');
+        day2.classList.add('hidden');
+        day3.classList.remove('hidden');
+      }
+
+      // Rebuild Table of Contents
+      buildTOC();
+    }
+
+    // Dynamic TOC builder based on visibility
+    function buildTOC() {
+      const tocList = document.getElementById('tocList');
+      tocList.innerHTML = '';
+      
+      const headings = document.querySelectorAll('main h2:not(.hidden), main h3:not(.hidden)');
+      headings.forEach(heading => {
+        // Skip main section headers if they are hidden
+        let parent = heading.parentElement;
+        if (parent && parent.classList.contains('hidden')) return;
+
+        if (!heading.id) {
+          heading.id = heading.textContent.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        }
+
+        const li = document.createElement('li');
+        li.className = 'toc-item' + (heading.tagName === 'H2' ? ' h2-toc' : ' h3-toc');
+        if (heading.tagName === 'H3') {
+          li.style.paddingLeft = '10px';
+        }
+        
+        const a = document.createElement('a');
+        a.href = '#' + heading.id;
+        // Clean text (removing Day 1 badges)
+        let text = heading.textContent;
+        if (text.includes('Day')) {
+          text = text.replace(/Day \d/, '').trim();
+        }
+        a.textContent = text;
+        
+        li.appendChild(a);
+        tocList.appendChild(li);
+      });
+    }
+
+    // Scroll Progress & Active Heading Tracker
+    window.addEventListener('scroll', () => {
+      // Update reading progress
+      const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('readingProgress').style.width = scrolled + '%';
+
+      // Highlight active TOC item
+      const headings = document.querySelectorAll('main h2, main h3');
+      let activeId = '';
+      
+      headings.forEach(heading => {
+        const top = heading.getBoundingClientRect().top;
+        if (top < 150) {
+          activeId = heading.id;
+        }
+      });
+
+      document.querySelectorAll('.toc-item').forEach(item => {
+        item.classList.remove('active');
+        const link = item.querySelector('a');
+        if (link && link.getAttribute('href') === '#' + activeId) {
+          item.classList.add('active');
+        }
+      });
+    });
+
+    // Copy to clipboard helper
+    function copyCode(btn) {
+      const codeBlock = btn.parentElement.nextElementSibling.querySelector('code');
+      navigator.clipboard.writeText(codeBlock.innerText).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => {
+          btn.innerText = originalText;
+        }, 1500);
+      });
+    }
+
+    function copyPlaygroundCode() {
+      const code = document.getElementById('playground-code-block').innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        alert('Configuration copied to clipboard!');
+      });
+    }
+
+    // Quiz evaluation
+    function selectOption(label) {
+      const options = label.parentElement.querySelectorAll('.quiz-option');
+      options.forEach(opt => opt.classList.remove('selected'));
+      label.classList.add('selected');
+      const radio = label.querySelector('input');
+      radio.checked = true;
+    }
+
+    function checkQuiz(name, correctVal, explanation) {
+      const selectedRadio = document.querySelector(`input[name="${name}"]:checked`);
+      const feedback = document.getElementById(`feedback-${name}`);
+
+      if (!selectedRadio) {
+        feedback.className = 'quiz-feedback error';
+        feedback.innerText = 'Please select an option before checking.';
+        feedback.style.display = 'block';
+        return;
+      }
+
+      if (selectedRadio.value === correctVal) {
+        feedback.className = 'quiz-feedback success';
+        feedback.innerHTML = '<strong>' + explanation + '</strong>';
+      } else {
+        feedback.className = 'quiz-feedback error';
+        feedback.innerHTML = '<strong>Incorrect. Try again!</strong> Review the core architectural roles or setup configurations.';
+      }
+      feedback.style.display = 'block';
+    }
+
+    // Live Playground code updates
+    function updatePlayground() {
+      const customModel = document.getElementById('opt-custom-model').checked;
+      const saveDir = document.getElementById('opt-save-dir').checked;
+      const subagents = document.getElementById('opt-subagents').checked;
+      const imgGen = document.getElementById('opt-img-gen').checked;
+      const policyStrict = document.getElementById('opt-policy-strict').checked;
+      const workspace = document.getElementById('opt-workspace').checked;
+      const mcp = document.getElementById('opt-mcp').checked;
+      const hooks = document.getElementById('opt-hooks').checked;
+
+      let code = '';
+      
+      // Imports
+      code += '<span class="keyword">from</span> google.antigravity <span class="keyword">import</span> Agent, LocalAgentConfig\n';
+      
+      if (subagents || imgGen) {
+        code += '<span class="keyword">from</span> google.antigravity.types <span class="keyword">import</span> CapabilitiesConfig';
+        if (imgGen) code += ', BuiltinTools';
+        code += '\n';
+      }
+
+      if (policyStrict || workspace) {
+        code += '<span class="keyword">from</span> google.antigravity.hooks <span class="keyword">import</span> policy\n';
+      }
+
+      if (mcp) {
+        code += '<span class="keyword">from</span> google.antigravity <span class="keyword">import</span> types\n';
+      }
+
+      if (hooks) {
+        code += '<span class="keyword">from</span> google.antigravity.hooks <span class="keyword">import</span> hooks\n';
+      }
+      
+      code += '\n';
+
+      // Hooks definitions
+      if (hooks) {
+        code += '<span class="comment"># Define lifecycle audit hook</span>\n';
+        code += '<span class="decorator">@hooks.post_tool_call</span>\n';
+        code += '<span class="keyword">async def</span> <span class="def">audit_tool_call</span>(data):\n';
+        code += '    print(f<span class="string">"[AUDIT] Tool call completed. Result: {data}"</span>)\n\n';
+      }
+
+      // Configuration instance
+      code += 'config = LocalAgentConfig(\n';
+
+      if (customModel) {
+        code += '    model=<span class="string">"gemini-3.5-pro"</span>,\n';
+      } else {
+        code += '    model=<span class="string">"gemini-3.5-flash"</span>,  <span class="comment"># default</span>\n';
+      }
+
+      if (saveDir) {
+        code += '    save_dir=<span class="string">"/Users/sunilkumar/project/saves"</span>,\n';
+      }
+
+      // Capabilities config
+      if (subagents || imgGen) {
+        code += '    capabilities=CapabilitiesConfig(\n';
+        code += '        enable_subagents=' + (subagents ? '<span class="keyword">True</span>' : '<span class="keyword">False</span>') + ',\n';
+        if (imgGen) {
+          code += '        enabled_tools=[BuiltinTools.GENERATE_IMAGE]\n';
+        }
+        code += '    ),\n';
+      }
+
+      // MCP configs
+      if (mcp) {
+        code += '    mcp_servers=[\n';
+        code += '        types.McpStdioServer(\n';
+        code += '            command=<span class="string">"python3"</span>,\n';
+        code += '            args=[<span class="string">"math_server.py"</span>]\n';
+        code += '        )\n';
+        code += '    ],\n';
+      }
+
+      // Hooks config
+      if (hooks) {
+        code += '    hooks=[audit_tool_call],\n';
+      }
+
+      // Policies config
+      if (policyStrict || workspace) {
+        code += '    policies=[\n';
+        if (policyStrict) {
+          code += '        policy.deny_all(),\n';
+          code += '        policy.allow(<span class="string">"view_file"</span>),\n';
+        }
+        if (workspace) {
+          code += '        policy.workspace_only(workspaces=[<span class="string">"/Users/sunilkumar/project"</span>]),\n';
+        }
+        code += '        policy.allow_all()\n';
+        code += '    ],\n';
+      }
+
+      code += ')\n\n';
+
+      // Usage block
+      code += '<span class="comment"># Execute Agent within context</span>\n';
+      code += '<span class="keyword">async def</span> <span class="def">run_agent</span>():\n';
+      code += '    <span class="keyword">async with</span> Agent(config) <span class="keyword">as</span> agent:\n';
+      code += '        response = <span class="keyword">await</span> agent.chat(<span class="string">"Initiate configured tasks."</span>)\n';
+      code += '        print(<span class="keyword">await</span> response.text())\n';
+
+      document.getElementById('playground-code-block').innerHTML = code;
+    }
+
+    // Initialize page
+    window.onload = () => {
+      buildTOC();
+      updatePlayground();
+    };
+  </script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

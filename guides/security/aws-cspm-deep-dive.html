@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AWS CSPM Services — Deep Dive with Production Examples</title>
+<style>
+  :root{
+    --bg:#0b1120; --panel:#111827; --panel2:#0f172a; --border:#1f2937;
+    --text:#e5e7eb; --muted:#94a3b8; --accent:#38bdf8; --accent2:#f59e0b;
+    --green:#34d399; --purple:#a78bfa; --red:#f87171;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:#0a0f1c; color:var(--text); line-height:1.6;}
+  header{padding:48px 8vw 30px; border-bottom:1px solid var(--border); background:radial-gradient(1200px 300px at 10% -20%, rgba(56,189,248,.15), transparent);}
+  header h1{margin:0 0 8px; font-size:2rem;}
+  header p{color:var(--muted); max-width:760px; margin:0;}
+  nav{position:sticky; top:0; z-index:10; background:rgba(10,15,28,.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--border); padding:10px 8vw; display:flex; gap:16px; flex-wrap:wrap; font-size:.82rem;}
+  nav a{color:var(--muted); text-decoration:none;}
+  nav a:hover{color:var(--accent);}
+  main{padding:36px 8vw 90px; max-width:1080px; margin:0 auto;}
+  .svc{margin-bottom:64px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:var(--panel);}
+  .svc-head{padding:22px 26px; background:linear-gradient(90deg, rgba(56,189,248,.08), transparent); border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;}
+  .svc-head h2{margin:0; font-size:1.3rem; color:var(--accent);}
+  .pill{font-size:.7rem; padding:3px 10px; border-radius:999px; border:1px solid var(--border); color:var(--muted);}
+  .svc-body{padding:24px 26px;}
+  h3{font-size:.95rem; text-transform:uppercase; letter-spacing:.5px; color:var(--accent2); margin:22px 0 10px;}
+  h3:first-child{margin-top:0;}
+  p{color:#cbd5e1; margin:0 0 10px;}
+  ul{margin:0 0 10px; padding-left:20px; color:#cbd5e1;}
+  ul li{margin-bottom:6px;}
+  .example{background:var(--panel2); border-left:3px solid var(--green); border-radius:6px; padding:14px 18px; margin:10px 0;}
+  .example .tag{font-size:.68rem; color:var(--green); font-weight:700; letter-spacing:.4px; display:block; margin-bottom:6px;}
+  .pitfall{background:rgba(248,113,113,.06); border-left:3px solid var(--red); border-radius:6px; padding:14px 18px; margin:10px 0;}
+  .pitfall .tag{font-size:.68rem; color:var(--red); font-weight:700; letter-spacing:.4px; display:block; margin-bottom:6px;}
+  pre{background:#070b14; border:1px solid var(--border); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:.82rem; color:#a5f3fc; margin:10px 0;}
+  code{background:#070b14; border:1px solid var(--border); padding:1px 6px; border-radius:4px; font-size:.85em; color:var(--green);}
+  pre code{background:none; border:none; padding:0; color:inherit;}
+  table{width:100%; border-collapse:collapse; font-size:.85rem; margin:10px 0;}
+  th,td{border:1px solid var(--border); padding:8px 12px; text-align:left;}
+  th{background:var(--panel2); color:var(--accent);}
+  .toc-group{margin-bottom:8px;}
+  footer{text-align:center; padding:28px; color:var(--muted); font-size:.8rem; border-top:1px solid var(--border);}
+</style>
+
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<header>
+  <h1>AWS CSPM Services — Deep Dive</h1>
+  <p>Technical detail, configuration mechanics, and production-style examples for each core AWS service used in Cloud Security Posture Management.</p>
+</header>
+
+<nav>
+  <a href="#config">Config</a>
+  <a href="#securityhub">Security Hub</a>
+  <a href="#guardduty">GuardDuty</a>
+  <a href="#inspector">Inspector</a>
+  <a href="#macie">Macie</a>
+  <a href="#accessanalyzer">Access Analyzer</a>
+  <a href="#scp">Organizations/SCP</a>
+  <a href="#controltower">Control Tower</a>
+  <a href="#firewallmgr">Firewall Manager</a>
+  <a href="#detective">Detective</a>
+  <a href="#auditmgr">Audit Manager</a>
+  <a href="#trustedadvisor">Trusted Advisor</a>
+  <a href="#trellix">Trellix Integration</a>
+</nav>
+
+<main>
+
+<!-- CONFIG -->
+<section class="svc" id="config">
+  <div class="svc-head"><h2>AWS Config</h2><span class="pill">Foundation · Detective</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Config runs a <strong>Configuration Recorder</strong> per account/Region that snapshots supported resource types and streams every change to an S3 bucket as a config item, with a full history and relationship graph (e.g., which SG is attached to which ENI). <strong>Config Rules</strong> (AWS-managed Lambda or custom Lambda/Guard rules) evaluate resources on a schedule or on-change and mark them <code>COMPLIANT</code> / <code>NON_COMPLIANT</code>. <strong>Conformance Packs</strong> bundle dozens of rules mapped to a standard (CIS AWS Foundations, PCI-DSS, NIST 800-53) and can deploy org-wide via <code>Organization Conformance Packs</code>.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">RETAIL / E-COMMERCE PLATFORM</span>
+      A multi-account retail org (prod, staging, PCI-scoped payment account) deploys the <code>Operational-Best-Practices-for-PCI-DSS</code> conformance pack org-wide via Control Tower. The <code>s3-bucket-public-read-prohibited</code> and <code>restricted-ssh</code> managed rules run continuously. When a developer accidentally opens SG port 22 to 0.0.0.0/0 on an EC2 auto-scaling group during a hotfix, Config flags it <code>NON_COMPLIANT</code> within minutes, an EventBridge rule fires an SSM Automation document that revokes the ingress rule, and the event lands in Security Hub for audit trail — no human in the loop for the first response.
+    </div>
+    <h3>Key config knobs</h3>
+    <ul>
+      <li><code>recording-group</code> — all-resource-types vs. scoped list (cost control at scale)</li>
+      <li>Aggregators for cross-account/cross-Region visibility from a security-tooling account</li>
+      <li>Remediation via SSM Automation documents attached directly to a rule</li>
+    </ul>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      Recording "all resource types" in every account gets expensive fast at Nike/retail scale (thousands of resources changing per hour). Most mature orgs scope the recorder to security-relevant resource types and rely on CloudTrail + Security Hub for the rest.
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY HUB -->
+<section class="svc" id="securityhub">
+  <div class="svc-head"><h2>AWS Security Hub</h2><span class="pill">Aggregator · Detective</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Security Hub ingests findings from Config, GuardDuty, Inspector, Macie, IAM Access Analyzer, Firewall Manager, and third-party integrations (Trellix, CrowdStrike, Prisma Cloud, Qualys) — all normalized to the <strong>AWS Security Finding Format (ASFF)</strong>. It runs its own standards checks (FSBP — Foundational Security Best Practices, CIS, PCI DSS, NIST 800-53) and computes a per-account security score. A delegated administrator account aggregates findings across the whole AWS Organization.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">SOC / MTD INTEGRATION PATTERN</span>
+      A security-tooling account is set as Security Hub's delegated admin across ~40 member accounts. An EventBridge rule matches findings with <code>Severity.Label IN [HIGH, CRITICAL]</code> and routes them to an SQS queue consumed by a Lambda that posts a normalized alert into Trellix XDR (or a SOAR platform) for MTD analyst triage — this is exactly the aggregation pattern to know cold when explaining how AWS-native posture data feeds a Managed Threat Defense workflow.
+    </div>
+    <h3>Key mechanics</h3>
+    <table>
+      <tr><th>Concept</th><th>Purpose</th></tr>
+      <tr><td>ASFF</td><td>Common JSON schema so Config/GuardDuty/partner findings are queryable the same way</td></tr>
+      <tr><td>Insights</td><td>Saved queries, e.g. "EC2 instances with critical vulns exposed to internet"</td></tr>
+      <tr><td>Custom Actions</td><td>Manual trigger to send a finding to an EventBridge target (ticketing, SOAR)</td></tr>
+    </table>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      Enabling all three standards (FSBP + CIS + PCI) on every account creates duplicate/overlapping findings for the same misconfiguration. Most teams pick FSBP as baseline and layer PCI/CIS only on in-scope accounts.
+    </div>
+  </div>
+</section>
+
+<!-- GUARDDUTY -->
+<section class="svc" id="guardduty">
+  <div class="svc-head"><h2>Amazon GuardDuty</h2><span class="pill">Threat Detection</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>GuardDuty analyzes VPC Flow Logs, DNS query logs, and CloudTrail management/data events (no infrastructure to deploy — it's fed from existing logs) using threat-intel feeds and anomaly ML models. Optional protection plans extend it to <strong>EKS Audit Logs</strong>, <strong>S3 data events</strong>, <strong>RDS login activity</strong>, <strong>Lambda network activity</strong>, and <strong>Malware Protection</strong> (EBS snapshot scanning on suspicious EC2/container workloads).</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">CREDENTIAL COMPROMISE</span>
+      An IAM access key belonging to a CI/CD pipeline service account leaks into a public GitHub repo. Within minutes, GuardDuty's <code>UnauthorizedAccess:IAMUser/InstanceCredentialExfiltration</code> and <code>Recon:IAMUser/MaliciousIPCaller</code> findings fire because API calls originate from a Tor exit node. The finding streams to Security Hub, EventBridge triggers a Lambda that disables the access key via <code>iam:UpdateAccessKey</code>, and Detective is used afterward to trace exactly which API calls the attacker made before containment.
+    </div>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">CONTAINER WORKLOAD</span>
+      On an EKS cluster running customer-facing microservices, GuardDuty EKS Protection flags <code>Execution:Kubernetes/ExecInSuspiciousDirectory</code> when an attacker who compromised a pod runs a shell in <code>/tmp</code>. Malware Protection then auto-scans the underlying EBS volume and confirms a cryptominer binary, feeding a CRITICAL finding into Security Hub.
+    </div>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      GuardDuty is Region-scoped — teams that only enable it in <code>us-east-1</code> miss activity in Regions they forgot they use. Enable org-wide, all-Region, via a delegated admin.
+    </div>
+  </div>
+</section>
+
+<!-- INSPECTOR -->
+<section class="svc" id="inspector">
+  <div class="svc-head"><h2>Amazon Inspector</h2><span class="pill">Vulnerability Management</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Inspector continuously scans EC2 instances (via SSM agent, no separate agent needed), ECR container images (on push and on a schedule for existing images), and Lambda function code/layers for known CVEs, using NVD data plus AWS's own scoring. It also runs a <strong>network reachability</strong> check for EC2 — flagging instances with a vulnerable package that's also reachable from the internet, which prioritizes remediation far better than raw CVSS score alone.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">CONTAINER SUPPLY CHAIN</span>
+      A CI pipeline pushes a new microservice image to ECR. Inspector scans it on push and flags a CRITICAL CVE in a base-image OpenSSL package. The pipeline is gated on a Security Hub Insight query (no CRITICAL findings on the image digest) via a CodeBuild step that calls <code>GetFindings</code> — the deployment is blocked before it ever reaches production EKS.
+    </div>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">NETWORK REACHABILITY PRIORITIZATION</span>
+      Out of 4,000 EC2 instances with medium/high CVEs, Inspector's reachability analysis shows only 30 are actually internet-reachable on the vulnerable port. Patch-Tuesday effort gets focused on those 30 first instead of triaging all 4,000 by CVSS score alone.
+    </div>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      Lambda scanning only covers packages Inspector recognizes in deployment packages/layers — custom-built binaries or unusual runtimes can slip through; don't treat it as a complete SBOM solution.
+    </div>
+  </div>
+</section>
+
+<!-- MACIE -->
+<section class="svc" id="macie">
+  <div class="svc-head"><h2>Amazon Macie</h2><span class="pill">Data Protection</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Macie uses managed data identifiers (and custom regex-based identifiers) to classify objects in S3 for PII, credentials, and financial data, and separately evaluates bucket-level security posture (public access, encryption, sharing outside the account) regardless of content scanning.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">DATA EXPOSURE PREVENTION</span>
+      A data-engineering team stands up a new S3 bucket for a customer analytics export and misconfigures the bucket policy to allow account-wide read. Macie's automated sensitive-data discovery job flags the bucket both for <strong>public/cross-account access</strong> and for containing objects matching the <code>CREDIT_CARD_NUMBER</code> managed identifier. The combined severity trips a Security Hub CRITICAL finding same-day, well before a scheduled quarterly audit would have caught it.
+    </div>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      Full-bucket sensitive-data discovery jobs bill per GB scanned — running them unscoped across a multi-petabyte data lake gets expensive; most teams scope jobs to specific prefixes or sample percentages.
+    </div>
+  </div>
+</section>
+
+<!-- ACCESS ANALYZER -->
+<section class="svc" id="accessanalyzer">
+  <div class="svc-head"><h2>IAM Access Analyzer</h2><span class="pill">Identity Posture</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Access Analyzer uses automated reasoning (not simulation) to mathematically evaluate resource policies (S3, KMS, IAM roles, Lambda, SQS, Secrets Manager) and flag any that grant access to an entity outside a defined "zone of trust" (the account or the org). A separate <strong>Unused Access</strong> analyzer flags IAM roles/users with permissions or access keys unused for 90+ days — key for least-privilege cleanup.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">CROSS-ACCOUNT TRUST DRIFT</span>
+      During a vendor offboarding, a cross-account IAM role trust policy that was scoped to a third-party's account ID is never removed after the contract ends. Access Analyzer continues to flag it as an external-access finding every scan cycle until it's cleaned up — providing an audit trail that the exposure existed and for how long, which matters for a SOC 2 finding response.
+    </div>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">LEAST PRIVILEGE AT SCALE</span>
+      Unused Access findings across 200 IAM roles in a platform-engineering account show 40 roles with S3 full-access permissions that were never actually used to write, only read. Policies get right-sized to <code>s3:GetObject</code>/<code>ListBucket</code> only, cutting blast radius if any of those roles are later compromised.
+    </div>
+  </div>
+</section>
+
+<!-- ORG/SCP -->
+<section class="svc" id="scp">
+  <div class="svc-head"><h2>AWS Organizations + Service Control Policies</h2><span class="pill">Preventive Guardrails</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>SCPs are JSON policies attached at the Organization root, OU, or account level that set the <em>maximum available permissions</em> — even an account admin with a full-access IAM policy can't exceed what the SCP allows. Unlike Config/Security Hub (detective — flag after the fact), SCPs are preventive — the API call is denied outright.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">DECOMMISSIONING GUARDRAIL</span>
+      During decommissioning of legacy Trellix-based services in AWS, an SCP is attached to the "legacy-security-tools" OU that denies <code>ec2:RunInstances</code> and <code>cloudformation:CreateStack</code> for any new resource creation — allowing only <code>Delete*</code>/<code>Terminate*</code> actions during the wind-down window, preventing anyone from accidentally standing up new workloads in an account that's mid-decommission.
+    </div>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">REGION LOCKDOWN</span>
+      A retail org operating under data-residency requirements attaches an SCP denying all actions outside <code>us-east-1</code> and <code>us-west-2</code> at the root OU, closing off the possibility of shadow-IT resources spinning up in an unmonitored Region that Config/GuardDuty aren't even watching.
+    </div>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      SCPs don't grant permissions, only restrict — a common mistake is expecting an SCP allow-list to substitute for IAM policies. It's a ceiling, not a grant.
+    </div>
+  </div>
+</section>
+
+<!-- CONTROL TOWER -->
+<section class="svc" id="controltower">
+  <div class="svc-head"><h2>AWS Control Tower</h2><span class="pill">Landing Zone Automation</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Control Tower automates a multi-account landing zone: it provisions a management account, a log-archive account, an audit/security account, and standard OUs, then attaches a baseline of mandatory guardrails (SCPs) and strongly-recommended Config rules. Account Factory templates new-account creation so every account starts from the same compliant baseline.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">MERGERS &amp; ACQUISITIONS ONBOARDING</span>
+      When an acquired company's AWS accounts are enrolled into the parent org's Control Tower landing zone, Account Factory immediately applies the standard guardrail set (mandatory encryption, CloudTrail logging, no public S3) — instead of a manual months-long security review before the accounts can be trusted, the guardrails self-enforce from day one and drift is reported centrally.
+    </div>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      Control Tower guardrail drift (someone manually detaches an SCP) is detected but not always auto-remediated — dashboards need active monitoring, it isn't fully "set and forget."
+    </div>
+  </div>
+</section>
+
+<!-- FIREWALL MANAGER -->
+<section class="svc" id="firewallmgr">
+  <div class="svc-head"><h2>AWS Firewall Manager</h2><span class="pill">Network Policy</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Firewall Manager centrally pushes and enforces WAF rule groups, Security Group policies, Network Firewall, and Shield Advanced protections across every account/resource in an OU — and can auto-remediate resources (e.g., a Security Group) that drift from the enforced baseline.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">WAF BASELINE AT SCALE</span>
+      A retail org with 50+ public-facing ALBs across business-unit accounts uses Firewall Manager to push a common WAF rule group blocking SQLi/XSS patterns and rate-limiting to every ALB tagged <code>internet-facing=true</code>, org-wide — new ALBs that match the tag are auto-enrolled without any per-account WAF setup.
+    </div>
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      Firewall Manager requires Organizations + a delegated admin and doesn't retroactively fix resources outside its policy scope tags — untagged resources silently fall outside enforcement.
+    </div>
+  </div>
+</section>
+
+<!-- DETECTIVE -->
+<section class="svc" id="detective">
+  <div class="svc-head"><h2>Amazon Detective</h2><span class="pill">Investigation</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Detective ingests CloudTrail, VPC Flow Logs, and GuardDuty findings into a behavior graph spanning up to a year, letting an analyst pivot from "this IAM role triggered a GuardDuty finding" to "here's every API call, IP, and resource that role touched in the prior 30 days" without manually correlating raw CloudTrail logs.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">MTD INCIDENT TRIAGE</span>
+      After GuardDuty flags anomalous API calls from an EC2 instance role, an MTD analyst opens the finding directly in Detective and sees the instance also made unusual calls to Secrets Manager 20 minutes earlier and communicated with a rare external IP — turning a single alert into a full attack-chain timeline in a few clicks instead of hours of manual CloudTrail Athena queries.
+    </div>
+  </div>
+</section>
+
+<!-- AUDIT MANAGER -->
+<section class="svc" id="auditmgr">
+  <div class="svc-head"><h2>AWS Audit Manager</h2><span class="pill">Compliance Evidence</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Audit Manager maps live AWS activity (Config compliance state, CloudTrail events, resource inventories) to controls in a chosen framework (SOC 2, ISO 27001, PCI DSS) and continuously collects evidence into an assessment, instead of security teams manually screenshotting console pages before an audit.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">SOC 2 AUDIT CYCLE</span>
+      Ahead of an annual SOC 2 Type II audit, the security team runs a standing Audit Manager assessment against the SOC 2 framework all year; by audit time, 80% of the evidence (encryption status, access reviews, logging configuration) is already collected and timestamped, cutting weeks off manual evidence-gathering.
+    </div>
+  </div>
+</section>
+
+<!-- TRUSTED ADVISOR -->
+<section class="svc" id="trustedadvisor">
+  <div class="svc-head"><h2>AWS Trusted Advisor</h2><span class="pill">Baseline Checks</span></div>
+  <div class="svc-body">
+    <h3>How it works</h3>
+    <p>Trusted Advisor runs lightweight account-level checks (root account MFA, exposed access keys, open security groups on common ports, S3 bucket permissions) without any setup, refreshed periodically. Business/Enterprise Support unlocks the full security check category plus programmatic access via the Support API.</p>
+    <h3>Production example</h3>
+    <div class="example">
+      <span class="tag">QUICK POSTURE SNAPSHOT</span>
+      Before a new account is enrolled into full Config/Security Hub monitoring, a quick Trusted Advisor check immediately surfaces that root MFA isn't enabled and two Security Groups allow 0.0.0.0/0 on port 3389 — the fastest possible "are we already on fire" check during initial account assessment, well before deeper tooling is even deployed.
+    </div>
+  </div>
+</section>
+
+<!-- TRELLIX INTEGRATION -->
+<section class="svc" id="trellix">
+  <div class="svc-head"><h2>Trellix Integration Patterns</h2><span class="pill">ePO · XDR · DXL ↔ AWS</span></div>
+  <div class="svc-body">
+    <h3>Why this matters</h3>
+    <p>AWS-native services generate posture and threat data; Trellix consumes, correlates, and acts on it as part of a broader MTD/XDR workflow. The integration is almost never "Trellix replaces Security Hub" — it's Trellix subscribing to AWS findings and, separately, AWS ingesting Trellix telemetry so both sides have a complete picture. There are three integration points worth knowing cold: <strong>Security Hub as the AWS-side aggregator</strong>, <strong>EventBridge as the transport</strong>, and <strong>DXL/ePO as the Trellix-side control plane</strong>.</p>
+
+    <h3>Pattern 1 — Security Hub → EventBridge → Trellix XDR</h3>
+    <p>This is the most common direction: AWS findings flow outward to Trellix for correlation with endpoint telemetry.</p>
+    <div class="flow" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0;">
+      <span class="pill" style="background:var(--panel2)">Config / GuardDuty / Inspector / Macie</span>→
+      <span class="pill" style="background:var(--panel2)">Security Hub (ASFF)</span>→
+      <span class="pill" style="background:var(--panel2)">EventBridge rule</span>→
+      <span class="pill" style="background:var(--panel2)">Lambda transformer</span>→
+      <span class="pill" style="background:var(--panel2)">Trellix XDR API / DXL broker</span>
+    </div>
+    <ul>
+      <li>An EventBridge rule filters on <code>source: aws.securityhub</code> and <code>detail.findings[].Severity.Label IN [HIGH, CRITICAL]</code></li>
+      <li>A Lambda reshapes the ASFF payload into the Trellix XDR ingestion schema (or publishes to a DXL topic if using the on-prem ePO bridge) and calls the Trellix API</li>
+      <li>Trellix correlates the cloud finding against endpoint/EDR telemetry for the same asset, producing a single fused incident instead of two disconnected alerts</li>
+    </ul>
+    <div class="example">
+      <span class="tag">PRODUCTION EXAMPLE — CLOUD + ENDPOINT CORRELATION</span>
+      GuardDuty flags <code>Backdoor:EC2/C2Activity</code> on an EC2 instance. The finding streams through Security Hub → EventBridge → Lambda → Trellix XDR. Trellix XDR already has ENS (Endpoint Security) telemetry from the same host showing a suspicious process spawned moments earlier. XDR auto-correlates the two into one incident, and because the host also runs the Trellix agent, an MTD analyst can trigger endpoint isolation directly from the fused incident — something GuardDuty alone can't do since it has no endpoint control plane.
+    </div>
+
+    <h3>Pattern 2 — Trellix ePO/DXL → AWS (inbound enrichment)</h3>
+    <p>Less common but increasingly used: Trellix-side detections (ENS malware verdicts, MTD analyst-confirmed incidents) get pushed back into AWS so cloud-native remediation (SCP, SSM Automation, Lambda) can act — e.g., quarantining an IAM role or EC2 instance tied to a confirmed-malicious host.</p>
+    <ul>
+      <li>DXL (Data Exchange Layer) publishes an event when ePO confirms a malware verdict or MTD closes an incident as malicious</li>
+      <li>An integration service (Lambda behind API Gateway, or a DXL-to-EventBridge bridge) translates the DXL message into a <code>PutEvents</code> call on a custom EventBridge bus</li>
+      <li>A downstream rule triggers SSM Automation to isolate the EC2 instance's Security Group or tag it for forensic snapshot — closing the loop from endpoint detection to cloud containment</li>
+    </ul>
+    <div class="example">
+      <span class="tag">PRODUCTION EXAMPLE — CONTAINMENT LOOP</span>
+      MTD confirms a ransomware precursor on an EC2-hosted Windows workload via ENS. The DXL event is bridged into a custom EventBridge bus; a rule matches on <code>detail-type: trellix.malware.confirmed</code> and runs an SSM Automation runbook that swaps the instance's Security Group to an "isolated" SG (deny all except forensics subnet) within seconds — faster than waiting for a human to jump from the Trellix console into the AWS console to do it manually.
+    </div>
+
+    <h3>Pattern 3 — CSPM posture feed for Trellix Cloud module</h3>
+    <p>If using Trellix's cloud security/CSPM module (as opposed to just XDR/ENS), it typically reads AWS posture via a cross-account IAM role with read-only access to Config, Security Hub, and CloudTrail — the same read pattern as any third-party CSPM tool (Wiz, Prisma Cloud) rather than a push model.</p>
+    <ul>
+      <li>Cross-account role with a trust policy scoped to Trellix's AWS account ID, granted <code>securityhub:GetFindings</code>, <code>config:Describe*</code>, <code>config:Get*</code>, read-only</li>
+      <li>External ID required in the trust policy (standard third-party access hardening — same pattern for any SaaS security vendor)</li>
+      <li>Trellix polls or subscribes via EventBridge partner event bus rather than maintaining its own change-detection logic</li>
+    </ul>
+
+    <h3>Architecture decision points</h3>
+    <table>
+      <tr><th>Decision</th><th>Options</th><th>Consideration</th></tr>
+      <tr><td>Transport to Trellix</td><td>EventBridge + Lambda vs. DXL broker vs. direct API polling</td><td>EventBridge is lowest-latency and serverless; DXL matters if on-prem ePO is still authoritative</td></tr>
+      <tr><td>Direction</td><td>AWS→Trellix only vs. bidirectional</td><td>Bidirectional (containment loop) needs more careful IAM scoping — inbound write access to AWS is higher risk</td></tr>
+      <tr><td>Cross-account access</td><td>Push (AWS calls Trellix API) vs. pull (Trellix assumes a read role)</td><td>Pull is simpler to secure (no AWS credentials given to Trellix); push allows near-real-time delivery</td></tr>
+      <tr><td>Finding dedup</td><td>Let Trellix XDR dedupe vs. pre-filter in Lambda</td><td>Pre-filtering in Lambda (severity/resource-type) reduces noise and API cost before it ever reaches Trellix</td></tr>
+    </table>
+
+    <div class="pitfall">
+      <span class="tag">PITFALL</span>
+      Standing up the containment loop (Pattern 2) without tightly scoping the IAM role the automation runs under is a real risk — a compromised or misfiring DXL bridge with broad <code>ec2:*</code>/<code>iam:*</code> permissions becomes its own attack surface. Scope the automation role to only the specific isolate/quarantine actions it needs (e.g., <code>ec2:ModifyInstanceAttribute</code> for SG swap only), not broad admin access.
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>Deep-dive reference · AWS CSPM services · Personal study material</footer>
+
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

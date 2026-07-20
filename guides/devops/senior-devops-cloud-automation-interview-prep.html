@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep · Senior DevOps Developer (Cloud Automation)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16202B;          /* deep slate / blueprint */
+    --ink-2:#22303D;
+    --paper:#FBFAF7;        /* warm off-white reading surface */
+    --card:#FFFFFF;
+    --signal:#E8841A;       /* warehouse signal amber */
+    --signal-deep:#C96A0C;
+    --steel:#2C7A7B;        /* steel teal accent */
+    --steel-deep:#1F5B5C;
+    --muted:#5A6573;
+    --muted-2:#8893A0;
+    --line:#E2E5E9;
+    --line-soft:#EDEFF2;
+    --ok:#3F8F5B;
+    --shadow:0 1px 2px rgba(22,32,43,.04),0 8px 24px -12px rgba(22,32,43,.18);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit}
+
+  /* ---------- Header ---------- */
+  header{
+    background:var(--ink);color:#EAF0F4;position:relative;overflow:hidden;
+    border-bottom:3px solid var(--signal);
+  }
+  header::before{
+    content:"";position:absolute;inset:0;opacity:.5;
+    background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+                     linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+    background-size:34px 34px;
+    -webkit-mask-image:radial-gradient(ellipse at 70% 0%,#000,transparent 75%);
+            mask-image:radial-gradient(ellipse at 70% 0%,#000,transparent 75%);
+  }
+  .head-wrap{max-width:1080px;margin:0 auto;padding:38px 28px 34px;position:relative}
+  .kicker{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--signal);display:flex;align-items:center;gap:10px;
+  }
+  .kicker .pulse{width:8px;height:8px;border-radius:50%;background:var(--signal);
+    box-shadow:0 0 0 0 rgba(232,132,26,.6);animation:pulse 2.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(232,132,26,.5)}70%{box-shadow:0 0 0 8px rgba(232,132,26,0)}100%{box-shadow:0 0 0 0 rgba(232,132,26,0)}}
+  h1{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.02em;
+    font-size:clamp(28px,4.4vw,44px);line-height:1.08;margin:14px 0 6px;color:#fff;
+  }
+  .sub{color:#9FB0BD;font-size:15px;max-width:60ch}
+  .meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .meta-row span{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+    padding:5px 10px;border-radius:5px;color:#C7D3DC;
+  }
+
+  /* ---------- Layout ---------- */
+  .shell{max-width:1080px;margin:0 auto;padding:0 28px;display:grid;
+    grid-template-columns:200px 1fr;gap:38px;align-items:start}
+  nav.rail{position:sticky;top:18px;padding-top:34px}
+  nav.rail .rail-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--muted-2);margin:0 0 12px 4px}
+  nav.rail a{
+    display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--muted);
+    font-size:13.5px;padding:7px 9px;border-radius:7px;margin-bottom:2px;
+    transition:background .15s,color .15s;
+  }
+  nav.rail a:hover{background:var(--line-soft);color:var(--ink)}
+  nav.rail a .code{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+    color:var(--steel);min-width:30px}
+  main{padding:34px 0 80px;min-width:0}
+
+  .intro{background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:22px 24px;box-shadow:var(--shadow);margin-bottom:30px}
+  .intro p{margin:0;font-size:14.5px;color:var(--ink-2)}
+  .intro strong{font-weight:600}
+  .intro .tip{margin-top:12px;font-size:13px;color:var(--muted);display:flex;gap:9px;align-items:flex-start}
+  .intro .tip svg{flex-shrink:0;margin-top:2px}
+
+  /* ---------- Section ---------- */
+  section{margin-bottom:42px;scroll-margin-top:18px}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:4px;
+    padding-bottom:12px;border-bottom:2px solid var(--ink)}
+  .sec-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+    color:var(--signal);letter-spacing:.05em}
+  .sec-head h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:21px;
+    letter-spacing:-.01em;margin:0;flex:1}
+  .sec-head .tag{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;
+    letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:20px}
+  .tag.must{background:#FCEFE0;color:var(--signal-deep);border:1px solid #F2D3AC}
+  .tag.core{background:#E4F1F1;color:var(--steel-deep);border:1px solid #BFE0E0}
+  .tag.pref{background:#EEF0F2;color:var(--muted);border:1px solid var(--line)}
+  .sec-blurb{font-size:13px;color:var(--muted);margin:12px 0 18px}
+
+  /* ---------- Question card ---------- */
+  .q{background:var(--card);border:1px solid var(--line);border-radius:11px;
+    margin-bottom:12px;box-shadow:var(--shadow);overflow:hidden;transition:border-color .15s}
+  .q:hover{border-color:#CDD3D9}
+  .q-head{display:flex;gap:14px;padding:16px 18px;cursor:pointer;align-items:flex-start}
+  .q-id{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--muted-2);
+    padding-top:2px;min-width:34px;letter-spacing:.02em}
+  .q-text{flex:1;font-size:15px;font-weight:500;color:var(--ink);line-height:1.5}
+  .q-meta{display:flex;align-items:center;gap:10px;flex-shrink:0;padding-top:1px}
+  .dots{display:flex;gap:3px}
+  .dots i{width:6px;height:6px;border-radius:50%;background:var(--line);display:block}
+  .dots[data-lvl="1"] i:nth-child(-n+1),
+  .dots[data-lvl="2"] i:nth-child(-n+2),
+  .dots[data-lvl="3"] i:nth-child(-n+3){background:var(--signal)}
+  .chev{width:18px;height:18px;color:var(--muted-2);transition:transform .2s;flex-shrink:0}
+  .q.open .chev{transform:rotate(180deg)}
+  .q-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .q-inner{padding:0 18px 18px 66px}
+  .q-inner .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--steel);font-weight:600;margin-bottom:8px;
+    display:flex;align-items:center;gap:7px}
+  .q-inner .lbl::before{content:"";width:14px;height:2px;background:var(--steel);border-radius:2px}
+  .q-inner ul{margin:0;padding-left:18px}
+  .q-inner li{font-size:13.8px;color:var(--ink-2);margin-bottom:7px;line-height:1.55}
+  .q-inner li::marker{color:var(--signal)}
+  .q-inner code{font-family:'JetBrains Mono',monospace;font-size:12px;background:#F2F4F6;
+    padding:1.5px 5px;border-radius:4px;color:var(--ink);border:1px solid var(--line-soft)}
+  .q-inner .follow{margin-top:12px;font-size:12.5px;color:var(--muted);
+    background:#F8F9FA;border-left:2px solid var(--signal);padding:8px 12px;border-radius:0 6px 6px 0}
+  .q-inner .follow b{color:var(--ink-2);font-weight:600}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;text-align:center;
+    font-size:12.5px;color:var(--muted-2);font-family:'JetBrains Mono',monospace;letter-spacing:.03em}
+
+  .toolbar{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+  .toolbar button{font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:.04em;
+    background:var(--card);border:1px solid var(--line);color:var(--muted);padding:8px 14px;
+    border-radius:7px;cursor:pointer;transition:all .15s;font-weight:500}
+  .toolbar button:hover{border-color:var(--signal);color:var(--signal-deep);background:#FFF8F0}
+
+  /* ---------- Subsection dividers ---------- */
+  .subsec-head{
+    font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;
+    color:var(--ink-2);letter-spacing:-.01em;
+    padding:12px 16px;margin:24px 0 12px;
+    background:var(--line-soft);border-radius:8px;
+    border-left:3px solid var(--signal);
+  }
+
+  /* ---------- Issue cards ---------- */
+  .q.issue{border-left:3px solid #E85A3A}
+  .q.issue .q-id.issue-id{color:#E85A3A}
+  .q.issue:hover{border-color:#E85A3A;border-left-color:#E85A3A}
+  .q.issue .q-head{background:#FFFAF9}
+
+  /* ---------- Top-5 cards ---------- */
+  .q.top5{border-left:3px solid var(--steel)}
+  .q.top5 .q-id.top5-id{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;
+    color:var(--steel-deep);min-width:34px
+  }
+  .q.top5:hover{border-color:var(--steel);border-left-color:var(--steel)}
+  .q.top5 .q-head{background:#F4FAFA}
+
+  @media(max-width:820px){
+    .shell{grid-template-columns:1fr;gap:0}
+    nav.rail{display:none}
+    .q-inner{padding-left:18px}
+    main{padding-top:24px}
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+<header>
+  <div class="head-wrap">
+    <div class="kicker"><span class="pulse"></span>Interview Prep · R&amp;D · Suwanee, GA</div>
+    <h1>Senior DevOps Developer<br>(Cloud Automation)</h1>
+    <p class="sub">Practice question bank for the robotics &amp; warehouse-automation platform role. Tap any question to reveal model talking points and likely follow-ups. AWS-focused.</p>
+    <div class="meta-row">
+      <span>GO · MUST-HAVE</span><span>KUBERNETES</span><span>AWS</span>
+      <span>ARGOCD GITOPS</span><span>TERRAFORM</span><span>ANSIBLE</span>
+      <span>EDGE / ON-PREM</span><span>SENIOR IC</span>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail">
+    <p class="rail-title">Sections</p>
+    <a href="#go"><span class="code">GO</span>Go Programming</a>
+    <a href="#k8s"><span class="code">K8S</span>Kubernetes &amp; Docker</a>
+    <a href="#aws"><span class="code">AWS</span>AWS Cloud</a>
+    <a href="#cicd"><span class="code">CD</span>CI/CD &amp; ArgoCD</a>
+    <a href="#iac"><span class="code">IAC</span>Terraform &amp; Ansible</a>
+    <a href="#linux"><span class="code">SYS</span>Linux &amp; Networking</a>
+    <a href="#obs"><span class="code">OBS</span>Observability</a>
+    <a href="#edge"><span class="code">EDG</span>Edge / Robotics</a>
+    <a href="#rel"><span class="code">SRE</span>Reliability &amp; Scale</a>
+    <a href="#lead"><span class="code">LDR</span>Leadership &amp; Comms</a>
+  </nav>
+
+  <main>
+    <div class="intro">
+      <p><strong>How to use this:</strong> Read the question, answer out loud first, <em>then</em> expand to compare against the talking points. The signal dots mark depth — one dot is a warm-up, three is a system-design / staff-level probe. The bank is weighted toward Go, Kubernetes, GitOps and hybrid edge, since those carry the most signal for this JD.</p>
+      <div class="tip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8841A" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+        <span>Go is the only hard "must-have." Expect a live coding screen plus a systems-programming conversation, not just trivia. Lead your stories with the warehouse/edge angle whenever you can.</span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="setAll(true)">Expand all</button>
+      <button onclick="setAll(false)">Collapse all</button>
+    </div>
+
+    <!-- ============ GO ============ -->
+    <section id="go">
+      <div class="sec-head"><span class="sec-num">01</span><h2>Go Programming</h2><span class="tag must">Must-have</span></div>
+      <p class="sec-blurb">The single non-negotiable skill. Be ready to write idiomatic Go live, reason about concurrency, and explain why Go fits infra/CLI tooling.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">G1</span><span class="q-text">Why is Go a good fit for building internal infrastructure tools and CLIs? What would push you toward Go over Python here?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Single static binary, no runtime/interpreter to ship — ideal for distributing tools across heterogeneous warehouse/edge hosts.</li>
+          <li>Fast startup and low memory; cross-compilation (<code>GOOS</code>/<code>GOARCH</code>) for ARM edge devices from one build host.</li>
+          <li>First-class concurrency for tools that fan out across many nodes/clusters.</li>
+          <li>Strong stdlib for networking, HTTP, and CLI; the cloud-native ecosystem (K8s, Terraform, ArgoCD, Docker) is Go, so SDKs/clients are native.</li>
+          <li>Honest trade-off: Python wins for quick glue/data work; Go wins when the tool is long-lived, performance-sensitive, or shipped as a binary.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">G2</span><span class="q-text">Explain goroutines vs OS threads, and how channels coordinate them. When would you use a channel vs a mutex?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Goroutines are lightweight, multiplexed onto OS threads by the runtime scheduler (M:N), starting at ~2KB stacks that grow — so thousands are cheap.</li>
+          <li>Channels pass ownership of data ("share memory by communicating"); good for pipelines, fan-out/fan-in, signaling completion.</li>
+          <li>Mutex protects shared state read/written in place — simpler for a counter or a cache than routing it through a channel.</li>
+          <li>Rule of thumb: channels for <em>transferring</em> work/ownership; mutex (<code>sync.Mutex</code>/<code>RWMutex</code>) for <em>guarding</em> shared state.</li>
+          <li>Mention <code>sync.WaitGroup</code>, and that buffered vs unbuffered channels change blocking semantics.</li>
+        </ul><div class="follow"><b>Follow-up:</b> "How do you avoid a goroutine leak?" → ensure every goroutine has a termination path; use <code>context</code> cancellation and bounded channels.</div></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">G3</span><span class="q-text">How do you use <code>context.Context</code>? Walk through cancellation and timeouts in a tool that calls multiple cloud APIs.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li><code>context</code> carries deadlines, cancellation signals, and request-scoped values down a call tree.</li>
+          <li>Create with <code>context.WithTimeout</code>/<code>WithCancel</code>; pass as the first arg to every blocking call; always <code>defer cancel()</code>.</li>
+          <li>On cancel/timeout the <code>ctx.Done()</code> channel closes — downstream SDK calls (AWS SDK v2 takes a ctx) abort instead of hanging.</li>
+          <li>Don't stuff business data in context values; use it for cancellation and tracing IDs.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">G4</span><span class="q-text">How does Go's error handling work, and how do you design errors in a library others will consume? Discuss wrapping and sentinel errors.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Errors are values, returned explicitly — no exceptions. Handle at the right layer; add context as it bubbles up.</li>
+          <li>Wrap with <code>fmt.Errorf("doing X: %w", err)</code> to preserve the chain; unwrap with <code>errors.Is</code> / <code>errors.As</code>.</li>
+          <li>Sentinel errors (<code>var ErrNotFound = errors.New(...)</code>) or typed errors let callers branch on conditions.</li>
+          <li><code>panic</code> only for truly unrecoverable programmer errors; recover at goroutine boundaries in long-running daemons so one bad request doesn't kill the process.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">G5</span><span class="q-text">Live-coding style: write a worker pool that processes N jobs across a fixed number of concurrent workers and collects results.</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Structure they want to see</div><ul>
+          <li>A <code>jobs</code> channel and a <code>results</code> channel; spin up a fixed pool of worker goroutines ranging over <code>jobs</code>.</li>
+          <li><code>sync.WaitGroup</code> to know when all workers finish, then close <code>results</code> in a separate goroutine.</li>
+          <li>Pass <code>context</code> so the pool can be cancelled mid-run; handle per-job errors without killing the pool.</li>
+          <li>Talk about bounding concurrency to protect downstream (API rate limits, node capacity) — directly relevant to fanning out across a warehouse fleet.</li>
+        </ul><div class="follow"><b>Watch for:</b> deadlocks from unclosed channels, and the classic loop-variable capture bug in goroutines (pre-1.22).</div></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">G6</span><span class="q-text">How do you test Go code? Cover table-driven tests, interfaces for mocking, and the race detector.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Table-driven tests with subtests (<code>t.Run</code>) for clear case coverage.</li>
+          <li>Depend on small interfaces so you can inject fakes for cloud clients; avoid heavyweight mock frameworks where a hand-written fake is clearer.</li>
+          <li><code>go test -race</code> in CI to catch data races; <code>-cover</code> for coverage; benchmarks via <code>testing.B</code>.</li>
+          <li>Mention <code>httptest</code> for HTTP handlers and golden files for CLI output.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">G7</span><span class="q-text">How do you profile and reduce memory/CPU in a Go service? What about GC tuning?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li><code>pprof</code> (CPU, heap, goroutine, block profiles); <code>go tool trace</code> for scheduler/latency analysis.</li>
+          <li>Reduce allocations: reuse buffers (<code>sync.Pool</code>), preallocate slices/maps, avoid unnecessary interface boxing and string→[]byte churn.</li>
+          <li><code>GOGC</code> trades CPU for memory; <code>GOMEMLIMIT</code> (1.19+) gives a soft cap — useful in memory-constrained edge containers.</li>
+          <li>Measure first; don't optimize on a hunch.</li>
+        </ul></div></div></div>
+    </section>
+
+    <!-- ============ K8S ============ -->
+    <section id="k8s">
+      <div class="sec-head"><span class="sec-num">02</span><h2>Kubernetes &amp; Docker</h2><span class="tag core">Core</span></div>
+      <p class="sec-blurb">You'll run self-hosted clusters, not just managed ones. Expect cluster-internals and "it's broken at 2am" troubleshooting questions.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">K1</span><span class="q-text">Walk me through what happens, end to end, when you <code>kubectl apply</code> a Deployment until pods are running.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Request hits the API server → auth/authz/admission → persisted to etcd.</li>
+          <li>Deployment controller creates a ReplicaSet; ReplicaSet controller creates Pods (desired state).</li>
+          <li>Scheduler binds each unscheduled Pod to a node via filtering + scoring (resources, affinity, taints).</li>
+          <li>Kubelet on the node pulls images, asks the CRI runtime (containerd) to start containers, runs probes, reports status.</li>
+          <li>kube-proxy / CNI wire up networking; Service + endpoints make it reachable.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">K2</span><span class="q-text">A pod is stuck in <code>CrashLoopBackOff</code>. Another is <code>Pending</code>. How do you debug each?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li><b>CrashLoop:</b> <code>kubectl logs --previous</code>, check exit code, describe for OOMKilled, verify config/secrets/env, failing liveness probe, bad command. Reproduce locally if possible.</li>
+          <li><b>Pending:</b> <code>kubectl describe pod</code> → events. Usually unschedulable: insufficient CPU/mem, no node matches affinity/taints, PVC unbound, or image pull issues on a node.</li>
+          <li>Mention cluster-level: cluster-autoscaler can't add nodes, or quota exhausted.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">K3</span><span class="q-text">Requests vs limits — how do they affect scheduling, QoS class, and eviction? What's a sane default policy?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Requests drive scheduling and reservations; limits cap usage (CPU throttled, memory OOMKilled).</li>
+          <li>QoS: <code>Guaranteed</code> (requests=limits) > <code>Burstable</code> > <code>BestEffort</code> — order in which pods get evicted under node pressure.</li>
+          <li>Sane policy: always set memory request=limit to avoid OOM surprises; set CPU request, be cautious with hard CPU limits (throttling); use LimitRange/ResourceQuota per namespace.</li>
+          <li>For latency-sensitive robotics workloads, avoid aggressive CPU throttling and consider guaranteed QoS.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">K4</span><span class="q-text">How does pod networking work? Explain the CNI's role, ClusterIP vs NodePort vs LoadBalancer, and how a Service routes traffic.</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Every pod gets a routable IP; CNI plugin (Calico, Cilium, etc.) handles pod-to-pod connectivity and NetworkPolicy enforcement.</li>
+          <li>Service is a stable virtual IP + DNS name; endpoints track healthy pods; kube-proxy (iptables/IPVS) or eBPF programs the routing.</li>
+          <li>ClusterIP = internal only; NodePort = port on every node; LoadBalancer = provisions an external LB (ELB/NLB on AWS).</li>
+          <li>Ingress / Gateway API for L7 HTTP routing in front of ClusterIP services.</li>
+          <li>On self-hosted/on-prem, LoadBalancer needs something like MetalLB since there's no cloud LB.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">K5</span><span class="q-text">What is a CRD and the operator pattern? When would you build a custom operator instead of using Helm?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>CRD extends the K8s API with new resource types; an operator is a controller that reconciles those resources toward desired state (control loop).</li>
+          <li>Helm packages/templates manifests — great for install/upgrade, but it's one-shot, not a continuous reconciler.</li>
+          <li>Build an operator when you need ongoing operational logic: handling stateful upgrades, failover, backups, or domain workflows (e.g., managing a fleet of robotics controllers as CRs).</li>
+          <li>Tie-in: operators are typically written in Go (controller-runtime / Kubebuilder) — connects to the Go must-have.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">K6</span><span class="q-text">How do you build a small, secure container image? Cover multi-stage builds, distroless/scratch, non-root, and image scanning.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Multi-stage build: compile in a builder stage, copy only the static Go binary into a minimal final stage (<code>scratch</code> or distroless).</li>
+          <li>Run as non-root, read-only root filesystem, drop capabilities; pin base image digests.</li>
+          <li>Scan in CI (Trivy/Grabber); keep images small to speed pulls — matters for bandwidth-limited edge sites.</li>
+          <li>Mention layer ordering for cache efficiency and not baking secrets into layers.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">K7</span><span class="q-text">How do you run and maintain a self-hosted Kubernetes cluster? What's harder than a managed cluster like EKS?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>You own the control plane: etcd backups/restore, certificate rotation, version upgrades (kubeadm/kubespray or a lighter distro like k3s for edge).</li>
+          <li>You own load balancing (MetalLB), storage (CSI for local/NFS/Ceph), and networking yourself.</li>
+          <li>Capacity, node lifecycle, and OS patching are on you — no managed node groups.</li>
+          <li>For warehouse edge: lightweight distros (k3s/RKE2), constrained hardware, and surviving network partitions to the cloud.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">K8</span><span class="q-text">How do you do zero-downtime deploys in K8s? Compare rolling, blue/green, and canary, and how readiness probes fit in.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Rolling (default): <code>maxUnavailable</code>/<code>maxSurge</code> control pace; readiness probes gate traffic so only healthy pods receive it.</li>
+          <li>Blue/green: full second environment, flip traffic, instant rollback — costs double capacity.</li>
+          <li>Canary: shift a % of traffic, watch metrics, promote — best paired with Argo Rollouts + a metrics provider.</li>
+          <li>PodDisruptionBudgets protect availability during voluntary disruptions (node drains/upgrades).</li>
+        </ul></div></div></div>
+
+      <!-- ── Production Issues ── -->
+      <div class="subsec-head">🔥 Common Production Issues — Kubernetes &amp; Docker</div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P1</span><span class="q-text">Issue: Pods stuck in <code>ImagePullBackOff</code> across the cluster after a routine deploy.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Wrong image tag or image deleted:</b> a tag like <code>latest</code> or a feature-branch tag was pushed over or removed. Pin to immutable SHA digests in production manifests.</li>
+          <li><b>ECR auth token expired:</b> the imagePullSecret or node IAM role lost permissions. Check <code>ecr:GetAuthorizationToken</code> on the node role; credential helpers (ECR Credential Helper) auto-refresh tokens.</li>
+          <li><b>VPC endpoint / network broken:</b> the CNI or a security group rule change cut egress to ECR. Verify the endpoint exists and SG rules allow 443 outbound.</li>
+          <li><b>Private registry with no imagePullSecret:</b> missing or expired Secret in the target namespace. Verify with <code>kubectl get secret</code>; use a service account–bound pull secret.</li>
+          <li><b>Rate limiting (Docker Hub):</b> anonymous pull limits hit. Move to ECR mirrors or authenticated pulls.</li>
+        </ul><div class="follow"><b>Quick triage:</b> <code>kubectl describe pod &lt;name&gt;</code> → Events section shows the exact pull error and registry response code.</div></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P2</span><span class="q-text">Issue: Node goes <code>NotReady</code> intermittently; pods on it get evicted and reschedule endlessly.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Kubelet stops sending heartbeats:</b> high load, OOM, or a stuck systemd unit. SSH to the node: <code>systemctl status kubelet</code>, <code>journalctl -u kubelet -n 100</code>.</li>
+          <li><b>Disk pressure:</b> <code>/var/lib/docker</code> or <code>/var/lib/containerd</code> full from image/log bloat — triggers eviction. Add a <code>logrotate</code> policy, set container log limits, prune dangling images via a CronJob.</li>
+          <li><b>Memory pressure / OOMKill:</b> the kernel kills the kubelet or containerd. Set <code>--eviction-hard</code> thresholds to proactively shed pods before the kernel OOMKills critical daemons.</li>
+          <li><b>Network plugin crash:</b> CNI pod (Calico/Cilium) on the node crashed — network handshake to the control plane times out. Check CNI pod status on that node.</li>
+          <li><b>Cloud instance health issue:</b> AWS underlying hardware degraded; replace the instance and let the autoscaler heal.</li>
+        </ul><div class="follow"><b>Prevention:</b> node-problem-detector daemonset surfaces kernel and system-level issues as NodeConditions before kubelet gives up.</div></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P3</span><span class="q-text">Issue: Service is up, pod is running, but requests return <code>503</code> or connections are refused intermittently.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Pod not yet ready, already in endpoint list:</b> readiness probe passes but the app isn't truly accepting requests (JVM warm-up, DB connection). Tune the probe's <code>initialDelaySeconds</code> and <code>failureThreshold</code>.</li>
+          <li><b>Terminating pod still in endpoints:</b> during a rolling deploy, traffic hits a pod already in <code>Terminating</code> state. Add a <code>preStop</code> sleep (e.g., 5s) to give kube-proxy time to drain the endpoint before the process exits.</li>
+          <li><b>kube-proxy lag:</b> iptables/IPVS rules haven't propagated yet. Usually transient but can be prolonged on a busy node with many services.</li>
+          <li><b>NetworkPolicy blocking:</b> a new policy accidentally denies ingress. <code>kubectl describe networkpolicy</code> and test with a debug pod using <code>curl</code>.</li>
+          <li><b>Resource exhaustion:</b> the container is up but CPU-throttled and unable to serve in time; check throttle metrics in cAdvisor/Prometheus.</li>
+        </ul></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P4</span><span class="q-text">Issue: Cluster autoscaler is not scaling up even though pods are <code>Pending</code>.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>PodAffinity/anti-affinity rules or taints:</b> the pending pod can only land on a specific node type that the autoscaler can't provision in the configured node group. Review and relax affinity rules or add a matching node group.</li>
+          <li><b>Max node group size reached:</b> the ASG or Karpenter limit is hit. Raise the cap if justified, or review over-large resource requests.</li>
+          <li><b>Cluster autoscaler IAM perms missing:</b> it can't call the EC2/ASG APIs. Check its service-account permissions.</li>
+          <li><b>Pods requesting resources no node can satisfy:</b> a single pod requesting 96 vCPU won't fit any instance type in the node group — change the resource request or add a larger instance type.</li>
+          <li><b>Scale-up cooldown / stabilization window:</b> autoscaler is waiting before acting. Check the <code>--scale-down-delay-after-add</code> and <code>--scan-interval</code> flags in its logs.</li>
+        </ul><div class="follow"><b>Quick check:</b> <code>kubectl logs -n kube-system deployment/cluster-autoscaler</code> — it logs the exact reason it decided not to scale.</div></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P5</span><span class="q-text">Issue: OOMKilled containers — pod keeps restarting, memory limit looks fine on paper.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Limit set too low for actual workload:</b> the app has a memory spike on startup or under certain inputs. Profile with heap dumps; raise the limit and align JVM/Go runtime heap settings to it.</li>
+          <li><b>Memory leak:</b> RSS grows unbounded over time. Inspect cgroup memory stats via <code>kubectl top pod</code> + time-series in Prometheus; the leak must be fixed in the app.</li>
+          <li><b>JVM/language runtime ignoring container limits:</b> JVM pre-1.10 didn't respect cgroup limits and allocated based on host RAM, causing OOM. Use a modern JVM and set <code>-XX:MaxRAMPercentage</code>.</li>
+          <li><b>Init containers or sidecars counted against the pod budget:</b> the main container's limit is fine but total pod memory exceeds the node. Account for all containers when sizing.</li>
+          <li><b>tmpfs / emptyDir volumes consuming memory:</b> in-memory volumes count against the container's working set. Watch for log or cache dirs mounted as <code>medium: Memory</code>.</li>
+        </ul><div class="follow"><b>Diagnosis:</b> <code>kubectl describe pod</code> shows <code>OOMKilled</code> with exit code 137; <code>dmesg</code> on the node shows the kernel OOM event and killed process.</div></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P6</span><span class="q-text">Issue: Docker image builds are slow in CI and layer cache is never reused.</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>COPY source code before dependency install:</b> any code change invalidates the dependency layer. Restructure: <code>COPY go.mod go.sum .</code> → <code>RUN go mod download</code> → <code>COPY . .</code> → <code>RUN go build</code>.</li>
+          <li><b>No cache mount in CI runner:</b> ephemeral runners don't preserve the Docker layer cache between runs. Use BuildKit cache mounts (<code>--mount=type=cache</code>) or push/pull a cache image from a registry.</li>
+          <li><b>Using <code>--no-cache</code> in the pipeline:</code></b> sometimes set defensively. Remove it; let layer hashes do their job.</li>
+          <li><b>Base image not pinned to a digest:</b> rebuilds always pull <code>latest</code> and Docker can't confirm the cache is valid. Pin to a digest or a specific version tag.</li>
+          <li><b>Large context directory:</b> <code>.dockerignore</code> missing — multi-GB <code>node_modules</code>, <code>dist</code>, or binary artifacts are sent to the daemon on every build. Add a thorough <code>.dockerignore</code>.</li>
+        </ul></div></div></div>
+
+      <!-- ── Top 5 Interview Qs ── -->
+      <div class="subsec-head">🎯 Top 5 Most-Asked Interview Questions — Kubernetes &amp; Docker</div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#1</span><span class="q-text">What is the difference between a Deployment, StatefulSet, and DaemonSet? When do you use each?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li><b>Deployment:</b> manages identical, stateless pods; any pod can die and be replaced by an identical one. Use for web/API services, Go microservices, workers. Rolling updates are the default.</li>
+          <li><b>StatefulSet:</b> pods get stable network identities and ordered start/stop. PVC per pod persists across rescheduling. Use for databases, Kafka, ZooKeeper, anything that needs stable storage or peer identity.</li>
+          <li><b>DaemonSet:</b> exactly one pod per (matching) node. Use for node-level agents: log collectors (Fluentd/Promtail), monitoring (node-exporter), CNI plugins, security agents.</li>
+          <li>The interviewer wants to hear: it comes down to <em>identity</em>, <em>storage</em>, and <em>topology</em> needs — not just "stateful vs stateless."</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#2</span><span class="q-text">How does Kubernetes handle service discovery? How does a pod know where to find another service?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li>Every Service gets a DNS name: <code>&lt;service&gt;.&lt;namespace&gt;.svc.cluster.local</code>. CoreDNS resolves it to the ClusterIP.</li>
+          <li>ClusterIP is a virtual IP; kube-proxy (iptables/IPVS) or eBPF maps it to one of the healthy pod IPs (from the Endpoints/EndpointSlice object).</li>
+          <li>Pods inherit the cluster DNS resolver automatically via <code>/etc/resolv.conf</code> injected by the kubelet.</li>
+          <li>For headless services (<code>clusterIP: None</code>), DNS returns pod IPs directly — useful for StatefulSets where a client needs to address a specific replica.</li>
+          <li>Environment variable injection is legacy/secondary; DNS is the standard and preferred mechanism.</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#3</span><span class="q-text">What is a Kubernetes Namespace and how do you use it for multi-tenancy and resource isolation?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li>Namespaces are a logical partition of the cluster — scoping for names, RBAC, NetworkPolicy, and ResourceQuotas.</li>
+          <li>Use one namespace per team/environment/application for isolation. RBAC binds roles at the namespace level so teams can't touch each other's resources.</li>
+          <li>ResourceQuotas cap CPU/memory/object count per namespace; LimitRanges set defaults and floors for pod requests/limits.</li>
+          <li>Soft multi-tenancy: namespaces + RBAC + NetworkPolicy is sufficient for trusted teams. For hostile multi-tenancy (e.g., per-customer), you need separate clusters or a dedicated isolation layer.</li>
+          <li>Cluster-scoped resources (Nodes, PersistentVolumes, ClusterRoles) are not namespaced.</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#4</span><span class="q-text">Explain liveness vs readiness vs startup probes. What happens when each fails?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li><b>Readiness:</b> "is this container ready to serve traffic?" Failure removes the pod from the Service endpoints — traffic stops, container keeps running. The most impactful probe to get right.</li>
+          <li><b>Liveness:</b> "is this container still alive?" Failure triggers a container restart. Use for detecting deadlocks. Don't make it too aggressive — a misconfigured liveness probe is a common cause of cascading restarts under load.</li>
+          <li><b>Startup:</b> gates liveness/readiness during slow-start apps (JVM, ML model loading). Gives the container time to initialize before the stricter probes kick in.</li>
+          <li>Common mistake: making the readiness probe check a downstream dependency — if the DB is down, all pods become not-ready and the app goes completely dark. Check only <em>local</em> health.</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#5</span><span class="q-text">What is the difference between a Docker ENTRYPOINT and CMD? How does K8s command/args map onto them?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li><code>ENTRYPOINT</code>: the fixed executable that always runs; can't be overridden by <code>docker run</code> arguments (only by <code>--entrypoint</code>).</li>
+          <li><code>CMD</code>: default arguments to the entrypoint (or the full command if no entrypoint). Easily overridden at runtime.</li>
+          <li>Best practice for a Go binary: <code>ENTRYPOINT ["/app/server"]</code> and use <code>CMD</code> for default flags that operators can override.</li>
+          <li>In K8s: <code>spec.containers[].command</code> overrides <code>ENTRYPOINT</code>; <code>spec.containers[].args</code> overrides <code>CMD</code>. Commonly confused source of "my container runs fine in Docker but not in K8s."</li>
+          <li>Shell vs exec form matters: exec form (<code>["cmd","arg"]</code>) runs PID 1 directly and receives signals correctly; shell form wraps in <code>/bin/sh -c</code> and signals may not reach the app.</li>
+        </ul></div></div></div>
+
+    </section>
+
+    <!-- ============ AWS ============ -->
+    <section id="aws">
+      <div class="sec-head"><span class="sec-num">03</span><h2>AWS Cloud</h2><span class="tag core">Core</span></div>
+      <p class="sec-blurb">Your strong suit. Expect questions on EKS, networking, IAM for workloads, and connecting cloud to on-prem warehouses.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">A1</span><span class="q-text">How do you give a pod in EKS scoped access to AWS services without static credentials?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>IRSA (IAM Roles for Service Accounts): the cluster OIDC provider lets a K8s service account assume a scoped IAM role; the SDK picks up temporary creds automatically.</li>
+          <li>Newer: EKS Pod Identity simplifies the association without per-cluster OIDC plumbing.</li>
+          <li>Principle of least privilege per workload; no node-wide instance-profile sharing, no long-lived keys in secrets.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">A2</span><span class="q-text">Design VPC networking for an EKS cluster that also needs private connectivity to AWS services and to an on-prem warehouse.</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Multi-AZ VPC, private subnets for nodes, public subnets only for ingress/NAT; nodes egress via NAT Gateway.</li>
+          <li>VPC endpoints (Gateway for S3/DynamoDB, Interface/PrivateLink for ECR, STS, etc.) to keep traffic off the public internet and cut NAT cost.</li>
+          <li>On-prem link: Site-to-Site VPN for quick/backup, Direct Connect for stable low-latency; Transit Gateway to hub multiple VPCs/accounts.</li>
+          <li>Watch CIDR overlap with on-prem ranges; plan IP space for the VPC CNI (pods consume VPC IPs).</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">A3</span><span class="q-text">When would you reach for AWS Outposts, Snowball Edge, or IoT Greengrass for warehouse/edge workloads?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li><b>Outposts:</b> AWS-managed rack on-site for low-latency, data-residency, or local processing needs while staying in the AWS control plane.</li>
+          <li><b>Greengrass:</b> run Lambda/containers and ML at the edge on constrained devices, with local messaging and intermittent-connectivity sync to the cloud.</li>
+          <li><b>Snowball Edge:</b> bulk data transfer / edge compute where bandwidth is the bottleneck.</li>
+          <li>Be honest: many edge cases are better served by a lightweight self-hosted K8s on local hardware + cloud control plane — match the tool to latency/connectivity constraints.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">A4</span><span class="q-text">Secrets Manager vs SSM Parameter Store — how do you decide, and how do you surface secrets to pods?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Secrets Manager: built-in rotation, cross-account sharing, higher per-secret cost — use for DB creds/API keys needing rotation.</li>
+          <li>Parameter Store: cheap/free standard tier for config and lightweight secrets (SecureString), good for plain config.</li>
+          <li>Into pods: External Secrets Operator or Secrets Store CSI driver, scoped via IRSA — keeps secrets out of Git for GitOps.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">A5</span><span class="q-text">EKS node group is healthy but pods can't pull images and can't reach S3. Where do you look?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Egress path: NAT Gateway / route tables for private subnets; security groups and NACLs.</li>
+          <li>ECR: missing VPC endpoint or IAM perms on the node role / IRSA; check <code>ecr:GetAuthorizationToken</code>.</li>
+          <li>S3: Gateway endpoint route entry present? Bucket policy / VPC endpoint policy blocking?</li>
+          <li>DNS resolution (CoreDNS) and the VPC CNI IP exhaustion as secondary suspects.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">A6</span><span class="q-text">How do you think about cost on a multi-cluster AWS platform without hurting reliability? (FinOps angle)</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Right-size requests/limits (over-requesting wastes nodes); use cluster-autoscaler/Karpenter to match capacity to demand.</li>
+          <li>Spot for fault-tolerant/batch workloads, on-demand/reserved for critical control-plane-adjacent services.</li>
+          <li>Cut NAT and inter-AZ data costs with VPC endpoints and topology-aware routing; tag for cost allocation; dashboards before mandates.</li>
+          <li>Frame it as: visibility → allocation → optimization, with reliability SLOs as a guardrail.</li>
+        </ul></div></div></div>
+    </section>
+
+    <!-- ============ CICD / ArgoCD ============ -->
+    <section id="cicd">
+      <div class="sec-head"><span class="sec-num">04</span><h2>CI/CD &amp; ArgoCD GitOps</h2><span class="tag core">Core</span></div>
+      <p class="sec-blurb">The deployment model is explicitly GitOps via ArgoCD, across cloud and edge. Know the pull-based model cold.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">C1</span><span class="q-text">What is GitOps, and how is ArgoCD's pull model different from a traditional push-based CI/CD pipeline?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>GitOps: Git is the single source of truth for desired state; a controller continuously reconciles the cluster to match.</li>
+          <li>Push: CI has cluster credentials and runs <code>kubectl apply</code> — secrets leave the cluster, drift is invisible.</li>
+          <li>Pull: ArgoCD runs <em>inside</em> the cluster, watches the repo, and applies changes — no external creds, automatic drift detection and (optional) self-heal.</li>
+          <li>Audit trail = Git history; rollback = <code>git revert</code>.</li>
+          <li>Pull model is a big win for many edge clusters: each cluster pulls its own config rather than CI needing reachability into every warehouse.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">C2</span><span class="q-text">Describe ArgoCD's architecture: Application, sync, health, the app-of-apps pattern, and how you'd manage 50 edge clusters.</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>An <code>Application</code> maps a Git source (path/branch/Helm/Kustomize) to a destination cluster+namespace; ArgoCD diffs live vs desired.</li>
+          <li>Sync = apply desired; sync waves/hooks order resources; health checks roll up resource status.</li>
+          <li>App-of-apps: a root Application that manages child Applications — bootstraps a whole environment from one entry point.</li>
+          <li>For fleet scale: <b>ApplicationSets</b> with generators (cluster/Git generators) to template one definition across many clusters; per-cluster overlays via Kustomize.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">C3</span><span class="q-text">How do you handle secrets in a GitOps repo? You can't commit plaintext.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Never commit raw secrets. Options: External Secrets Operator pulling from AWS Secrets Manager, or Sealed Secrets (encrypted, only the cluster controller can decrypt), or SOPS-encrypted files.</li>
+          <li>Git holds only references or ciphertext; the actual secret lives in a secret store, scoped by IRSA.</li>
+          <li>Rotation handled in the store, not by re-committing.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">C4</span><span class="q-text">How would you do progressive delivery (canary/automated rollback) with ArgoCD?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Argo Rollouts replaces the Deployment with a Rollout CR supporting canary/blue-green strategies and traffic shaping.</li>
+          <li>Analysis templates query a metrics provider (Prometheus/CloudWatch); promote on healthy metrics, auto-rollback on breach.</li>
+          <li>Pair with progressive sync across cluster tiers (dev → staging → a few warehouses → fleet) to limit blast radius.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">C5</span><span class="q-text">Design the full path from a code merge to a Go service running on edge clusters. What's in CI vs CD?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li><b>CI:</b> on merge → test (<code>go test -race</code>), lint, build multi-arch image, scan, push to ECR, then bump the image tag in the config repo (PR or automated commit).</li>
+          <li><b>CD:</b> ArgoCD detects the config-repo change and syncs to target clusters; ApplicationSet fans it across the fleet with environment overlays.</li>
+          <li>Separate app repo from config repo so deploys are config changes, not rebuilds.</li>
+          <li>Edge nuance: clusters pull when reachable, so a temporarily offline warehouse converges automatically when it reconnects.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">C6</span><span class="q-text">An ArgoCD app shows <code>OutOfSync</code> even though no one changed Git. What's happening and how do you respond?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Drift — something mutated the live state directly (a hotfix, an HPA changing replicas, a mutating webhook, or default fields).</li>
+          <li>Diff the live vs desired; decide: ignore expected diffs (<code>ignoreDifferences</code> for HPA-managed replicas), or enable self-heal to snap it back.</li>
+          <li>Cultural point: direct <code>kubectl</code> edits in a GitOps world are an anti-pattern — fix it in Git.</li>
+        </ul></div></div></div>
+    </section>
+
+    <!-- ============ IaC ============ -->
+    <section id="iac">
+      <div class="sec-head"><span class="sec-num">05</span><h2>Terraform &amp; Ansible</h2><span class="tag core">Core</span></div>
+      <p class="sec-blurb">Provisioning (Terraform) vs configuration (Ansible). Be crisp on state, drift, and when each tool is the right one.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">T1</span><span class="q-text">How do you manage Terraform state safely for a team across multiple environments and accounts?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Remote backend (S3 + DynamoDB lock, or S3 native locking) — never local state for teams.</li>
+          <li>Isolate state per environment/account (separate state files or workspaces) to limit blast radius; encrypt at rest.</li>
+          <li>Reusable modules with versioned inputs; <code>plan</code> in CI on PR, gated <code>apply</code> on merge.</li>
+          <li>Mention drift: <code>terraform plan</code> as detection; avoid out-of-band console changes.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">T2</span><span class="q-text">Terraform vs Ansible — what does each own, and where do they overlap? Give a concrete warehouse example.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Terraform: declarative provisioning of cloud/infra resources (VPC, EKS, on-prem VMs via providers), tracks state.</li>
+          <li>Ansible: agentless configuration management — install packages, push OS config, deploy onto existing hosts; procedural and idempotent.</li>
+          <li>Example: Terraform stands up the warehouse edge nodes/VPC link; Ansible configures the OS, joins them to the k3s cluster, and pushes node-level settings.</li>
+          <li>Overlap exists, but use each for its strength rather than forcing one to do both.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">T3</span><span class="q-text">What does idempotency mean in Ansible, and how do you keep playbooks idempotent and safe to re-run?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Re-running yields the same end state with no unintended changes; modules report changed only when they actually change something.</li>
+          <li>Prefer declarative modules over raw <code>shell</code>/<code>command</code>; when you must shell out, add <code>creates</code>/<code>changed_when</code> guards.</li>
+          <li>Use handlers for restarts, <code>--check</code> (dry run) and <code>--diff</code> to preview, and roles for structure.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">T4</span><span class="q-text">How do you structure Terraform to avoid a monolithic state and reduce blast radius as the platform grows?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Split by lifecycle/ownership: networking, cluster, platform add-ons, apps each in their own state.</li>
+          <li>Pass values between layers via remote state outputs or a data source / parameter store — avoid one giant <code>apply</code>.</li>
+          <li>Versioned modules + a tool like Terragrunt or a CI orchestration layer to keep DRY across many accounts.</li>
+          <li>Trade-off: more states = more coordination but far smaller blast radius.</li>
+        </ul></div></div></div>
+
+      <!-- ── Production Issues ── -->
+      <div class="subsec-head">🔥 Common Production Issues — Terraform &amp; Ansible</div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P7</span><span class="q-text">Issue: <code>terraform apply</code> destroys and re-creates a critical production resource (e.g., RDS instance, EKS cluster).</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Force-replace triggered by an immutable argument change:</b> changing <code>engine_version</code>, <code>availability_zone</code>, or a tag that forces replacement. Always run <code>terraform plan</code> in CI and block merge if any plan shows <code>-/+</code> on production resources.</li>
+          <li><b>Moved or renamed resource in code:</b> Terraform sees the old address as "delete" and the new as "create." Use the <code>moved</code> block (1.1+) or <code>terraform state mv</code> to tell Terraform it's the same resource.</li>
+          <li><b>Module version bump changed a resource's schema:</b> a new module version renamed or restructured resources under the hood. Pin module versions in <code>source</code> and review changelogs before upgrading.</li>
+          <li><b>State drift — someone manually modified the resource:</b> the real state diverged; Terraform wants to make it match code. Use <code>terraform import</code> or <code>terraform state rm</code> + re-import to reconcile, then fix the root cause (no console edits).</li>
+          <li><b>Mitigation:</b> add <code>lifecycle { prevent_destroy = true }</code> to critical stateful resources as a safety net; it forces a conscious override.</li>
+        </ul><div class="follow"><b>Golden rule:</b> treat any <code>-/+</code> or <code>-</code> on a prod resource in the plan as a blocking review item, not a normal approval.</div></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P8</span><span class="q-text">Issue: Terraform state lock is stuck; no one can run <code>plan</code> or <code>apply</code>.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>A previous <code>apply</code> was killed mid-run:</b> the DynamoDB lock item was never released. Identify who owns the lock from <code>terraform force-unlock</code> output or directly in DynamoDB (<code>LockID</code> item), then run <code>terraform force-unlock &lt;ID&gt;</code>.</li>
+          <li><b>CI pipeline crashed or was cancelled:</b> same root cause. Add a pipeline post-step that calls <code>force-unlock</code> on failure, or use a lock timeout.</li>
+          <li><b>Concurrent runs:</b> two PRs merged at the same time triggered simultaneous applies. Serialize applies with a CI queue or use Terraform Cloud/Atlantis which manages this natively.</li>
+          <li><b>Prevention:</b> S3 native state locking (AWS 2024) removes the DynamoDB dependency entirely; consider migrating.</li>
+        </ul></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P9</span><span class="q-text">Issue: <code>terraform plan</code> shows a large diff of "no-op" changes on every run — nothing was changed in code.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Provider version not pinned:</b> a new provider version changed how it reads/normalizes an attribute. Pin providers in <code>required_providers</code> with exact versions; commit the lock file (<code>.terraform.lock.hcl</code>).</li>
+          <li><b>Ordering-sensitive attributes:</b> lists like security group rules or IAM policy statements are order-sensitive in state but the API returns them in a different order. Use sets where possible, or <code>ignore_changes</code> for stable-but-noisy attributes.</li>
+          <li><b>Default values injected by the API:</b> AWS fills in defaults (e.g., <code>tags</code>, <code>description</code>) that weren't in your config. Bring them into the config explicitly or use <code>ignore_changes</code>.</li>
+          <li><b>Timestamp or computed fields:</b> some resources always have a "last modified" or generated ARN that Terraform re-reads. Add them to <code>lifecycle.ignore_changes</code>.</li>
+        </ul></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P10</span><span class="q-text">Issue: Ansible playbook partially fails midway; re-running it leaves infrastructure in an inconsistent state.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Non-idempotent tasks:</b> a <code>shell</code> task that appends a line without a guard has already run on 3 of 10 hosts. Audit all raw shell tasks; add <code>creates</code>, <code>removes</code>, or <code>changed_when: false</code> guards, or replace with a declarative module.</li>
+          <li><b>Missing error handling:</b> a task failing on one host aborts the whole play. Use <code>ignore_errors: true</code> cautiously, <code>block/rescue/always</code> for structured error handling, and <code>any_errors_fatal: false</code> to isolate failures per host.</li>
+          <li><b>Partial package installs:</b> apt/yum transaction interrupted. Declarative package modules handle this gracefully on re-run; avoid wrapping package installs in raw shell commands.</li>
+          <li><b>Re-run strategy:</b> use <code>--limit failed_hosts</code> to re-run only on broken hosts; Ansible's <code>retry</code> file tracks them automatically after a failed run.</li>
+          <li><b>Prevention:</b> always test playbooks with <code>--check --diff</code> in CI against a staging group before production; use molecule for role-level testing.</li>
+        </ul></div></div></div>
+
+      <div class="q issue"><div class="q-head"><span class="q-id issue-id">P11</span><span class="q-text">Issue: Ansible runs take 45+ minutes on a 200-node fleet; changes to one host group still affect everything.</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Root causes &amp; fixes</div><ul>
+          <li><b>Default serial = all hosts:</b> Ansible fans out via SSH but with a small default fork count (5). Raise <code>-f</code> / <code>forks</code> in <code>ansible.cfg</code> for faster parallel execution.</li>
+          <li><b>Monolithic playbook — no tagging:</b> running the full play when only the app config changed. Tag tasks (<code>tags: app_config</code>) and run with <code>--tags</code> to target only what changed.</li>
+          <li><b>SSH connection overhead:</b> each task opens a new connection by default. Enable pipelining in <code>ansible.cfg</code> (<code>pipelining = True</code>) and use ControlMaster/ControlPersist to reuse SSH connections.</li>
+          <li><b>Fact gathering on all hosts:</b> <code>gather_facts: true</code> on 200 hosts adds minutes. Disable globally and enable only where facts are needed, or cache facts with Redis/memcached (<code>fact_caching</code>).</li>
+          <li><b>Architecture fix:</b> restructure into focused roles run via CI only when the relevant part of the repo changes; use pull-based config (AWX/AAP schedules or triggered webhooks) instead of a serial push.</li>
+        </ul></div></div></div>
+
+      <!-- ── Top 5 Interview Qs ── -->
+      <div class="subsec-head">🎯 Top 5 Most-Asked Interview Questions — Terraform &amp; Ansible</div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#1</span><span class="q-text">What is Terraform state, why is it needed, and what are the risks if it gets out of sync?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li>State is Terraform's record of what it created and the mapping between config and real-world resource IDs. Without it, Terraform can't compute what to change or delete.</li>
+          <li>Out-of-sync state is called <em>drift</em> — it happens when someone changes a resource outside Terraform (console, CLI, another tool). The next plan may try to revert or re-create things.</li>
+          <li>Detection: <code>terraform plan</code> shows drift as unexpected changes. Fix with <code>terraform import</code> (add untracked resources) or <code>terraform refresh</code> (update state from reality) plus fixing the config.</li>
+          <li>Mitigation: prevent out-of-band changes via SCPs/deny policies; treat the plan output as a required code-review artifact.</li>
+          <li>State contains secrets (DB passwords, etc.) in plaintext — encrypt S3 bucket with SSE-KMS; restrict IAM access tightly.</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#2</span><span class="q-text">What are Terraform modules? How do you design a good module vs a bad one?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li>A module is a directory of <code>.tf</code> files with defined inputs and outputs — the unit of reuse and encapsulation in Terraform.</li>
+          <li><b>Good module:</b> single, well-scoped responsibility (e.g., "EKS node group"), opinionated defaults with escape-hatch variables, stable interface, versioned in a registry, well-documented outputs.</li>
+          <li><b>Bad module:</b> a wrapper that exposes every single argument of the underlying resources (essentially no abstraction); or the opposite — a mega-module that provisions an entire environment as one unit (too much blast radius, slow to plan).</li>
+          <li>Treat modules like APIs: semver them, don't break consumers, and add a changelog. Use <code>terraform-docs</code> to auto-generate documentation.</li>
+          <li>Pin module sources to a version tag, not a branch, in production.</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#3</span><span class="q-text">How does Terraform handle dependency ordering? When do you use <code>depends_on</code> explicitly?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li>Terraform builds an implicit dependency graph from resource references — if resource B uses an attribute of resource A (<code>resource_a.id</code>), Terraform creates A first automatically.</li>
+          <li>Use <code>depends_on</code> only for <em>hidden</em> dependencies Terraform can't infer from the config — e.g., a Lambda that reads from an S3 bucket via an IAM role that isn't referenced by ARN in the Lambda resource itself.</li>
+          <li>Overuse of <code>depends_on</code> forces sequential execution and slows applies; let the reference graph do the work wherever possible.</li>
+          <li>At module level, <code>depends_on</code> on a module affects all resources inside it — blunt instrument; prefer scoping it to specific resources.</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#4</span><span class="q-text">What are Ansible roles and why should you use them instead of one big playbook?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li>A role is a structured, self-contained unit of automation: tasks, handlers, defaults, vars, templates, and files — all in a predictable directory layout that Ansible auto-loads.</li>
+          <li>Benefits: reusable across projects and playbooks; independently testable with Molecule; separates concerns so the web role doesn't know about the DB role; easier to version and share via Ansible Galaxy.</li>
+          <li>A flat playbook with 500 tasks becomes unmaintainable and impossible to test in isolation. Roles enforce boundaries.</li>
+          <li>Compose roles into playbooks for different host groups; pass behavior via role variables rather than duplicating tasks.</li>
+          <li>Mention <code>include_role</code> vs <code>import_role</code>: import is static (parsed at playbook load, supports tags); include is dynamic (runtime, can use variables in the role name).</li>
+        </ul></div></div></div>
+
+      <div class="q top5"><div class="q-head"><span class="q-id top5-id">#5</span><span class="q-text">How do you manage secrets in Terraform and Ansible? What are the anti-patterns?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Model answer</div><ul>
+          <li><b>Terraform:</b> never put secrets in <code>*.tf</code> or <code>terraform.tfvars</code> in Git. Pull them at plan time from Secrets Manager / SSM via data sources, or inject via environment variables (<code>TF_VAR_</code>). Mark outputs <code>sensitive = true</code> to suppress log output.</li>
+          <li><b>Ansible:</b> use <code>ansible-vault</code> to encrypt vars files at rest (committed as ciphertext); or pull from HashiCorp Vault / AWS Secrets Manager via a lookup plugin at runtime. Never define secrets in group_vars plaintext.</li>
+          <li><b>Anti-patterns:</b> hardcoded passwords in playbooks/templates; secrets in CI environment variables visible in build logs; <code>no_log: false</code> on tasks that print secrets; state files with DB passwords in an unencrypted bucket.</li>
+          <li>Audit tip: <code>git-secrets</code> or <code>detect-secrets</code> as a pre-commit hook catches accidental commits before they reach the repo.</li>
+        </ul></div></div></div>
+
+    </section>
+
+    <!-- ============ LINUX ============ -->
+    <section id="linux">
+      <div class="sec-head"><span class="sec-num">06</span><h2>Linux &amp; Networking</h2><span class="tag core">Core</span></div>
+      <p class="sec-blurb">"Strong Linux systems and networking fundamentals" — expect first-principles troubleshooting, not memorized flags.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">L1</span><span class="q-text">A Linux host is "slow." Walk me through how you triage CPU, memory, disk, and network.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Start broad: <code>top</code>/<code>htop</code>, load average vs core count, <code>vmstat</code>.</li>
+          <li>CPU: user vs sys vs iowait — high iowait points at disk; <code>iostat</code>/<code>iotop</code>.</li>
+          <li>Memory: <code>free</code>, check swap, OOM killer in <code>dmesg</code>.</li>
+          <li>Network: <code>ss -s</code>, <code>iftop</code>, retransmits; DNS latency.</li>
+          <li>Narrow to the process: <code>strace</code>/<code>perf</code> if needed. Mention the USE method (Utilization, Saturation, Errors).</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">L2</span><span class="q-text">Explain Linux namespaces and cgroups, and how they make containers work.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Namespaces isolate what a process <em>sees</em>: PID, network, mount, UTS, IPC, user — each container gets its own view.</li>
+          <li>cgroups limit what a process can <em>use</em>: CPU, memory, I/O.</li>
+          <li>A container = a process with its own namespaces + cgroup limits + a layered filesystem; no separate kernel (unlike a VM).</li>
+          <li>This is why K8s requests/limits map onto cgroups, and memory limits trigger OOMKill.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">L3</span><span class="q-text">"I can't reach service X from this host." How do you debug it layer by layer?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>DNS first: does the name resolve (<code>dig</code>/<code>nslookup</code>)?</li>
+          <li>L3/L4: <code>ping</code> (if ICMP allowed), <code>traceroute</code>, then <code>curl -v</code> / <code>nc</code> to the port.</li>
+          <li>Firewalls/SGs/NACLs/NetworkPolicy, routing tables, MTU mismatches.</li>
+          <li>TLS handshake / cert issues at L7. Confirm the service is actually listening (<code>ss -tlnp</code>).</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">L4</span><span class="q-text">How does systemd manage services, and how would you make a Go daemon resilient on an edge node?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Unit file with <code>Restart=on-failure</code>, resource limits, <code>After=</code>/<code>Requires=</code> ordering, journald logging.</li>
+          <li>Health via a watchdog or readiness check; graceful shutdown on <code>SIGTERM</code> (handle the signal in Go).</li>
+          <li>On constrained edge hardware, set memory/CPU accounting so a runaway process can't take down the node.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">L5</span><span class="q-text">Subnetting/CIDR quick check: a warehouse needs ~500 hosts. What prefix, and how do you avoid overlap with the cloud VPC?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>500 hosts → need 512 addresses → <code>/23</code> (510 usable).</li>
+          <li>Allocate non-overlapping RFC1918 ranges per site; document an IP plan so VPN/Direct Connect routes don't collide.</li>
+          <li>Leave headroom for the K8s pod/service CIDRs, which must also not overlap cross-site.</li>
+        </ul></div></div></div>
+    </section>
+
+    <!-- ============ OBSERVABILITY ============ -->
+    <section id="obs">
+      <div class="sec-head"><span class="sec-num">07</span><h2>Observability</h2><span class="tag core">Core</span></div>
+      <p class="sec-blurb">You'll own monitoring, logging, and alerting across distributed systems. Talk in SLO terms, not just dashboards.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">O1</span><span class="q-text">Metrics, logs, and traces — what is each best for, and how do they work together in an incident?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Metrics: cheap, aggregate, alert on trends/thresholds — your "what's wrong and how bad."</li>
+          <li>Traces: request path across services — your "where the latency/error is."</li>
+          <li>Logs: detailed, high-cardinality context — your "why."</li>
+          <li>Flow: an alert fires (metric) → trace narrows to a service/span → logs explain the failure. Correlate via trace/request IDs.</li>
+          <li>Mention OpenTelemetry as the vendor-neutral instrumentation layer feeding Prometheus/CloudWatch/Datadog.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">O2</span><span class="q-text">Define SLI, SLO, and error budget. How do they change how you alert?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>SLI = a measured signal (e.g., success rate, p99 latency). SLO = the target for it. Error budget = 1 − SLO, the allowed unreliability.</li>
+          <li>Alert on symptoms that burn the budget (user-facing), not on every CPU blip — reduces noise.</li>
+          <li>Burn-rate alerts: page fast on rapid budget burn, ticket on slow burn.</li>
+          <li>Budget also governs release pace: out of budget → freeze risky deploys.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">O3</span><span class="q-text">Your on-call is drowning in alerts. How do you fix alert fatigue?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Every page must be actionable and tied to user impact; delete or downgrade the rest to dashboards/tickets.</li>
+          <li>Symptom-based alerting over cause-based; group/dedupe related alerts; add good runbooks.</li>
+          <li>Review alert quality regularly (pages per shift, % actionable); treat noisy alerts as bugs.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">O4</span><span class="q-text">How would you instrument and monitor a distributed pipeline that crosses async boundaries (queues/events)?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Propagate trace context through the message (e.g., inject/extract headers) so a trace survives the queue hop.</li>
+          <li>Track queue depth, consumer lag, processing latency, and DLQ counts as first-class metrics.</li>
+          <li>Watch for the "fire and forget" blind spot — correlate producer and consumer with a shared ID.</li>
+          <li>OpenTelemetry context propagation across SNS/SQS/Lambda-style boundaries is the standard approach.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">O5</span><span class="q-text">What would you monitor that's specific to robotics/warehouse edge that you wouldn't for a typical web service?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Connectivity/heartbeat per site, time-since-last-sync, and behavior during cloud disconnects.</li>
+          <li>Device/robot health: command-to-actuation latency, missed cycles, sensor staleness, firmware/version skew across the fleet.</li>
+          <li>Local resource pressure on constrained edge hardware; clock skew (critical for real-time coordination).</li>
+          <li>Buffer observability locally so you don't lose telemetry during a network partition; ship on reconnect.</li>
+        </ul></div></div></div>
+    </section>
+
+    <!-- ============ EDGE / ROBOTICS ============ -->
+    <section id="edge">
+      <div class="sec-head"><span class="sec-num">08</span><h2>Edge, Hybrid &amp; Robotics</h2><span class="tag pref">Preferred · differentiator</span></div>
+      <p class="sec-blurb">This is what makes the role unusual. Even without robotics history, show you understand the constraints: latency, partitions, mission-critical safety.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">E1</span><span class="q-text">A warehouse loses its link to the cloud for 30 minutes. What should keep working, and how do you design for that?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Local autonomy: the on-prem cluster/control plane must keep robots and core flows running without the cloud (design for partition tolerance).</li>
+          <li>Buffer telemetry/events locally and reconcile on reconnect (eventual consistency, idempotent replay).</li>
+          <li>Cache config/images locally (local registry mirror) so nothing depends on a live pull.</li>
+          <li>GitOps pull model helps: each site converges on its own when the link returns.</li>
+          <li>Be explicit about what is safe to be stale vs what must be locally authoritative.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">E2</span><span class="q-text">How do you manage software updates and rollouts across many physically distributed edge sites safely?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Staged/ring rollouts: canary one or two sites, bake, then expand — never all sites at once.</li>
+          <li>Automated health gates + fast rollback; immutable, versioned artifacts so any site can pin/revert deterministically.</li>
+          <li>Bandwidth-aware delivery (small images, local mirrors); handle sites that are offline during the rollout window.</li>
+          <li>Maintenance windows that respect warehouse operating hours / safety.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">E3</span><span class="q-text">What does "mission-critical / real-time" change about how you build and operate infrastructure?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Latency determinism matters more than throughput; avoid noisy-neighbor and CPU-throttle surprises (guaranteed QoS, careful limits).</li>
+          <li>Failure must be safe: graceful degradation and defined fail-safe states for physical equipment, not just retries.</li>
+          <li>Higher bar on testing, change control, and rollback — a bad deploy can stop a physical line or risk safety.</li>
+          <li>Redundancy and clear blast-radius boundaries per site.</li>
+          <li>Honesty: I'd lean on the robotics/controls engineers for the hard real-time guarantees; my job is the platform reliability around them.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">E4</span><span class="q-text">Would you run full Kubernetes at the edge? How do you choose between k3s, RKE2, full K8s, or no K8s at all?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Match to hardware and ops capacity: k3s/RKE2 for small footprint and simpler ops at remote sites; full K8s where the site is large and well-resourced.</li>
+          <li>Sometimes the answer is no orchestrator — systemd + a managed binary is simpler and more robust for a tiny fixed workload.</li>
+          <li>Consistency vs simplicity trade-off: a uniform platform across sites lowers cognitive load, but don't over-engineer a closet with three nodes.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">E5</span><span class="q-text">You have no direct robotics experience. Why should we trust you in this domain?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">How to frame it (honest + confident)</div><ul>
+          <li>Map your real experience to the constraints: distributed systems, hybrid/on-prem, low-latency, mission-critical reliability, fleet operations.</li>
+          <li>Show you understand <em>why</em> robotics is harder (physical safety, real-time, partitions) and that you respect the boundary with controls engineers.</li>
+          <li>Point to where you've learned a new domain fast before; lead with a concrete prior system that had similar properties.</li>
+          <li>Don't overclaim robotics expertise — claim platform expertise and curiosity.</li>
+        </ul></div></div></div>
+    </section>
+
+    <!-- ============ RELIABILITY ============ -->
+    <section id="rel">
+      <div class="sec-head"><span class="sec-num">09</span><h2>Reliability &amp; Scale</h2><span class="tag core">Core</span></div>
+      <p class="sec-blurb">"Improve system reliability, scalability, and deployment workflows" is a core duty. Expect incident and design questions.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">R1</span><span class="q-text">Walk me through how you handle a production incident from page to postmortem.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Stabilize first: assess impact, declare severity, assign roles (incident commander, comms, ops).</li>
+          <li>Mitigate before root-cause — roll back, fail over, shed load — restore service, then investigate.</li>
+          <li>Communicate to stakeholders on a cadence; keep a timeline.</li>
+          <li>Blameless postmortem with action items; fix the system and the process, not the person.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">R2</span><span class="q-text">A region/AZ goes down. How did you design the platform to survive it, and what's the recovery plan?</span><span class="q-meta"><span class="dots" data-lvl="3"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Multi-AZ by default (nodes/data spread); decide multi-region by RTO/RPO and cost.</li>
+          <li>Stateless services scale anywhere; stateful needs replication/backups and a tested restore.</li>
+          <li>Know your hard dependencies (e.g., a single-region control service) and remove single points of failure.</li>
+          <li>Edge angle: warehouses keep running locally during a cloud-region event — design the cloud as the brain, not the heartbeat.</li>
+          <li>DR is only real if you've tested the failover.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">R3</span><span class="q-text">How do you make deployments safe by default so a bad change can't take down the platform?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Progressive rollout + automated health checks + one-click (or automatic) rollback.</li>
+          <li>Limit blast radius: stage by environment and by site ring; feature flags to decouple deploy from release.</li>
+          <li>Immutable, versioned artifacts; reproducible builds; everything in Git for instant revert.</li>
+          <li>Pre-prod parity and good test gates in CI before anything reaches a warehouse.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">R4</span><span class="q-text">How do you approach capacity planning and autoscaling for spiky, distributed workloads?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>HPA on the right signal (custom/queue metrics, not just CPU); cluster-autoscaler/Karpenter for node capacity.</li>
+          <li>Headroom for spikes; understand scale-up latency (node provisioning can be slower than the spike).</li>
+          <li>Load-test to find the knee; set sane min replicas so cold starts don't bite.</li>
+          <li>Edge sites are often fixed-capacity — there you optimize and prioritize rather than scale out.</li>
+        </ul></div></div></div>
+    </section>
+
+    <!-- ============ LEADERSHIP ============ -->
+    <section id="lead">
+      <div class="sec-head"><span class="sec-num">10</span><h2>Leadership &amp; Communication</h2><span class="tag core">Senior IC</span></div>
+      <p class="sec-blurb">"Senior IC with leadership influence," cross-functional, global stakeholders. Use STAR; lead with impact, quantify outcomes.</p>
+
+      <div class="q"><div class="q-head"><span class="q-id">B1</span><span class="q-text">Tell me about a time you drove a technical change across teams without having authority over them.</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">How to answer (STAR)</div><ul>
+          <li>Pick a platform/standard adoption story (e.g., rolling out GitOps or IaC across teams).</li>
+          <li>Influence levers: a working proof-of-concept, making the easy path the right path, data on toil/cost saved, and bringing skeptics in early.</li>
+          <li>Quantify the result (deploy time ↓, incidents ↓, onboarding ↓).</li>
+          <li>Show you handled resistance with empathy, not mandates.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">B2</span><span class="q-text">How do you explain a complex infrastructure issue to a non-technical stakeholder or a global partner team?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Lead with impact and what they care about (downtime, cost, delivery date), not the mechanism.</li>
+          <li>Use analogies; offer the detail only on request; write it down for async/time-zone-spread teams.</li>
+          <li>Confirm understanding and next steps; tailor depth to the audience.</li>
+          <li>Have a real example — e.g., translating an outage's cause into a one-paragraph stakeholder update.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">B3</span><span class="q-text">Describe a strong technical disagreement with a peer. How did you resolve it?</span><span class="q-meta"><span class="dots" data-lvl="2"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">How to answer</div><ul>
+          <li>Show you separated ego from the decision: stated trade-offs, sought data, ran a spike or wrote a short design doc.</li>
+          <li>"Disagree and commit" once a call was made; followed up on the outcome honestly.</li>
+          <li>Pick a case where the <em>process</em> was good even if your initial position lost.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">B4</span><span class="q-text">How do you mentor and raise the bar for other engineers as a senior IC?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Code/design reviews as teaching moments; pairing; writing docs and runbooks that scale your knowledge.</li>
+          <li>Setting patterns (golden paths) so good practice is the default.</li>
+          <li>Sponsorship: handing off visible work and supporting growth, not hoarding the hard problems.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">B5</span><span class="q-text">You're in a fast-paced environment with more work than time. How do you prioritize?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">Talking points</div><ul>
+          <li>Anchor on impact/risk: reliability and security first, then leverage (work that unblocks others), then nice-to-haves.</li>
+          <li>Make trade-offs explicit and communicate them; say no / not-now with reasoning.</li>
+          <li>Reduce toil with automation so the queue shrinks structurally, not just by working harder.</li>
+        </ul></div></div></div>
+
+      <div class="q"><div class="q-head"><span class="q-id">B6</span><span class="q-text">Why this role — robotics/warehouse automation platform engineering — and why now?</span><span class="q-meta"><span class="dots" data-lvl="1"><i></i><i></i><i></i></span>{chev}</span></div>
+        <div class="q-body"><div class="q-inner"><div class="lbl">How to frame it</div><ul>
+          <li>Connect your platform/cloud depth to the chance to apply it to physical, high-stakes systems — a genuine step up in problem hardness.</li>
+          <li>Show specific interest in the hybrid cloud+edge challenge and Go-centric tooling, not a generic "I like DevOps."</li>
+          <li>Be ready for "what do you want to learn here?" — name edge/robotics constraints honestly.</li>
+        </ul></div></div></div>
+    </section>
+
+  </main>
+</div>
+
+<footer>END OF QUESTION BANK · 83 QUESTIONS · 10 SECTIONS · 11 PRODUCTION ISSUES · 10 TOP-ASKED · GOOD LUCK</footer>
+
+<script>
+  // inject chevron svg into the placeholder
+  document.querySelectorAll('.q-meta').forEach(m=>{
+    m.innerHTML = m.innerHTML.replace('{chev}',
+      '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>');
+  });
+  // toggle
+  document.querySelectorAll('.q-head').forEach(h=>{
+    h.addEventListener('click',()=>{
+      const q=h.parentElement, body=q.querySelector('.q-body');
+      const open=q.classList.toggle('open');
+      body.style.maxHeight = open ? body.scrollHeight+'px' : '0px';
+    });
+  });
+  function setAll(open){
+    document.querySelectorAll('.q').forEach(q=>{
+      const body=q.querySelector('.q-body');
+      q.classList.toggle('open',open);
+      body.style.maxHeight = open ? body.scrollHeight+'px' : '0px';
+    });
+  }
+  // smooth-scroll active highlight
+  const links=[...document.querySelectorAll('nav.rail a')];
+  const secs=links.map(l=>document.querySelector(l.getAttribute('href')));
+  addEventListener('scroll',()=>{
+    let i=secs.findIndex((s,idx)=> s.getBoundingClientRect().top>120);
+    if(i===-1)i=secs.length; i=Math.max(0,i-1);
+    links.forEach((l,idx)=>l.style.color = idx===i ? 'var(--signal-deep)' : '');
+    links.forEach((l,idx)=>l.style.background = idx===i ? 'var(--line-soft)' : '');
+  },{passive:true});
+</script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backend Tech Lead — Interview Study Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0d0f14;--bg2:#13161e;--bg3:#1a1e28;--bg4:#202535;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--text:#e8eaf0;--muted:#7a7f8e;--accent:#4fffb0;--accent2:#4fb8ff;--danger:#ff6b6b;--warn:#ffb84f;}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6;}
+  /* HERO */
+  .hero{position:relative;padding:56px 48px 44px;border-bottom:1px solid var(--border);overflow:hidden;}
+  .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,rgba(79,255,176,0.08) 0%,transparent 70%);pointer-events:none;}
+  .hero-tag{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.15em;color:var(--accent);text-transform:uppercase;margin-bottom:14px;opacity:.8;}
+  .hero h1{font-family:'Syne',sans-serif;font-size:clamp(26px,4vw,46px);font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:12px;}
+  .hero h1 span{color:var(--accent);}
+  .hero p{color:var(--muted);font-size:14px;max-width:520px;font-weight:300;}
+  .stats-row{display:flex;gap:28px;margin-top:28px;flex-wrap:wrap;}
+  .stat{display:flex;flex-direction:column;gap:3px;}
+  .stat-val{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:var(--accent);}
+  .stat-lbl{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:.05em;}
+  .progress-overall{margin-top:20px;max-width:480px;}
+  .progress-overall-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px;}
+  .progress-overall-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .4s ease;}
+  .progress-overall-label{font-size:11px;color:var(--muted);margin-top:5px;font-family:'DM Mono',monospace;}
+  /* LAYOUT */
+  .main{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 200px);}
+  .sidebar{border-right:1px solid var(--border);padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+  .sidebar-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--muted);text-transform:uppercase;padding:0 24px;margin-bottom:10px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 24px;cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none;}
+  .nav-item:hover{background:var(--bg3);}
+  .nav-item.active{border-left-color:var(--accent);background:rgba(79,255,176,0.05);}
+  .nav-week{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+  .nav-label{font-size:13px;color:var(--text);font-weight:400;}
+  .nav-item.active .nav-label{color:var(--accent);}
+  .nav-dot{width:6px;height:6px;border-radius:50%;background:var(--bg3);border:1px solid var(--border2);flex-shrink:0;margin-left:auto;}
+  .nav-item.active .nav-dot{background:var(--accent);border-color:var(--accent);}
+  /* CONTENT */
+  .content{padding:36px 48px;}
+  .week-section{display:none;}
+  .week-section.active{display:block;}
+  .week-heading{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+  .week-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);letter-spacing:.15em;text-transform:uppercase;}
+  .week-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.01em;}
+  .week-desc{font-size:13px;color:var(--muted);margin-bottom:28px;font-weight:300;}
+  /* TOPIC CARD */
+  .topic-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;transition:border-color .2s;}
+  .topic-card:hover{border-color:var(--border2);}
+  .topic-header{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;user-select:none;}
+  .topic-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .topic-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;flex:1;}
+  .badge{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;}
+  .badge-hard{background:rgba(255,107,107,0.12);color:var(--danger);border:1px solid rgba(255,107,107,0.2);}
+  .badge-med{background:rgba(255,184,79,0.12);color:var(--warn);border:1px solid rgba(255,184,79,0.2);}
+  .badge-easy{background:rgba(79,255,176,0.12);color:var(--accent);border:1px solid rgba(79,255,176,0.2);}
+  .topic-progress-mini{display:flex;align-items:center;gap:7px;}
+  .mini-bar{width:56px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;}
+  .mini-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
+  .mini-text{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);min-width:30px;}
+  .chevron-icon{font-size:13px;color:var(--muted);transition:transform .25s;flex-shrink:0;}
+  .topic-card.open .chevron-icon{transform:rotate(180deg);}
+  /* TOPIC PANEL */
+  .topic-panel{display:none;border-top:1px solid var(--border);}
+  .topic-card.open .topic-panel{display:block;}
+  /* TOPIC OVERVIEW */
+  .overview-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--bg3);cursor:pointer;user-select:none;border-bottom:1px solid var(--border);}
+  .overview-bar-left{display:flex;align-items:center;gap:8px;}
+  .overview-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);opacity:.85;}
+  .overview-chevron{font-size:11px;color:var(--muted);transition:transform .2s;}
+  .overview-open .overview-chevron{transform:rotate(180deg);}
+  .overview-body{display:none;padding:16px 20px 18px;background:var(--bg3);border-bottom:1px solid var(--border);}
+  .overview-open .overview-body{display:block;}
+  .overview-body h4{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;color:var(--accent2);margin-bottom:8px;margin-top:14px;}
+  .overview-body h4:first-child{margin-top:0;}
+  .overview-body p{font-size:12.5px;color:#b8bcc8;line-height:1.7;margin-bottom:6px;font-weight:300;}
+  .overview-body ul{padding-left:14px;margin:4px 0 8px;}
+  .overview-body ul li{font-size:12.5px;color:#b8bcc8;line-height:1.65;margin-bottom:3px;}
+  .overview-body strong{color:var(--accent);font-weight:500;}
+  .overview-body code{font-family:'DM Mono',monospace;font-size:11px;background:rgba(79,255,176,0.08);color:var(--accent);padding:1px 5px;border-radius:3px;}
+  .overview-body em{color:var(--warn);font-style:normal;}
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0;}
+  .kv-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;padding:8px 11px;}
+  .kv-item .kv-k{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent2);letter-spacing:.08em;margin-bottom:3px;}
+  .kv-item .kv-v{font-size:12px;color:#b8bcc8;line-height:1.5;}
+  /* QUESTIONS */
+  .questions-panel{padding:0 20px 14px;}
+  .q-section-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:12px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+  .q-item{border-bottom:1px solid var(--border);padding:12px 0;}
+  .q-item:last-child{border-bottom:none;}
+  .q-top{display:flex;align-items:flex-start;gap:11px;}
+  .q-check{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all .15s;background:transparent;}
+  .q-check:hover{border-color:var(--accent);}
+  .q-check.checked{background:var(--accent);border-color:var(--accent);}
+  .q-check.checked::after{content:'';width:8px;height:5px;border-left:2px solid #0d0f14;border-bottom:2px solid #0d0f14;transform:rotate(-45deg) translateY(-1px);display:block;}
+  .q-text{font-size:13.5px;color:var(--text);line-height:1.6;font-weight:400;flex:1;}
+  .q-text.done{color:var(--muted);text-decoration:line-through;}
+  .ans-toggle{display:inline-flex;align-items:center;gap:5px;margin-top:8px;margin-left:28px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.08em;color:var(--accent2);cursor:pointer;opacity:.7;transition:opacity .15s;background:none;border:none;padding:0;}
+  .ans-toggle:hover{opacity:1;}
+  .answer-box{display:none;margin:10px 0 2px 28px;background:var(--bg3);border-left:2px solid var(--accent2);border-radius:0 8px 8px 0;padding:14px 16px;}
+  .answer-box.open{display:block;}
+  .answer-box p{font-size:13px;color:#c8cad4;line-height:1.75;margin-bottom:10px;font-weight:300;}
+  .answer-box p:last-child{margin-bottom:0;}
+  .answer-box strong{color:var(--accent);font-weight:500;}
+  .answer-box em{color:var(--warn);font-style:normal;}
+  .answer-box code{font-family:'DM Mono',monospace;font-size:11.5px;background:rgba(79,255,176,0.08);color:var(--accent);padding:1px 5px;border-radius:3px;}
+  .answer-box ul{padding-left:16px;margin:6px 0;}
+  .answer-box ul li{font-size:13px;color:#c8cad4;line-height:1.7;margin-bottom:4px;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+  @media(max-width:700px){
+    .main{grid-template-columns:1fr;}
+    .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:4px;padding:12px;}
+    .hero,.content{padding:28px 18px;}
+    .nav-item{padding:6px 10px;border-left:none;border-radius:6px;}
+    .nav-item.active{border-left:none;background:rgba(79,255,176,0.1);}
+    .nav-week{display:none;}
+    .kv-grid{grid-template-columns:1fr;}
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<div class="hero">
+  <div class="hero-tag">// Interview Prep</div>
+  <h1>Backend <span>Tech Lead</span><br>Study Plan</h1>
+  <p>6-week structured preparation · REST APIs · Microservices · AWS · CI/CD · Design Patterns · DSA · System Design</p>
+  <div class="stats-row">
+    <div class="stat"><span class="stat-val" id="done-count">0</span><span class="stat-lbl">completed</span></div>
+    <div class="stat"><span class="stat-val" id="total-count">0</span><span class="stat-lbl">total questions</span></div>
+    <div class="stat"><span class="stat-val" id="pct-val">0%</span><span class="stat-lbl">progress</span></div>
+    <div class="stat"><span class="stat-val">6</span><span class="stat-lbl">weeks</span></div>
+  </div>
+  <div class="progress-overall">
+    <div class="progress-overall-bar"><div class="progress-overall-fill" id="overall-bar" style="width:0%"></div></div>
+    <div class="progress-overall-label" id="overall-label">0 / 0 questions complete</div>
+  </div>
+</div>
+
+<div class="main">
+  <nav class="sidebar" id="sidebar"><div class="sidebar-title">Weeks</div></nav>
+  <div class="content" id="content"></div>
+</div>
+
+<script>
+const plan = [
+  {week:"Week 1",label:"REST & Microservices",desc:"Master RESTful API design principles and distributed microservices architecture patterns.",topics:[
+    {
+      title:"REST API Design",icon:"⚡",color:"rgba(79,184,255,0.15)",difficulty:"med",
+      overview:`
+        <h4>What is REST?</h4>
+        <p>REST (Representational State Transfer) is an architectural style for distributed hypermedia systems. It defines 6 constraints that, when applied, make a system scalable, stateless, and interoperable.</p>
+        <h4>The 6 Constraints</h4>
+        <ul>
+          <li><strong>Stateless</strong> — Every request contains all info needed. No server-side session. Enables horizontal scaling.</li>
+          <li><strong>Uniform Interface</strong> — Consistent resource URIs, HTTP verbs, self-descriptive messages, HATEOAS.</li>
+          <li><strong>Client-Server</strong> — UI and storage concerns are separated; either can evolve independently.</li>
+          <li><strong>Layered System</strong> — Client cannot tell if it's talking to origin or a proxy/CDN.</li>
+          <li><strong>Cacheable</strong> — Responses must declare themselves cacheable or not.</li>
+          <li><strong>Code on Demand</strong> (optional) — Server can send executable code (e.g. JavaScript).</li>
+        </ul>
+        <h4>HTTP Verbs &amp; Idempotency</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">GET</div><div class="kv-v">Safe + Idempotent. Read only.</div></div>
+          <div class="kv-item"><div class="kv-k">PUT</div><div class="kv-v">Idempotent. Full resource replace.</div></div>
+          <div class="kv-item"><div class="kv-k">DELETE</div><div class="kv-v">Idempotent. Remove resource.</div></div>
+          <div class="kv-item"><div class="kv-k">POST</div><div class="kv-v">Not idempotent by default. Create/action.</div></div>
+          <div class="kv-item"><div class="kv-k">PATCH</div><div class="kv-v">Not idempotent by default. Partial update.</div></div>
+          <div class="kv-item"><div class="kv-k">HEAD / OPTIONS</div><div class="kv-v">Safe + Idempotent. Metadata only.</div></div>
+        </div>
+        <h4>Key Patterns to Know</h4>
+        <ul>
+          <li><strong>Versioning</strong> — URI (<code>/v1/</code>) vs Accept-header. URI wins in practice for public APIs.</li>
+          <li><strong>Pagination</strong> — Cursor-based for large datasets; offset for small admin queries.</li>
+          <li><strong>Rate Limiting</strong> — Token bucket in Redis; return <code>429</code> + <code>Retry-After</code>.</li>
+          <li><strong>Long-running ops</strong> — Return <code>202 Accepted</code> + job ID; poll <code>GET /jobs/{id}</code> or use webhooks.</li>
+          <li><strong>Idempotency keys</strong> — <code>Idempotency-Key</code> header + Redis NX for POST endpoints.</li>
+          <li><strong>HATEOAS</strong> — Include next-action links in responses. Rarely done fully in practice.</li>
+        </ul>
+        <h4>HTTP Status Codes</h4>
+        <ul>
+          <li><code>200 OK</code>, <code>201 Created</code>, <code>202 Accepted</code>, <code>204 No Content</code></li>
+          <li><code>400 Bad Request</code>, <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code>, <code>409 Conflict</code>, <code>429 Too Many Requests</code></li>
+          <li><code>500 Internal Server Error</code>, <code>502 Bad Gateway</code>, <code>503 Service Unavailable</code></li>
+        </ul>`,
+      qa:[
+        {q:"What are the principles of RESTful API design — statelessness, uniform interface, and layered system?",a:`<p>REST is built on 6 constraints. <strong>Statelessness</strong> — each request contains all info needed; no session state is held between requests. <strong>Uniform interface</strong> — consistent URIs for resources, manipulation through representations, self-descriptive messages, and HATEOAS. <strong>Layered system</strong> — a client cannot tell whether it's talking to the origin server or a proxy/CDN. <strong>Client-server separation</strong> — UI and storage concerns evolve independently. <strong>Cacheability</strong> — responses declare themselves cacheable or not. <strong>Code on demand</strong> (optional) — server can send executable code.</p><p>Statelessness is the most impactful constraint for scalability — any server instance can handle any request, enabling horizontal scaling without sticky sessions.</p>`},
+        {q:"Explain idempotency. Which HTTP methods are idempotent and why does it matter?",a:`<p><strong>Idempotency</strong> means calling an operation N times produces the same result as calling it once. <code>GET</code>, <code>PUT</code>, <code>DELETE</code>, <code>HEAD</code>, and <code>OPTIONS</code> are idempotent. <code>POST</code> and <code>PATCH</code> are not by default.</p><p>It matters because when a network timeout occurs, a client can safely retry an idempotent request without side effects like duplicate orders. For <code>POST</code> endpoints, implement idempotency via an <code>Idempotency-Key</code> header — store key + response in Redis (NX with TTL) and return the cached response for duplicate keys.</p>`},
+        {q:"How do you version a REST API? Compare URI versioning vs header versioning.",a:`<p><strong>URI versioning</strong> (<code>/v1/users</code>): Easy to test in browsers, clear in logs, simple routing. Most widely used in practice. Downside: URIs should represent resources, not versions — purists argue this violates REST. <strong>Header versioning</strong> (<code>Accept: application/vnd.api+json;version=2</code>): Clean URIs but requires tooling to test. GitHub uses this. <strong>Query param</strong> (<code>/users?version=2</code>) pollutes resource URLs.</p><p>Best practice: URI versioning for public APIs. Header versioning for internal APIs where you control the client. Always maintain at least one prior version during a 6–12 month deprecation window.</p>`},
+        {q:"How would you design pagination for a large dataset endpoint?",a:`<p><strong>Offset pagination</strong> (<code>?page=2&limit=20</code>): Simple but degrades at high offsets (DB scans all skipped rows) and gives inconsistent results if rows change mid-session. <strong>Cursor-based pagination</strong> (<code>?cursor=eyJpZCI6MTAwfQ</code>): Uses a stable pointer (encoded last-seen ID or timestamp). Consistent, efficient with an indexed column, scales to millions of rows. <strong>Keyset pagination</strong> (<code>?after_id=100</code>) is similar — leverages the index directly.</p><p>Return a <code>next_cursor</code> in the response envelope. Include total count only when cheap to compute. Cursor pagination is preferred for infinite scroll, real-time feeds, and large datasets.</p>`},
+        {q:"Explain HATEOAS. When would you actually implement it in production?",a:`<p><strong>HATEOAS</strong> (Hypermedia As The Engine Of Application State) means responses include links to valid next actions, so clients don't hard-code URLs. Example: a payment response includes <code>{"links":[{"rel":"refund","href":"/payments/123/refund","method":"POST"}]}</code>.</p><p>Full HATEOAS is rarely implemented outside mature public APIs (PayPal is the classic example). The value is highest when you have many diverse clients you can't coordinate with, or your workflow has complex state transitions. For internal APIs where you own both sides, document the contract via OpenAPI instead. Partial HATEOAS (links for next-state actions only) is a pragmatic middle ground.</p>`},
+        {q:"How do you handle partial updates — PUT vs PATCH semantics?",a:`<p><strong>PUT</strong> replaces the entire resource. Client sends the full representation. Idempotent. Use when the client always controls the full state. <strong>PATCH</strong> applies a partial modification. Not idempotent by default. Use for large resources where sending the full body is wasteful.</p><p>Two formats: <strong>JSON Merge Patch</strong> (RFC 7396) — send only changed fields, null means delete. <strong>JSON Patch</strong> (RFC 6902) — array of operations (<code>add</code>, <code>remove</code>, <code>replace</code>). Key pitfall: if a field is omitted in a PATCH body, it must be left unchanged — never treated as null.</p>`},
+        {q:"Design a rate-limiting strategy for a public REST API.",a:`<p>Common algorithms: <strong>Token bucket</strong> — tokens replenish at a fixed rate, allows bursting up to bucket capacity. <strong>Sliding window counter</strong> — approximate but efficient, counts per sub-window in Redis. <strong>Sliding window log</strong> — precise but memory-intensive. Use Redis with atomic Lua scripts. Key by <code>api_key</code> or <code>user_id</code>.</p><p>Return headers: <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, <code>X-RateLimit-Reset</code>. Return <code>429 Too Many Requests</code> with <code>Retry-After</code> on rejection. Apply different limits by tier (free vs paid) and by endpoint cost.</p>`},
+        {q:"How would you handle long-running operations — polling vs webhooks vs async callbacks?",a:`<p><strong>Polling</strong>: Return <code>202 Accepted</code> + job ID. Client calls <code>GET /jobs/{id}</code> periodically. Simple but wastes resources. <strong>Webhooks</strong>: Server calls back a client-provided URL when done. Efficient but requires the client to expose a public HTTPS endpoint, plus retry logic and HMAC signature verification. <strong>SSE / WebSockets</strong>: For real-time push when the client maintains a connection.</p><p>For jobs taking minutes to hours: webhooks win. For second-level jobs: polling with exponential backoff is pragmatic. Always return <code>202</code> + a <code>Location</code> header pointing to the status resource immediately.</p>`},
+      ]
+    },
+    {
+      title:"Microservices Architecture",icon:"🔗",color:"rgba(79,255,176,0.12)",difficulty:"hard",
+      overview:`
+        <h4>Core Concepts</h4>
+        <p>Microservices decompose a system into small, independently deployable services each owning a bounded domain. The trade-off is operational complexity for deployment independence and scalability.</p>
+        <h4>Monolith vs Microservices</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">Monolith ✓</div><div class="kv-v">Simple deploy, easy transactions, small teams, unclear domain boundaries.</div></div>
+          <div class="kv-item"><div class="kv-k">Microservices ✓</div><div class="kv-v">Independent scale/deploy, fault isolation, large orgs with stable domains.</div></div>
+        </div>
+        <h4>Essential Patterns</h4>
+        <ul>
+          <li><strong>Saga</strong> — Distributed transactions via local transactions + compensating actions. Choreography (events) vs Orchestration (central coordinator).</li>
+          <li><strong>Circuit Breaker</strong> — Closed → Open → Half-Open. Prevents cascade failures. Implement with Resilience4j.</li>
+          <li><strong>Outbox Pattern</strong> — Atomic state change + event in one DB transaction. Relay via Debezium CDC. Solves dual-write.</li>
+          <li><strong>Strangler Fig</strong> — Incremental monolith migration behind a proxy/gateway.</li>
+          <li><strong>Service Discovery</strong> — Client-side (Eureka) vs Server-side (ALB + Cloud Map). In K8s: built-in DNS.</li>
+          <li><strong>Distributed Tracing</strong> — OpenTelemetry + trace propagation headers (W3C traceparent). Jaeger/X-Ray backend.</li>
+        </ul>
+        <h4>Data Consistency Strategies</h4>
+        <ul>
+          <li>No shared databases — each service owns its data store.</li>
+          <li>Eventual consistency is the default; design idempotent consumers.</li>
+          <li>Use the Outbox pattern or Event Sourcing to guarantee at-least-once event delivery.</li>
+          <li>Optimistic locking (version fields) for conflict detection on concurrent writes.</li>
+        </ul>
+        <h4>Key Interview Points</h4>
+        <ul>
+          <li>Avoid premature decomposition — modular monolith is a valid intermediate step.</li>
+          <li>Saga choreography is simpler but harder to observe; orchestration (Step Functions, Temporal) is more debuggable.</li>
+          <li>Circuit Breaker + Bulkhead + Timeout = the full resilience triad.</li>
+        </ul>`,
+      qa:[
+        {q:"What are the trade-offs between microservices and a monolith? When would you choose each?",a:`<p><strong>Monolith pros</strong>: Simple deployment, no network hops, easy ACID transactions, straightforward debugging. <strong>Cons</strong>: Must scale the entire app for one bottleneck, deployments block everything, technology lock-in.</p><p><strong>Microservices pros</strong>: Independent scaling and deployment, technology diversity, fault isolation, team autonomy. <strong>Cons</strong>: Network latency, distributed tracing complexity, eventual consistency, significant operational overhead. Choose monolith for early-stage products, small teams, unclear domain boundaries. Choose microservices for large organizations with stable domain boundaries and very different scaling profiles. A modular monolith is the pragmatic intermediate step.</p>`},
+        {q:"Explain the Saga pattern for distributed transactions. Compare choreography vs orchestration.",a:`<p>A <strong>Saga</strong> breaks a distributed transaction into local transactions, each publishing an event. If a step fails, compensating transactions undo prior steps — no traditional rollback. <strong>Choreography</strong>: Services react autonomously to events. Loosely coupled, simple for short flows, but business logic is scattered and hard to track. <strong>Orchestration</strong>: A central coordinator (Saga state machine, AWS Step Functions, Temporal) directs each step and tracks state. Clear visibility, easier error handling, but introduces coupling to the orchestrator. For complex multi-step flows, orchestration is preferred for its debuggability.</p>`},
+        {q:"How do you handle service discovery in a microservices environment?",a:`<p><strong>Client-side discovery</strong>: Client queries a registry (Eureka, Consul) and load-balances itself. Full control but requires a registry client library. <strong>Server-side discovery</strong>: Client calls a load balancer which queries the registry. Language-agnostic but an extra hop. In <strong>Kubernetes</strong>: built-in via CoreDNS — services at <code>service.namespace.svc.cluster.local</code>. In <strong>AWS ECS</strong>: AWS Cloud Map or ALB. Always combine with health checks to remove stale instances promptly.</p>`},
+        {q:"What is the Circuit Breaker pattern and when would you use it?",a:`<p>A <strong>Circuit Breaker</strong> wraps downstream calls and tracks failure rates. States: <strong>Closed</strong> (normal), <strong>Open</strong> (fail fast after threshold exceeded), <strong>Half-Open</strong> (probe request to test recovery). Use when a dependency is unreliable to prevent cascade failures, give the downstream time to recover, and avoid exhausting thread/connection pools. Implement with Resilience4j, Polly, or Istio service mesh. Combine with a fallback (cached data, degraded response) for graceful degradation.</p>`},
+        {q:"How do you ensure data consistency across services without a shared database?",a:`<p><strong>Saga</strong> for distributed transactions with compensating actions. <strong>Outbox pattern</strong> — write domain state and an event to a local outbox table in the same transaction, relay async to the broker. Guarantees atomicity without two-phase commit. <strong>Event sourcing</strong> — store state as events; downstream services build their own projections. Accept <strong>eventual consistency</strong> as the default: design idempotent consumers with deduplication keys. Use optimistic locking (version numbers) to detect concurrent conflicts.</p>`},
+        {q:"Explain the Strangler Fig pattern for migrating a monolith to microservices.",a:`<p>Named after the fig tree that grows around a host and eventually replaces it. Place a <strong>reverse proxy or API gateway</strong> in front of the monolith. Incrementally extract bounded contexts into new services and redirect traffic domain by domain. Over time the monolith shrinks until it can be retired. Key challenge: data synchronization during transition — use dual writes or event streaming. Never attempt a big-bang rewrite; Strangler Fig controls risk incrementally.</p>`},
+        {q:"How would you implement distributed tracing across services?",a:`<p>Propagate a <strong>trace ID</strong> and <strong>span ID</strong> in request headers using the W3C <code>traceparent</code> standard. Each service creates child spans and reports them to a collector. <strong>OpenTelemetry</strong> is the vendor-neutral SDK. Backends: Jaeger, Zipkin, AWS X-Ray, Datadog. Instrument at the framework level (HTTP clients, message consumers, DB calls) for automatic traces. Propagate across async boundaries (SQS message attributes, Kafka headers). Use tail-based sampling to capture all slow or errored traces without overhead.</p>`},
+        {q:"What is eventual consistency and how do you design around it?",a:`<p><strong>Eventual consistency</strong>: reads may return stale data in the window after a write; systems converge given no new updates. Governed by CAP theorem — under partition, choose consistency or availability. Design strategies: make operations <strong>idempotent</strong>, use <strong>optimistic locking</strong> to detect conflicts, design UIs to show pending states, implement <strong>read-your-own-writes</strong> by routing the user's reads to the primary for a short window after a write, and choose business processes that tolerate it (inventory counts yes, payment deduplication no).</p>`},
+      ]
+    },
+  ]},
+  {week:"Week 2",label:"AWS & Cloud",desc:"Deep dive into AWS services, resilience patterns, and cloud architecture best practices.",topics:[
+    {
+      title:"AWS Core Services",icon:"☁️",color:"rgba(255,184,79,0.12)",difficulty:"hard",
+      overview:`
+        <h4>Compute</h4>
+        <ul>
+          <li><strong>EC2</strong> — Virtual machines. Use Auto Scaling Groups (ASG) for horizontal scaling. Right-size instances, use Spot for cost savings.</li>
+          <li><strong>Lambda</strong> — Serverless functions. 15-min max timeout. Concurrency = simultaneous invocations. Cold start mitigated by Provisioned Concurrency or SnapStart (Java).</li>
+          <li><strong>ECS Fargate</strong> — Serverless containers. No EC2 management. Best for AWS-native teams.</li>
+          <li><strong>EKS</strong> — Managed Kubernetes. Rich ecosystem. Higher operational overhead.</li>
+        </ul>
+        <h4>Storage & Databases</h4>
+        <ul>
+          <li><strong>S3</strong> — Object storage. Use lifecycle policies to auto-transition: Standard → IA → Glacier → Deep Archive.</li>
+          <li><strong>RDS / Aurora</strong> — Managed relational DB. Multi-AZ for HA. Aurora is MySQL/Postgres-compatible with better throughput.</li>
+          <li><strong>DynamoDB</strong> — Key-value/document. Single-digit ms at any scale. Best for known access patterns.</li>
+          <li><strong>ElastiCache</strong> — Redis or Memcached. Use for session store, hot data caching, rate limiting.</li>
+        </ul>
+        <h4>Messaging</h4>
+        <ul>
+          <li><strong>SQS Standard</strong> — At-least-once, best-effort order. Unlimited throughput.</li>
+          <li><strong>SQS FIFO</strong> — Exactly-once, strict order per MessageGroupId. 300 TPS.</li>
+          <li><strong>SNS</strong> — Fan-out pub/sub. One topic → many SQS/Lambda/HTTP subscribers.</li>
+          <li><strong>EventBridge</strong> — Event bus with content-based routing rules. Best for event-driven architectures.</li>
+        </ul>
+        <h4>Networking Key Points</h4>
+        <ul>
+          <li><strong>VPC</strong> → <strong>Subnets</strong> (public/private per AZ) → <strong>Security Groups</strong> (stateful, instance-level) → <strong>NACLs</strong> (stateless, subnet-level)</li>
+          <li>ALB for HTTP/S; NLB for TCP/UDP high-throughput. Always span multiple AZs.</li>
+          <li>CloudFront CDN in front of ALB/S3 for caching + edge delivery.</li>
+        </ul>
+        <h4>IAM Essentials</h4>
+        <ul>
+          <li>Always use <strong>Roles</strong> (temporary credentials via STS), not long-term access keys for services.</li>
+          <li>Least-privilege: grant only the specific actions + resources the service needs.</li>
+          <li>Use <strong>Permission Boundaries</strong> to cap escalation. <strong>SCPs</strong> for org-wide guardrails.</li>
+          <li>Run IAM Access Analyzer regularly to find unintended access.</li>
+        </ul>`,
+      qa:[
+        {q:"Explain the difference between SQS Standard vs FIFO queues. When do you use each?",a:`<p><strong>Standard</strong>: At-least-once delivery, best-effort ordering, unlimited throughput. Messages may arrive out of order or more than once — consumers must be idempotent. Use for high-throughput workloads where order doesn't matter: image processing, notifications. <strong>FIFO</strong>: Exactly-once processing, strict ordering per <code>MessageGroupId</code>, 300 TPS (3,000 with batching). Use for financial transactions, order state machines, any workflow where sequence matters. FIFO costs slightly more. Common pattern: Standard queue for high-volume fan-out, FIFO for ordered downstream processing.</p>`},
+        {q:"How does AWS Lambda handle concurrency? What are reserved vs provisioned concurrency?",a:`<p>Each simultaneous invocation needs one execution environment. Lambda scales up to the regional limit (default 1,000). <strong>Reserved concurrency</strong>: caps max concurrent executions for a function — prevents one function from starving others and guarantees a floor. Setting it to 0 disables the function. <strong>Provisioned concurrency</strong>: pre-warms execution environments — no cold start. Essential for latency-sensitive APIs. You pay for idle provisioned time. Use Application Auto Scaling to adjust provisioned concurrency on a schedule or by metric. Combine with reserved concurrency for a hard cap above the provisioned baseline.</p>`},
+        {q:"Compare DynamoDB vs RDS for a high-throughput write workload.",a:`<p><strong>DynamoDB</strong>: Single-digit ms at any scale, auto-scales, no schema migrations, Global Tables for multi-region. Best for: known access patterns, key-value/document data, >10k writes/sec. Limitations: no ad-hoc queries outside key/GSI attributes, 400KB item limit, no JOINs. <strong>RDS/Aurora</strong>: Full SQL, complex JOINs, ACID transactions across tables. Best for: relational data with complex queries, existing SQL expertise. Limitations: write throughput bounded by vertical instance size (Aurora partial exception), manual sharding. Choose DynamoDB for high-throughput writes with known access patterns; RDS for complex relational queries.</p>`},
+        {q:"Explain S3 storage classes and lifecycle policies for cost optimization.",a:`<p><strong>Standard</strong>: Frequent access, highest cost. <strong>Standard-IA</strong>: Infrequent access — lower storage cost + retrieval fee. <strong>One Zone-IA</strong>: Single AZ, cheaper, lower durability. <strong>Glacier Instant</strong>: Archive cost, ms retrieval. <strong>Glacier Flexible</strong>: Minutes-hours retrieval. <strong>Deep Archive</strong>: Cheapest, 12hr retrieval. <strong>Intelligent-Tiering</strong>: Auto-moves based on access patterns — best when access is unpredictable.</p><p><strong>Lifecycle policies</strong>: e.g. transition to IA after 30 days → Glacier after 90 → delete after 365. Always combine versioning with lifecycle rules to expire non-current versions and incomplete multipart uploads.</p>`},
+        {q:"How would you design a serverless event-driven architecture using SNS, SQS, and Lambda?",a:`<p>Classic <strong>SNS fan-out to SQS</strong> pattern: Producer → SNS topic → multiple SQS queues (one per consumer type) → Lambda consumers. Benefits: isolated failure domains, independent retry/DLQ config, Lambda scales per queue. Example flow: API Gateway → Lambda producer → SNS → [SQS email, SQS analytics, SQS audit] → separate Lambda consumers. Set visibility timeout > Lambda max execution time. Configure DLQ for each queue. Use batch size 10 for efficiency. For ordered processing use FIFO SQS.</p>`},
+        {q:"What is the difference between horizontal scaling (ASG) and vertical scaling on AWS?",a:`<p><strong>Vertical</strong>: Bigger instance (t3.medium → t3.xlarge). Simple but has a ceiling, requires restart, expensive at top end, single point of failure. <strong>Horizontal (ASG)</strong>: More instances of the same size. No ceiling, resilient across AZs, linear cost, Spot-friendly. Requires stateless app design — sessions in ElastiCache, files in S3. ASG supports target tracking (keep CPU at 60%), step scaling, and scheduled scaling. Right-size instances vertically first, then scale horizontally for load variation.</p>`},
+        {q:"Explain VPC, subnets, security groups, and NACLs and their differences.",a:`<p><strong>VPC</strong>: Isolated virtual network in a region with your own CIDR. <strong>Subnets</strong>: AZ-scoped subdivisions — public (routes to Internet Gateway) and private (routes to NAT Gateway for outbound only). DB tier always in private subnets. <strong>Security Groups</strong>: Stateful, instance-level. Allow rules only. Return traffic auto-allowed. Reference other SGs for service-to-service rules. <strong>NACLs</strong>: Stateless, subnet-level. Both allow and deny rules, evaluated in order. Return traffic needs explicit allow. Use NACLs for broad IP blocking; Security Groups for fine-grained service rules.</p>`},
+        {q:"How do you use IAM roles vs policies for least-privilege access?",a:`<p><strong>IAM Policy</strong>: JSON document defining Allow/Deny on Actions and Resources. <strong>IAM Role</strong>: AWS identity with no long-term credentials. Assumed by services via STS for temporary credentials. Always use roles for all service-to-service access. <strong>Least-privilege</strong>: grant only the specific actions + resources needed. Use <strong>permission boundaries</strong> to cap escalation. <strong>SCPs</strong> in AWS Organizations for org-wide guardrails. Run IAM Access Analyzer to find overly permissive policies. Use managed policies for reusability; avoid inline policies. Rotate access keys regularly and prefer roles everywhere.</p>`},
+      ]
+    },
+    {
+      title:"AWS High Availability & Resilience",icon:"🛡️",color:"rgba(255,107,107,0.1)",difficulty:"hard",
+      overview:`
+        <h4>Multi-AZ (Baseline for All Production)</h4>
+        <ul>
+          <li>ALB spanning multiple AZs, ASG instances spread evenly across AZs.</li>
+          <li>RDS Multi-AZ: synchronous replication, auto-failover ~60s. Always on for production.</li>
+          <li>ElastiCache Multi-AZ, DynamoDB inherently multi-AZ.</li>
+        </ul>
+        <h4>Multi-Region (Disaster Recovery)</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">Active-Active</div><div class="kv-v">Route 53 latency routing. Bi-directional replication. Near-zero RTO/RPO. Complex, split-brain risk.</div></div>
+          <div class="kv-item"><div class="kv-k">Active-Passive</div><div class="kv-v">Warm standby. Route 53 health-check failover. Minutes RTO. Simpler.</div></div>
+        </div>
+        <h4>RTO & RPO</h4>
+        <ul>
+          <li><strong>RPO</strong> — Max data loss tolerated (drives replication frequency).</li>
+          <li><strong>RTO</strong> — Max downtime tolerated (drives standby strategy).</li>
+          <li>DR strategies: Backup & Restore → Pilot Light → Warm Standby → Active-Active (cost increases with speed).</li>
+        </ul>
+        <h4>Deployment Strategies</h4>
+        <ul>
+          <li><strong>Blue/Green</strong> — Instant rollback. Double infra cost during transition.</li>
+          <li><strong>Canary</strong> — Gradual traffic shift (5%→25%→100%). Auto-rollback on CloudWatch alarm.</li>
+          <li><strong>Rolling</strong> — Default ECS/K8s. Gradual replacement. Slower rollback.</li>
+        </ul>
+        <h4>Cold Starts (Lambda)</h4>
+        <ul>
+          <li>Node.js/Python: ~100ms. Java/C#: 1–3s with large packages.</li>
+          <li>Mitigation: Provisioned Concurrency (best), SnapStart (Java), smaller package, avoid VPC when possible.</li>
+          <li>Monitor: CloudWatch Metric Filter on <code>Init Duration</code> in REPORT log lines.</li>
+        </ul>`,
+      qa:[
+        {q:"How do you design for multi-AZ vs multi-region failover?",a:`<p><strong>Multi-AZ</strong> (baseline for all production): ALB spanning multiple AZs, ASG instances spread evenly, RDS Multi-AZ (sync replication, ~60s automatic failover), ElastiCache Multi-AZ. Protects against AZ failure at minimal cost. <strong>Multi-region</strong>: <em>Active-Active</em> — Route 53 latency routing, bi-directional data replication (DynamoDB Global Tables or Aurora Global), near-zero RTO/RPO but complex with split-brain risk. <em>Active-Passive</em> — warm standby in a secondary region, Route 53 health-check failover. Significantly more complex and expensive — justify with strict RTO/RPO SLAs.</p>`},
+        {q:"What is RTO vs RPO? How do they influence your DR strategy?",a:`<p><strong>RPO</strong>: Max acceptable data loss in time. RPO=0 means zero data loss (synchronous replication). RPO=1hr means up to 1hr of transactions can be lost. Drives replication frequency. <strong>RTO</strong>: Max acceptable downtime after a disaster. DR strategies mapped to RTO/RPO cost: <em>Backup & Restore</em> (hours, lowest cost) → <em>Pilot Light</em> (30-60 min) → <em>Warm Standby</em> (minutes) → <em>Active-Active</em> (near-zero, highest cost). Negotiate RTO/RPO with business stakeholders, then design and cost the appropriate strategy. Test DR regularly — untested plans fail when needed.</p>`},
+        {q:"Explain how CloudFront integrates with your backend for caching and edge delivery.",a:`<p>CloudFront is a global CDN with 400+ edge locations. Origins: S3, ALB, API Gateway, or custom HTTP server. Key config: <strong>Cache Behaviors</strong> — path-pattern rules controlling TTL, headers/cookies forwarded, compression. <strong>Origin Shield</strong> — additional regional cache layer reducing origin load. <strong>Cache invalidation</strong> — use versioned URLs for immutable assets. For APIs: cache GET responses with short TTLs, forward <code>Authorization</code> header only if needed (bypasses cache). Use <strong>Lambda@Edge</strong> or <strong>CloudFront Functions</strong> for auth, A/B testing, and redirects at the edge with minimal latency.</p>`},
+        {q:"How would you implement blue/green or canary deployments on AWS?",a:`<p><strong>Blue/Green</strong>: Two identical production environments. Switch 100% of traffic via ALB target group swap or Route 53 weighted record. Instant rollback — flip back. Cost: double infra during transition. <strong>Canary</strong>: Gradually shift traffic (5%→25%→100%) while monitoring error rates and latency. With ALB: weighted target groups. With API Gateway: canary stage settings. With Lambda: aliases + <code>RoutingConfig</code>. With ECS/EKS: CodeDeploy or Argo Rollouts. Critical: define <strong>automated rollback triggers</strong> on CloudWatch alarms — error rate or latency spike during canary automatically rolls back.</p>`},
+        {q:"What is AWS X-Ray and how does it help debug distributed systems?",a:`<p>X-Ray is AWS's distributed tracing service. It generates a <strong>service map</strong> of all services in a request path showing latency and error rates. Every traced request gets a trace ID via the <code>X-Amzn-Trace-Id</code> header. Auto-instruments Lambda, API Gateway, DynamoDB, SQS. Use the X-Ray SDK for <strong>custom subsegments</strong>, <strong>annotations</strong> (searchable), and <strong>metadata</strong>. Configure <strong>sampling rules</strong> to control cost. Use X-Ray Insights for anomaly detection. Pair with CloudWatch ServiceLens for unified traces + metrics + logs view.</p>`},
+        {q:"How would you monitor and alert on Lambda cold start latency?",a:`<p>Cold starts occur when Lambda creates a new execution environment. Duration: ~100ms (Node.js/Python) to 1–3s (Java/C# with large packages). <strong>Monitoring</strong>: Lambda logs a REPORT line per invocation — <code>Init Duration</code> field appears only on cold starts. Create a CloudWatch Metric Filter to extract it. Track P95/P99 of Init Duration. <strong>Mitigation</strong>: Provisioned Concurrency (eliminates cold starts), Lambda SnapStart for Java, smaller deployment package, avoid VPC when possible. Alert when Init Duration P95 exceeds your latency SLA threshold.</p>`},
+      ]
+    },
+  ]},
+  {week:"Week 3",label:"CI/CD & DevOps",desc:"Build production-grade pipelines, container orchestration, and infrastructure-as-code expertise.",topics:[
+    {
+      title:"CI/CD Pipelines",icon:"🔄",color:"rgba(79,255,176,0.1)",difficulty:"med",
+      overview:`
+        <h4>Pipeline Stages (in order)</h4>
+        <ul>
+          <li><strong>Source</strong> — PR opened (GitHub/GitLab). Triggers CI.</li>
+          <li><strong>CI</strong> — Lint → Unit tests → SAST → Dependency scan. Fail fast. Target &lt;5 min.</li>
+          <li><strong>Build</strong> — Docker image built, tagged with commit SHA, pushed to ECR. <em>Never rebuild the same image</em>.</li>
+          <li><strong>Integration tests</strong> — Against ephemeral environment with real dependencies.</li>
+          <li><strong>Security scan</strong> — Trivy/Snyk on the image.</li>
+          <li><strong>Deploy staging</strong> — Rolling update. Smoke tests. Alert gates.</li>
+          <li><strong>Deploy prod</strong> — Canary (5%→100%) with automated rollback on alarm.</li>
+        </ul>
+        <h4>Key Principles</h4>
+        <ul>
+          <li><strong>Artifact promotion</strong> — Same image promoted through environments; never rebuilt.</li>
+          <li><strong>GitOps</strong> — All infra and deployment config in Git. No manual console deploys.</li>
+          <li><strong>Fail fast</strong> — Cheapest, most likely-to-fail checks run first.</li>
+          <li><strong>Trunk-Based Development</strong> — Feature branches &lt;2 days, feature flags for incomplete work.</li>
+        </ul>
+        <h4>Secrets Management</h4>
+        <ul>
+          <li>Never in code, Docker images, or committed env files.</li>
+          <li><strong>AWS Secrets Manager / SSM Parameter Store</strong> — Runtime fetch via IAM role.</li>
+          <li><strong>Kubernetes</strong> — External Secrets Operator syncs from AWS/Vault into K8s Secrets.</li>
+          <li><strong>CI runners</strong> — GitHub Actions Encrypted Secrets or GitLab CI Variables (masked).</li>
+          <li><strong>Prevention</strong> — git-secrets / TruffleHog pre-commit + CI step.</li>
+        </ul>
+        <h4>Pipeline Speed Tactics</h4>
+        <ul>
+          <li>Parallelise: lint + unit tests + security scans in parallel jobs.</li>
+          <li>Cache: <code>node_modules</code>, <code>.m2</code>, pip cache keyed by lock file hash.</li>
+          <li>Docker layer caching via BuildKit + remote cache registry.</li>
+          <li>Monorepos: only build/test affected packages (Nx, Turborepo).</li>
+        </ul>`,
+      qa:[
+        {q:"Walk me through a production-grade CI/CD pipeline you've designed.",a:`<p>A robust pipeline: <strong>Source</strong> (PR in GitHub) → <strong>CI</strong> (lint + unit tests in 1–3 min) → <strong>Build</strong> (Docker image pushed to ECR tagged with commit SHA) → <strong>Integration tests</strong> against ephemeral env → <strong>Security scan</strong> (Trivy/Snyk on image) → <strong>Deploy staging</strong> (ECS/K8s rolling update + smoke tests) → <strong>Deploy prod</strong> (canary 5% → 100% over 30 min, auto-rollback on CloudWatch alarm). Key principles: <strong>fail fast</strong>, <strong>artifact promotion</strong> (same image never rebuilt), <strong>GitOps</strong>, <strong>observability gates</strong> (alarms block promotion), <strong>manual approval</strong> or PagerDuty ack before prod.</p>`},
+        {q:"What is the difference between continuous delivery and continuous deployment?",a:`<p><strong>CI</strong>: Every commit triggers automated build + tests. Catches integration bugs early. <strong>Continuous Delivery</strong>: Every passing build is shippable; a human approves the production push. Keeps deployable artifacts always ready, reduces release risk. <strong>Continuous Deployment</strong>: Every passing build automatically deploys to production with no human gate. Requires extremely high test confidence, feature flags for incomplete work, and robust automated rollback. Most mature teams do Continuous Delivery + manual approval for prod. Continuous Deployment is a maturity step requiring sustained investment in test coverage and observability.</p>`},
+        {q:"How do you manage secrets and environment variables securely in a pipeline?",a:`<p>Never store secrets in code, Docker images, or committed env files. Use: <strong>AWS Secrets Manager / SSM Parameter Store</strong> — fetched at runtime via IAM role (Secrets Manager supports rotation). <strong>HashiCorp Vault</strong> for multi-cloud. <strong>GitHub Actions Encrypted Secrets / GitLab CI Variables</strong> (masked in logs) for CI runner credentials. For K8s: <strong>External Secrets Operator</strong> to sync AWS secrets into K8s Secrets. Prevent commits: <strong>git-secrets</strong> or <strong>TruffleHog</strong> as pre-commit hooks and CI gates. Rotate secrets regularly and audit access via CloudTrail.</p>`},
+        {q:"What strategies do you use to keep CI pipelines fast — parallelism, caching, etc.?",a:`<p><strong>Parallelism</strong>: Split test suite across multiple runners (pytest-xdist, JUnit parallel). Run lint, tests, and security scans in parallel jobs. Matrix builds for multi-version testing. <strong>Caching</strong>: Cache dependency dirs (<code>node_modules</code>, <code>.m2</code>, pip) keyed by lock file hash. Cache Docker layers via BuildKit + remote cache (ECR). <strong>Incremental builds</strong> in monorepos: only build/test affected packages (Nx, Turborepo, Bazel). <strong>Fail fast</strong>: cheapest checks first. Monitor pipeline duration as a metric — alert when it exceeds SLA (e.g. >15 min total).</p>`},
+        {q:"Explain trunk-based development vs GitFlow. What are the trade-offs?",a:`<p><strong>GitFlow</strong>: Long-lived main, develop, feature, release, hotfix branches. Good for scheduled releases, multiple active versions. Downsides: merge conflicts accumulate, integration delayed, heavyweight process. <strong>Trunk-Based Development (TBD)</strong>: Everyone commits to main at least daily. Feature branches &lt;2 days. Feature flags hide incomplete work. Pros: genuine continuous integration, no merge hell, CI/CD is natural. Cons: requires feature flag discipline, higher commit quality bar. DORA research shows TBD strongly correlates with high delivery performance. Use TBD for cloud-native teams; GitFlow for teams with strict release governance (mobile, firmware).</p>`},
+        {q:"How do you enforce code quality gates — test coverage, linting, SAST — in CI?",a:`<p><strong>Linting</strong>: First step in pipeline. Block merge on violations. Config in repo (<code>.eslintrc</code>, <code>.golangci.yml</code>). Pre-commit hooks for fast local feedback. <strong>Coverage</strong>: Generate reports (Istanbul, JaCoCo). Enforce minimum threshold (e.g. 80%). Block PR if coverage drops or new code is under threshold. Focus requirements on critical paths, not 100%. <strong>SAST</strong>: Semgrep, SonarQube. Block on High/Critical. <strong>Dependency scanning</strong>: Snyk, Dependabot. <strong>Secret scanning</strong>: GitHub Advanced Security, gitleaks. Fix issues in CI — it costs 10× less than fixing in production.</p>`},
+        {q:"What is a deployment rollback strategy and how do you automate it?",a:`<p>Strategies: <strong>Re-deploy previous version</strong> — trigger pipeline with previous tag (minutes). <strong>Blue/green swap</strong> — flip ALB target group back (near-instant). <strong>K8s rollout undo</strong> — <code>kubectl rollout undo deployment/app</code> (fast, built-in). <strong>Feature flag kill switch</strong> — disable in LaunchDarkly (instant, no deploy). <strong>Automated rollback</strong>: Define CloudWatch alarms (5xx rate >2%, P99 latency >SLA). In CodeDeploy: <code>AutoRollbackConfiguration</code>. In Argo Rollouts: Analysis templates that auto-abort canary. In Lambda: alias routing auto-reverts if CloudWatch alarm fires. Test rollback in DR drills — untested rollback plans fail when needed.</p>`},
+      ]
+    },
+    {
+      title:"Containers & Infrastructure",icon:"📦",color:"rgba(79,184,255,0.1)",difficulty:"med",
+      overview:`
+        <h4>Kubernetes Core Objects</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">Pod</div><div class="kv-v">Smallest unit. One or more containers sharing network + storage. Never manage directly.</div></div>
+          <div class="kv-item"><div class="kv-k">Deployment</div><div class="kv-v">Desired state for a set of Pods. Manages rolling updates + rollbacks via ReplicaSets.</div></div>
+          <div class="kv-item"><div class="kv-k">Service</div><div class="kv-v">Stable VIP + DNS in front of a Pod set. ClusterIP / NodePort / LoadBalancer.</div></div>
+          <div class="kv-item"><div class="kv-k">Ingress</div><div class="kv-v">HTTP/S routing rules. Requires an Ingress Controller (nginx, ALB). TLS termination.</div></div>
+          <div class="kv-item"><div class="kv-k">ConfigMap / Secret</div><div class="kv-v">Config and sensitive data injected as env vars or volume mounts.</div></div>
+          <div class="kv-item"><div class="kv-k">HPA</div><div class="kv-v">Horizontal Pod Autoscaler. Scales replicas on CPU/memory/custom metrics.</div></div>
+        </div>
+        <h4>Health Probes</h4>
+        <ul>
+          <li><strong>Readiness</strong> — Is the pod ready for traffic? Failing removes from Service endpoints. Check dependencies.</li>
+          <li><strong>Liveness</strong> — Is the pod alive? Failing triggers restart. Only check app process, NOT external deps.</li>
+          <li><strong>Startup</strong> — Disables liveness/readiness until app starts. Essential for slow-start apps.</li>
+        </ul>
+        <h4>Zero-Downtime Deploy Checklist</h4>
+        <ul>
+          <li><code>maxUnavailable: 0</code> + <code>maxSurge: 1</code> in rolling update strategy.</li>
+          <li>Readiness probe must pass before old pods are terminated.</li>
+          <li>preStop hook with sleep (5–10s) to drain connections before pod shuts down.</li>
+          <li>PodDisruptionBudget to maintain minimum available pods.</li>
+        </ul>
+        <h4>ECS Fargate vs EKS</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">ECS Fargate</div><div class="kv-v">No nodes to manage. AWS-native. Simpler. Best for teams without K8s expertise.</div></div>
+          <div class="kv-item"><div class="kv-k">EKS</div><div class="kv-v">Full K8s API. Rich ecosystem. Portable. Best for K8s expertise + complex scheduling needs.</div></div>
+        </div>
+        <h4>IaC Drift Prevention</h4>
+        <ul>
+          <li>IAM policies denying console write actions except for break-glass roles.</li>
+          <li>Nightly scheduled <code>terraform plan</code> in CI — alert on non-empty plans.</li>
+          <li><code>terraform import</code> for post-hoc adoption of manual changes.</li>
+        </ul>`,
+      qa:[
+        {q:"Explain Kubernetes deployments, services, and ingress. How do they work together?",a:`<p><strong>Deployment</strong>: Declares desired state for a set of Pods (image, replicas, resources). Creates a ReplicaSet which creates Pods. Manages rolling updates and rollbacks. Never manage Pods directly. <strong>Service</strong>: Stable VIP + DNS in front of Pods selected by label. Types: ClusterIP (internal), NodePort, LoadBalancer (provisions cloud LB). kube-proxy distributes traffic across Pod IPs. <strong>Ingress</strong>: HTTP/S host/path routing rules across Services. Requires an Ingress Controller. Flow: External traffic → Ingress Controller → Service → Pods. Handles TLS termination; integrates with cert-manager for automatic certificates.</p>`},
+        {q:"What is the difference between ECS Fargate and EKS? When would you choose each?",a:`<p><strong>ECS Fargate</strong>: No EC2 nodes to manage. AWS-native integration (IAM task roles, CloudWatch Container Insights). Simpler mental model. Best for: teams without K8s expertise, AWS-native workloads, variable scale. Limitations: no DaemonSets, fewer ecosystem integrations. <strong>EKS</strong>: Full Kubernetes API. Rich ecosystem (Helm, Argo CD, Keda, Karpenter, Istio). Portable. Best for: K8s expertise, complex orchestration, multi-cloud portability. Higher operational overhead even with managed control plane. Rule: <strong>ECS Fargate</strong> for simplicity; <strong>EKS</strong> when you need the K8s ecosystem or portability.</p>`},
+        {q:"How do you manage configuration drift in infrastructure-as-code (Terraform/CDK)?",a:`<p><strong>Prevention</strong>: IAM SCPs denying console write actions except for break-glass roles. Run <code>terraform plan</code> in CI on every PR. Remote state in S3 + DynamoDB locking. <strong>Detection</strong>: Nightly scheduled CI job running <code>terraform plan</code> with no expected changes — alert on non-empty plans. AWS Config with custom rules. CloudFormation Drift Detection for CDK/CFN stacks. <strong>Remediation</strong>: <code>terraform import</code> to adopt manual changes into state, or destroy and recreate via IaC. Treat drift alerts with the same urgency as production incidents. Enforce code review on IaC changes same as application code.</p>`},
+        {q:"How do you implement zero-downtime deployments in Kubernetes?",a:`<p>Configure rolling update with <code>maxUnavailable: 0</code> and <code>maxSurge: 1</code> — Kubernetes never terminates an old Pod until a new Pod passes its readiness probe. <strong>Readiness probe</strong>: Critical safety net — new Pods only receive traffic when ready. <strong>preStop hook</strong>: Sleep 5–10s before process shutdown to allow the load balancer to drain connections. Set <code>terminationGracePeriodSeconds</code> high enough for in-flight requests to complete. <strong>PodDisruptionBudget</strong>: Guarantees minimum available Pods during voluntary disruptions. For canary/blue-green, use Argo Rollouts with ALB traffic splitting for precise traffic control.</p>`},
+        {q:"What is Helm and how does it simplify Kubernetes deployments?",a:`<p>Helm is the K8s package manager. A <strong>Chart</strong> is templated K8s manifests + <code>values.yaml</code> for configuration. A <strong>Release</strong> is a named installed instance. Benefits: <strong>Templating</strong> — parameterize image tags, replica counts, resource limits per environment. <strong>Release management</strong> — <code>helm upgrade</code>, <code>helm rollback</code>, <code>helm list</code>. <strong>Dependency management</strong> — charts can depend on other charts. Use Helmfile for managing multiple releases, or ArgoCD with Helm for GitOps. Store charts in OCI registries (ECR, Artifact Registry).</p>`},
+        {q:"Explain the difference between liveness and readiness probes in Kubernetes.",a:`<p><strong>Readiness</strong>: "Is this Pod ready for traffic?" Failing removes Pod from Service endpoints but does NOT restart it. Check app + critical dependencies at <code>/health/ready</code>. Use for slow startup or temporary unreadiness. <strong>Liveness</strong>: "Is this Pod alive/not deadlocked?" Failing triggers Pod restart. Check only app responsiveness at <code>/health/live</code> — never external dependencies (causes cascading restarts when shared deps are down). <strong>Startup probe</strong>: Disables liveness/readiness until app starts. Essential for slow-starting apps. Set <code>failureThreshold × periodSeconds</code> ≥ max startup time.</p>`},
+      ]
+    },
+  ]},
+  {week:"Week 4",label:"Design Patterns",desc:"Master both classic OOP patterns and modern distributed-systems patterns critical for tech leads.",topics:[
+    {
+      title:"Creational & Structural Patterns",icon:"🧩",color:"rgba(255,184,79,0.1)",difficulty:"med",
+      overview:`
+        <h4>Creational Patterns</h4>
+        <ul>
+          <li><strong>Singleton</strong> — One instance per process. Thread-safe via holder idiom or enum. Meaningless for shared state in distributed systems — use Redis/ZooKeeper instead.</li>
+          <li><strong>Factory Method</strong> — Defers instantiation to subclasses. One product family. e.g. <code>NotificationFactory.create("email")</code>.</li>
+          <li><strong>Abstract Factory</strong> — Creates families of related objects. e.g. <code>CloudFactory</code> creating DB + Storage + Queue for AWS vs GCP.</li>
+          <li><strong>Builder</strong> — Fluent API for constructing complex objects step-by-step. Validates at <code>build()</code>. Eliminates telescoping constructors.</li>
+          <li><strong>Prototype</strong> — Clone existing objects. Useful for expensive-to-create objects.</li>
+        </ul>
+        <h4>Structural Patterns</h4>
+        <ul>
+          <li><strong>Decorator</strong> — Wraps an object with same interface to add behavior at runtime. Composable. e.g. <code>LoggingService(CachingService(DBService()))</code>. Avoids subclass explosion.</li>
+          <li><strong>Adapter</strong> — Converts one interface to another. Anti-Corruption Layer in DDD. e.g. <code>StripeAdapter implements PaymentGateway</code>.</li>
+          <li><strong>Facade</strong> — Simplified interface over complex subsystem. e.g. <code>OrderService.placeOrder()</code> hides 5 internal services.</li>
+          <li><strong>Proxy</strong> — Placeholder that controls access. Used in lazy loading, access control, logging, remote calls.</li>
+          <li><strong>Composite</strong> — Tree structure where individual objects and compositions are treated uniformly.</li>
+          <li><strong>Repository</strong> — Collection-like interface for domain object persistence. Hides storage. Enables in-memory test doubles.</li>
+        </ul>
+        <h4>Key Interview Principles</h4>
+        <ul>
+          <li><strong>Composition over Inheritance</strong> — Decorator and Strategy are manifestations of this.</li>
+          <li><strong>Open/Closed Principle</strong> — Open for extension, closed for modification.</li>
+          <li><strong>Dependency Inversion</strong> — Depend on abstractions (interfaces), not implementations.</li>
+          <li>Patterns exist to solve specific recurring problems — don't add complexity without a clear problem to solve.</li>
+        </ul>`,
+      qa:[
+        {q:"Explain the Singleton pattern. What are the thread-safety concerns in a distributed system?",a:`<p><strong>Singleton</strong> ensures one instance per process. Thread-safe implementations in Java: <em>initialization-on-demand holder idiom</em> (private static inner class — JVM classloader guarantees thread safety), or enum singleton. Double-checked locking requires <code>volatile</code>. In a <strong>distributed system</strong>: Singleton is meaningless for shared state — each process has its own JVM instance. Use Redis, ZooKeeper, or AWS Parameter Store for truly shared global resources. Avoid Singleton for stateful services — it creates hidden coupling and makes testing hard. Prefer DI container singleton scope.</p>`},
+        {q:"When would you use the Factory vs Abstract Factory pattern?",a:`<p><strong>Factory Method</strong>: Creates one product type, letting subclasses/implementations decide the concrete class. e.g. <code>NotificationFactory.create("email")</code> returns <code>EmailNotifier</code>. Clients depend only on the interface. <strong>Abstract Factory</strong>: Creates families of related objects that must work together. e.g. <code>CloudFactory</code> with <code>createDatabase()</code>, <code>createStorage()</code>, <code>createQueue()</code> — one AWS implementation, one GCP implementation. Key distinction: Factory Method = one product; Abstract Factory = a family of related products. Use Abstract Factory for database driver abstraction and test double factories.</p>`},
+        {q:"Explain the Builder pattern. How does it compare to using a config object?",a:`<p><strong>Builder</strong>: Fluent API for step-by-step construction. <code>HttpRequest.builder().url(x).timeout(5000).build()</code>. Validates at <code>build()</code> time. Produces immutable objects. Eliminates telescoping constructors. <strong>Config object</strong>: Plain struct passed to constructor. Simpler, no extra class. With modern languages (Kotlin data classes, Python dataclasses with <code>__post_init__</code>), config objects are often sufficient. Choose Builder when: object must be immutable, steps have ordering constraints, complex validation at construction, or many optional parameters with defaults. Use config object for simpler cases — don't over-engineer.</p>`},
+        {q:"What is the Decorator pattern and how does it differ from inheritance?",a:`<p><strong>Decorator</strong> wraps an object with the same interface to add behavior at runtime. Composable: <code>new LoggingService(new CachingService(new DatabaseService()))</code>. <strong>Inheritance</strong> is static — fixed at compile time, leads to subclass explosion (LoggingDatabase, CachingDatabase, LoggingCachingDatabase...). Decorator adds behavior dynamically — compose only the features you need. Implements Open/Closed Principle. Classic examples: <code>java.io.InputStream</code> wrappers, Express.js middleware chain, Spring AOP proxies. When you find yourself writing many subclasses that differ only in one behavior, reach for Decorator.</p>`},
+        {q:"Explain the Adapter vs Facade pattern with a real-world backend example.",a:`<p><strong>Adapter</strong>: Converts an existing interface into the interface a client expects. e.g. <code>StripeAdapter implements PaymentGateway</code> — your core code uses <code>PaymentGateway</code>; Stripe's SDK is behind the adapter. When you add Braintree, write a <code>BraintreeAdapter</code> — core code unchanged. This is the Anti-Corruption Layer in DDD. <strong>Facade</strong>: Simplified interface over complex subsystem. e.g. <code>OrderService.placeOrder()</code> internally coordinates Inventory, Payment, Shipping, and Notification services. Callers see one clean method. Adapter = interface compatibility; Facade = hiding complexity. Both are essential in large codebases.</p>`},
+        {q:"How does the Repository pattern abstract data access and why is it useful for testing?",a:`<p><strong>Repository</strong>: Collection-like interface for domain objects — <code>userRepository.findByEmail()</code> without knowing the underlying storage. <strong>Testing</strong>: Swap the real repository for an <code>InMemoryUserRepository</code> (backed by a HashMap) in unit tests — no database, no teardown, millisecond execution. Deterministic and fast. Additional benefits: swap databases transparently (MySQL to Aurora), add caching as a Decorator, centralize all data access in one layer. In DDD, repositories are the standard mechanism for persisting Aggregates.</p>`},
+      ]
+    },
+    {
+      title:"Behavioral & Distributed Patterns",icon:"🔀",color:"rgba(79,255,176,0.08)",difficulty:"hard",
+      overview:`
+        <h4>Behavioral Patterns</h4>
+        <ul>
+          <li><strong>Observer</strong> — Subject notifies a list of observers on state change. Foundation of Event-Driven Architecture.</li>
+          <li><strong>Strategy</strong> — Family of interchangeable algorithms. e.g. payment gateways, auth strategies, compression algorithms. Open/Closed Principle.</li>
+          <li><strong>Command</strong> — Encapsulate a request as an object. Enables queueing, undo/redo, logging.</li>
+          <li><strong>Template Method</strong> — Define skeleton of algorithm in base class; subclasses fill in steps.</li>
+          <li><strong>Iterator</strong> — Sequential access to collection elements without exposing internals.</li>
+        </ul>
+        <h4>Distributed System Patterns</h4>
+        <ul>
+          <li><strong>CQRS</strong> — Separate write model (Commands) from read model (Queries). Different data stores optimized for each. Adds eventual consistency.</li>
+          <li><strong>Event Sourcing</strong> — Store events, not current state. Derive state by replaying. Full audit trail. Mitigate event replay cost with snapshots.</li>
+          <li><strong>Outbox Pattern</strong> — Write state change + event atomically in one DB transaction. Relay to broker asynchronously. Solves dual-write. Use Debezium CDC for production.</li>
+          <li><strong>Bulkhead</strong> — Isolate resource pools (thread pools, semaphores) per dependency. Prevents cascade failures.</li>
+          <li><strong>Saga</strong> — Distributed transactions via compensating actions (see Week 1 Microservices).</li>
+        </ul>
+        <h4>Pattern Relationships</h4>
+        <ul>
+          <li>Observer → Event-Driven Architecture (distributed Observer).</li>
+          <li>Command → Event Sourcing (persisted commands = event log).</li>
+          <li>CQRS + Event Sourcing are natural partners but independent patterns.</li>
+          <li>Outbox → enables at-least-once delivery for Saga choreography.</li>
+        </ul>
+        <h4>When NOT to Use</h4>
+        <ul>
+          <li>CQRS — Don't apply to simple CRUD services. Overhead rarely justified without differing R/W scaling needs.</li>
+          <li>Event Sourcing — Avoid for reporting-heavy systems and simple domain logic. Schema evolution of events is painful.</li>
+          <li>Bulkhead — Only worthwhile when dependencies have different reliability profiles.</li>
+        </ul>`,
+      qa:[
+        {q:"Explain the Observer pattern. How does it relate to event-driven architecture?",a:`<p><strong>Observer</strong>: Subject maintains a list of Observers and notifies them on state change. In-process, synchronous. Used for domain event handling within a service. <strong>Event-Driven Architecture (EDA)</strong>: The distributed, async, durable extension. Subject publishes to a broker (Kafka, SNS). Consumers subscribe and process independently — potentially in different services, languages, regions. Events are persisted and replayable. Conceptual model is identical (decouple producers from consumers) but EDA adds durability, async delivery, and scale. Rule: Observer within a bounded context; EDA across service boundaries.</p>`},
+        {q:"What is CQRS and when would you use it? What complexity does it add?",a:`<p><strong>CQRS</strong>: Separate write model (Commands mutate state) from read model (Queries return data). Can use different data stores — write to PostgreSQL, read from Redis/Elasticsearch. <strong>When to use</strong>: Different scaling needs for reads vs writes; reporting needs a different data shape than the write model; already using Event Sourcing; complex domain on write side with simple projections on read side. <strong>Complexity</strong>: Eventual consistency between models, two codebases, multiple stores to operate, harder to debug. Do not apply to simple CRUD services — overhead is not justified.</p>`},
+        {q:"Explain Event Sourcing. What are its benefits and drawbacks?",a:`<p><strong>Event Sourcing</strong>: Store the append-only log of all events rather than current state. Derive state by replaying events. The event store is the single source of truth. <strong>Benefits</strong>: Free audit trail, point-in-time state reconstruction, natural fit for EDA and CQRS, retroactively build new projections, easier debug (every transition recorded). <strong>Drawbacks</strong>: Replaying events for current state (mitigated by snapshots), event schema evolution is hard, eventual consistency of projections, steep learning curve. Best for: financial systems, compliance-heavy domains, complex aggregates. Avoid for: simple CRUD and reporting-heavy systems.</p>`},
+        {q:"What is the Outbox pattern and how does it solve dual-write problems?",a:`<p><strong>Dual-write problem</strong>: If you update the DB and publish to a broker (Kafka/SQS) separately, either can fail leaving inconsistent state. Two-phase commit is impractical. <strong>Outbox pattern</strong>: Write domain state change AND an event record to a local outbox table in the same DB transaction. Either both commit or both roll back. A relay process reads the outbox and publishes to the broker asynchronously. At-least-once delivery; consumers must be idempotent. Production implementation: <strong>Debezium CDC</strong> tails the DB WAL and streams events to Kafka — no polling latency, minimal DB overhead.</p>`},
+        {q:"Explain the Bulkhead pattern for isolating failures in microservices.",a:`<p>Named after ship hull compartments. Partitions resources (thread pools, semaphores, connection pools) per downstream dependency so exhaustion in one doesn't cascade. Example: without bulkheads, slow Shipping API fills the shared thread pool and blocks Payment calls too. With bulkheads, each dependency has its own pool — Shipping's pool exhausts while Payment continues normally. Implement with <strong>Resilience4j</strong> SemaphoreBulkhead or ThreadPoolBulkhead. Combine with Circuit Breaker + Timeout for a complete resilience strategy. In K8s: separate Deployments with independent resource limits as an infrastructure-level bulkhead.</p>`},
+        {q:"How do you use the Strategy pattern to swap algorithms at runtime?",a:`<p><strong>Strategy</strong>: Define a family of algorithms behind a common interface; inject the chosen implementation at runtime. Implements Open/Closed Principle — adding a new algorithm requires no changes to existing code. Backend examples: payment gateways (<code>StripeStrategy</code>, <code>PayPalStrategy</code>), authentication (Passport.js JWT/OAuth/API key strategies), compression (gzip vs brotli per request), pricing engines (discount algorithm per customer tier). Inject strategy through constructor for testability — pass a mock strategy in unit tests without touching the context class.</p>`},
+        {q:"What is the Command pattern and how does it support undo/redo or queueing?",a:`<p><strong>Command</strong>: Encapsulate a request as an object with <code>execute()</code> and optional <code>undo()</code>. <strong>Undo/Redo</strong>: Maintain undo and redo stacks. Execute → push to undo stack. Undo → pop, call <code>undo()</code>, push to redo. Used in DB migration tools (each migration has <code>up()</code>/<code>down()</code>). <strong>Queueing</strong>: Commands are serializable — enqueue to SQS/Redis, workers dequeue and execute. Enables async processing, retry logic, scheduling. <strong>Audit logging</strong>: Persisting all executed commands is structurally equivalent to Event Sourcing — every state change is captured. Used in workflow engines and task schedulers.</p>`},
+      ]
+    },
+  ]},
+  {week:"Week 5",label:"DSA for Backend",desc:"Focus on data structures and algorithms directly relevant to backend engineering problems at scale.",topics:[
+    {
+      title:"Data Structures",icon:"🌳",color:"rgba(79,255,176,0.1)",difficulty:"hard",
+      overview:`
+        <h4>Complexity Cheat Sheet</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">HashMap</div><div class="kv-v">O(1) get/put/delete. Unordered. Default for lookups.</div></div>
+          <div class="kv-item"><div class="kv-k">TreeMap</div><div class="kv-v">O(log n) all ops. Sorted keys. For range queries + order.</div></div>
+          <div class="kv-item"><div class="kv-k">Min/Max Heap</div><div class="kv-v">O(log n) insert/poll. O(1) peek. Priority queues, top-K.</div></div>
+          <div class="kv-item"><div class="kv-k">Skip List</div><div class="kv-v">O(log n) expected. Sorted. Lock-free concurrent. Redis Sorted Sets.</div></div>
+          <div class="kv-item"><div class="kv-k">Bloom Filter</div><div class="kv-v">O(k) insert/query. Probabilistic set membership. No false negatives.</div></div>
+          <div class="kv-item"><div class="kv-k">LRU Cache</div><div class="kv-v">O(1) all ops. HashMap + Doubly-Linked List.</div></div>
+        </div>
+        <h4>Consistent Hashing</h4>
+        <ul>
+          <li>Maps nodes and keys to a ring (0 to 2^32). Key → first node clockwise.</li>
+          <li>Adding/removing a node only remaps keys in that arc — not the whole keyspace.</li>
+          <li><strong>Redis Cluster</strong> uses 16,384 hash slots. CRC16(key) mod 16384.</li>
+          <li>Virtual nodes (vnodes) improve distribution evenness.</li>
+        </ul>
+        <h4>Bloom Filter Use Cases</h4>
+        <ul>
+          <li>Cache negative lookup — skip DB call if "definitely not in set".</li>
+          <li>Idempotency key quick check before full store lookup.</li>
+          <li>Chrome Safe Browsing — local URL check before server query.</li>
+          <li>Cassandra SSTables — skip files that can't contain the key.</li>
+        </ul>
+        <h4>LRU Cache Implementation</h4>
+        <ul>
+          <li>HashMap (key → node) + Doubly-Linked List (access order, head = most recent).</li>
+          <li><code>get</code>: O(1) lookup + move to head. <code>put</code>: O(1) insert at head + evict tail if over capacity.</li>
+          <li>Java: <code>LinkedHashMap(cap, 0.75f, true)</code> with <code>removeEldestEntry()</code>.</li>
+          <li>Production: Caffeine (Java), Redis with <code>maxmemory-policy allkeys-lru</code>.</li>
+        </ul>`,
+      qa:[
+        {q:"When would you use a HashMap vs a TreeMap in a backend service?",a:`<p><strong>HashMap</strong>: O(1) average get/put/delete. Keys unordered. Use for: caches, lookup tables, frequency counting, deduplication. <code>ConcurrentHashMap</code> for thread-safe concurrent access. Default choice. <strong>TreeMap</strong>: O(log n) all ops. Keys sorted. Use for: range queries (all keys between A and B), <code>floorKey()</code>/<code>ceilingKey()</code>, ordered iteration, time-window aggregations, job schedulers retrieving next-due tasks. Redis Hash = distributed HashMap; Redis Sorted Set = distributed TreeMap. Most service code uses HashMap — reach for TreeMap when you need ordering or range operations.</p>`},
+        {q:"Explain consistent hashing. How is it used in distributed caching like Redis cluster?",a:`<p><strong>Consistent hashing</strong>: Map both nodes and keys to positions on a ring (0–2^32). Key → first node clockwise. On node add/remove, only keys in that arc are remapped — not the whole keyspace. Minimizes cache invalidation during scaling events. <strong>Redis Cluster</strong>: 16,384 hash slots total. Each node owns a range. Keys → <code>CRC16(key) mod 16384</code>. On node addition, a subset of slots migrates. Clients maintain a topology map and route directly to the correct node. <strong>Virtual nodes</strong> (vnodes): each physical node has multiple ring positions for even distribution. Reduces hotspots.</p>`},
+        {q:"What is a Bloom filter? Give a real use case for it in a backend system.",a:`<p>A <strong>Bloom filter</strong> is a probabilistic set membership structure. It answers: "definitely not in set" or "probably in set." False positives possible, false negatives impossible. Uses k hash functions into a bit array of size m. <strong>Real use cases</strong>: (1) Cache negative lookups — skip DB call for non-existent IDs. (2) Idempotency key quick check. (3) Chrome Safe Browsing — local URL filter. (4) Cassandra SSTables — skip files that can't contain the key. Tune false positive rate by adjusting m and k based on expected set size and acceptable error rate.</p>`},
+        {q:"Explain LRU cache. Implement it using a doubly-linked list and hash map.",a:`<p><strong>LRU (Least Recently Used)</strong>: Evict the least-recently-accessed item when at capacity. Data structure: HashMap (key → node, O(1) lookup) + Doubly-Linked List (head = most recent, tail = least recent). <code>get(key)</code>: if exists, move node to head, return value. O(1). <code>put(key, value)</code>: if exists, update + move to head. If new: insert at head + add to map; if over capacity, remove tail node + remove from map. O(1). Java shortcut: <code>new LinkedHashMap(cap, 0.75f, true)</code> with <code>removeEldestEntry()</code>. Production: Caffeine (Java), Redis <code>allkeys-lru</code>.</p>`},
+        {q:"When would you use a priority queue (heap) in backend processing?",a:`<p>A <strong>heap</strong> gives O(log n) insert/poll and O(1) peek of min/max. Use cases: (1) <strong>Job scheduler</strong> — min-heap keyed on <code>next_run_at</code> for efficient next-task retrieval. (2) <strong>Retry queue</strong> — failed jobs re-enqueued with next retry timestamp. (3) <strong>Top-K tracking</strong> — size-K min-heap to find K most frequent events in a stream. (4) <strong>Dijkstra's algorithm</strong> — shortest path in service mesh topology. (5) <strong>Priority-based request queuing</strong> — paid users ahead of free users under load. In Java: <code>PriorityQueue</code>. Distributed: SQS FIFO with priority tiers as separate queues polled in order.</p>`},
+        {q:"Explain skip lists and when they outperform balanced BSTs.",a:`<p>A <strong>skip list</strong> is a layered probabilistic linked list. Multiple sparse index layers above the base list. Search/insert/delete: O(log n) expected. <strong>Advantages over balanced BSTs</strong>: No rotations or rebalancing — significantly simpler implementation. Better cache locality on sequential scans. Lock-free concurrent implementations are much simpler than lock-free trees. Natural rank support ("element at index 500") without augmentation. <strong>Redis Sorted Sets</strong> are implemented as skip lists + hash table — O(log n) for range queries, rank queries, and score updates. Use when you need sorted data with concurrent writes, rank-based operations, or simpler concurrent implementation than a lock-free BST.</p>`},
+      ]
+    },
+    {
+      title:"Algorithms & Complexity",icon:"∑",color:"rgba(79,184,255,0.1)",difficulty:"hard",
+      overview:`
+        <h4>Rate Limiter Algorithms</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">Token Bucket</div><div class="kv-v">Tokens refill at rate R. Allows bursting up to bucket capacity. Redis: store {tokens, last_refill_ts}.</div></div>
+          <div class="kv-item"><div class="kv-k">Sliding Window Counter</div><div class="kv-v">Approximate. Count per sub-window in Redis hash. Efficient + fairly accurate.</div></div>
+          <div class="kv-item"><div class="kv-k">Sliding Window Log</div><div class="kv-v">Precise. Redis sorted set of timestamps. Higher memory cost.</div></div>
+          <div class="kv-item"><div class="kv-k">Fixed Window</div><div class="kv-v">Simplest. Allows 2× burst at boundary. Redis INCR + EXPIRE.</div></div>
+        </div>
+        <h4>Backoff Strategies</h4>
+        <ul>
+          <li><strong>Linear</strong>: <code>base × attempt</code>. Predictable but synchronized stampede.</li>
+          <li><strong>Exponential</strong>: <code>base × 2^attempt</code>. Grows fast. Still synchronized.</li>
+          <li><strong>Full jitter</strong> (AWS recommended): <code>random(0, min(cap, base × 2^attempt))</code>. Desynchronizes retries. Eliminates thundering herd.</li>
+          <li>Always: cap max wait (e.g. 30s), cap max attempts (e.g. 5), track total elapsed budget.</li>
+        </ul>
+        <h4>Top-K in Streams</h4>
+        <ul>
+          <li><strong>Exact</strong>: HashMap + size-K min-heap. O(log K) per event. O(distinct) memory.</li>
+          <li><strong>Approximate</strong>: Count-Min Sketch (sub-linear memory) + Misra-Gries heavy hitters.</li>
+          <li><strong>Production</strong>: Redis Sorted Set — <code>ZINCRBY</code> + <code>ZREVRANGE 0 K-1</code>.</li>
+        </ul>
+        <h4>Two-Pointer Technique</h4>
+        <ul>
+          <li>Two index variables traversing a data structure. Turns O(n²) → O(n).</li>
+          <li>Backend uses: merge sorted log streams, detect overlapping intervals, sliding window rate limiters.</li>
+          <li>Sliding window variant: expand right until condition met, shrink from left.</li>
+        </ul>
+        <h4>Cycle Detection</h4>
+        <ul>
+          <li>DFS with 3-color marking: white (unvisited) → gray (in DFS stack) → black (done). Gray → gray edge = cycle.</li>
+          <li>Distributed deadlock: wait-for graph. Edge A→B = "A waits for B's lock." Cycle = deadlock. Abort victim on detection.</li>
+        </ul>`,
+      qa:[
+        {q:"How do you find a cycle in a distributed task dependency graph?",a:`<p>Model tasks as a directed graph (edge A→B = "A depends on B"). <strong>Algorithm</strong>: DFS with 3-color marking — white (unvisited), gray (in DFS stack), black (done). If you reach a gray node, you've found a back edge = cycle. O(V+E). <strong>Distributed context</strong>: Collect all dependency edges, build the full graph on a coordinator, run cycle detection once. <strong>Runtime deadlock detection</strong>: Build a wait-for graph (edge A→B = "A waits for the lock B holds"). Cycle = deadlock. Run on a background process; on detection, abort the victim transaction (typically the youngest). PostgreSQL's deadlock detector uses this approach.</p>`},
+        {q:"Implement a rate limiter using the token bucket or sliding window algorithm.",a:`<p><strong>Token Bucket</strong>: Bucket holds N tokens max, refills at rate R/sec. Each request consumes 1. Redis: store <code>{tokens, last_refill_ts}</code> in a hash. On request (Lua script): <code>elapsed = now - last_refill; new_tokens = min(cap, tokens + elapsed * R); if new_tokens >= 1: new_tokens -= 1; allow else: reject</code>. Atomic via Lua. <strong>Sliding Window Counter</strong>: Divide window into sub-windows. Redis hash of sub-window → count. On request: sum counts in last W seconds + weighted current sub-window fraction. If ≥ limit → reject. Atomic via Lua. Return <code>429</code> + <code>Retry-After</code> + <code>X-RateLimit-*</code> headers on rejection.</p>`},
+        {q:"Given a stream of events, how do you find the top-K most frequent in real time?",a:`<p><strong>Exact</strong>: HashMap (event → count) + size-K min-heap. Per event: increment count in map. If event in heap, update priority. If not and heap &lt; K, add. If not and heap full and new count > heap min, replace min. O(log K) per event. <strong>Approximate for high-throughput</strong>: Count-Min Sketch for frequency estimation + Misra-Gries for heavy hitters — sub-linear memory, bounded error. <strong>Production</strong>: Kafka Streams with windowed aggregation + punctuator; or Redis Sorted Set with <code>ZINCRBY</code> for score updates and <code>ZREVRANGE 0 K-1</code> for top-K query. O(log N) per event, O(K) for query.</p>`},
+        {q:"How would you detect duplicate requests (idempotency keys) efficiently at scale?",a:`<p>Client generates a UUID v4 <code>Idempotency-Key</code> per logical operation. Server uses Redis for atomic check-and-store. On request arrival: <code>SET idempotency:{key} "processing" NX EX 86400</code>. If SET succeeds (new key): process request, store full response as key value when done. If SET fails (key exists): fetch stored response and return it immediately. Use Lua script for atomic check-store-retrieve to prevent race conditions. Handle "processing" in-flight state (key exists but value = "processing") by returning <code>409 Conflict</code> suggesting retry after a short delay. TTL defines the replay window — clients shouldn't expect idempotency guarantees after TTL expires.</p>`},
+        {q:"Explain the two-pointer technique and give a backend-relevant problem it solves.",a:`<p><strong>Two-pointer</strong>: Two indices traversing a data structure to turn O(n²) → O(n). <strong>Backend use case — merge sorted event streams</strong>: Two services emit timestamped logs into sorted arrays. Two pointers (one per array) advance picking the smaller timestamp. O(n+m) vs O((n+m) log(n+m)). <strong>Detecting overlapping bookings</strong>: Sort reservations by start time, track max end seen — if next start &lt; max end, overlap detected. <strong>Sliding window variant</strong>: Find minimum-length time window in API logs where error rate exceeds threshold — expand right pointer until condition met, shrink from left. Essential for efficient stream processing.</p>`},
+        {q:"How do you design a job scheduler that handles priorities and retries?",a:`<p><strong>Schema</strong>: <code>jobs</code> table with id, payload, status (pending/running/done/dead), priority, attempts, max_attempts, scheduled_at, locked_until. <strong>Atomic worker claim</strong>: <code>UPDATE jobs SET status='running' WHERE id=(SELECT id FROM jobs WHERE status='pending' AND scheduled_at<=NOW() ORDER BY priority DESC, scheduled_at ASC FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING *</code>. SKIP LOCKED enables concurrent workers without contention. <strong>Retries</strong>: On failure, increment attempts, set <code>scheduled_at = NOW() + 2^attempts * base + random_jitter</code> (exponential backoff with jitter). After max_attempts → status='dead' + alert. Monitor queue depth per priority tier, processing latency, dead job count.</p>`},
+        {q:"Explain backoff strategies — linear, exponential, jitter — and implement one.",a:`<p><strong>Linear</strong>: <code>base × attempt</code>. Predictable but synchronized across clients — thundering herd. <strong>Exponential</strong>: <code>base × 2^attempt</code>. Fast growth, reduces retry frequency. Still synchronized. <strong>Full jitter</strong> (AWS recommended): <code>sleep = random(0, min(cap, base × 2^attempt))</code>. Desynchronizes retries across clients. Eliminates thundering herd. <strong>Decorrelated jitter</strong>: <code>sleep = min(cap, random(base, prev_sleep × 3))</code>. Always: cap max wait (30s), cap max attempts (5), track total elapsed time budget. Python: <code>def backoff(n, base=0.5, cap=30): import random; return random.uniform(0, min(cap, base*(2**n)))</code>. Implement at HTTP client layer so all outbound calls get it automatically.</p>`},
+      ]
+    },
+  ]},
+  {week:"Week 6",label:"System Design & Leadership",desc:"Tackle classic system design problems and sharpen tech lead behavioral competencies.",topics:[
+    {
+      title:"System Design Problems",icon:"🖥️",color:"rgba(255,107,107,0.08)",difficulty:"hard",
+      overview:`
+        <h4>System Design Framework</h4>
+        <ul>
+          <li><strong>1. Clarify requirements</strong> — functional (what it does) + non-functional (scale, latency, consistency, availability).</li>
+          <li><strong>2. Estimate scale</strong> — QPS, storage, bandwidth. Back-of-envelope math.</li>
+          <li><strong>3. High-level design</strong> — clients, API layer, services, data stores. Draw the diagram.</li>
+          <li><strong>4. Deep dive</strong> — pick 2–3 interesting components and go deep.</li>
+          <li><strong>5. Trade-offs</strong> — articulate what you'd do differently at 10×, 100× scale.</li>
+        </ul>
+        <h4>Common Building Blocks</h4>
+        <div class="kv-grid">
+          <div class="kv-item"><div class="kv-k">API Gateway</div><div class="kv-v">Auth, rate limiting, routing, TLS termination, observability.</div></div>
+          <div class="kv-item"><div class="kv-k">CDN / Cache</div><div class="kv-v">CloudFront + Redis. Edge caching + hot data.</div></div>
+          <div class="kv-item"><div class="kv-k">Message Queue</div><div class="kv-v">SQS / Kafka. Decoupling, async processing, fan-out.</div></div>
+          <div class="kv-item"><div class="kv-k">Object Storage</div><div class="kv-v">S3. Images, videos, backups, data lake.</div></div>
+          <div class="kv-item"><div class="kv-k">Search</div><div class="kv-v">Elasticsearch / OpenSearch. Full-text + geo + aggregations.</div></div>
+          <div class="kv-item"><div class="kv-k">Stream Processing</div><div class="kv-v">Kafka + Flink/Spark. Real-time aggregations.</div></div>
+        </div>
+        <h4>Key Design Trade-offs</h4>
+        <ul>
+          <li><strong>SQL vs NoSQL</strong> — Complex queries + transactions vs scale + flexible schema.</li>
+          <li><strong>Consistency vs Availability</strong> — CAP theorem. Under partition, you choose one.</li>
+          <li><strong>Push vs Pull</strong> — Webhooks (push) efficient but requires public endpoint; polling (pull) simple but wasteful.</li>
+          <li><strong>Sync vs Async</strong> — Sync for immediate feedback; async for decoupling + scale.</li>
+          <li><strong>Denormalized vs Normalized</strong> — Denormalized = fast reads, complex writes; normalized = data integrity, complex reads.</li>
+        </ul>
+        <h4>Interview Red Flags to Avoid</h4>
+        <ul>
+          <li>Jumping to a solution without clarifying requirements.</li>
+          <li>Designing for 1B users when the problem says 10k.</li>
+          <li>Not mentioning failure modes or bottlenecks.</li>
+          <li>Single points of failure in every component.</li>
+          <li>Ignoring observability (no metrics, tracing, or alerting).</li>
+        </ul>`,
+      qa:[
+        {q:"Design a URL shortener like bit.ly (focus on scale, storage, and redirect latency).",a:`<p><strong>Core flows</strong>: Write — <code>POST /shorten {url}</code> → generate short code → store → return short URL. Read — <code>GET /{code}</code> → lookup → redirect. <strong>Short code</strong>: Hash URL (SHA-256), take first 6–7 base62 chars. Handle collisions with retry. Or: auto-increment ID encoded in base62 (guaranteed unique). 6 base62 chars = ~56B unique codes. <strong>Storage</strong>: DynamoDB (code as PK) for O(1) lookup. Redis + CloudFront cache hot codes. Use <code>301</code> (browser caches, lower server load) or <code>302</code> (server tracks all clicks). <strong>Analytics</strong>: Async write click events to Kinesis → S3 → Athena. Read-heavy — cache aggressively.</p>`},
+        {q:"Design a notification service that handles email, SMS, and push at high volume.",a:`<p><strong>Architecture</strong>: Upstream → Notification API → SNS topic → three SQS queues (Email, SMS, Push) → Lambda consumers → providers (SES, Twilio, FCM/APNs). Isolation: SMS outage doesn't affect email. <strong>Key design</strong>: Template engine (S3/DynamoDB + i18n rendering). Opt-out check (DynamoDB) before sending — CAN-SPAM/GDPR. Idempotency key per notification (Redis NX) to prevent duplicate sends. Provider rate limiting (token bucket). DLQ after 3 failures + PagerDuty alert. <strong>Observability</strong>: Delivery rate, bounce rate, channel health dashboard. Alert on any degradation.</p>`},
+        {q:"Design a distributed task queue with retries, dead-letter handling, and priority.",a:`<p><strong>Option A — SQS</strong>: Producers → SQS. <code>maxReceiveCount=3</code> + DLQ. Priority: two queues (high/normal), consumers poll high first. FIFO for ordering within tier. <strong>Option B — DB-backed</strong>: Jobs table with status, priority, attempts, next_run_at. Workers use <code>SELECT ... FOR UPDATE SKIP LOCKED</code>. Retry with exponential backoff + jitter in next_run_at. After max_attempts → dead + alert. Priority via <code>ORDER BY priority DESC</code>. <strong>Observability</strong>: Queue depth per tier, processing latency histogram, dead job count, DLQ alert. Option A for AWS-native simplicity; Option B for full control + portability (Celery, BullMQ).</p>`},
+        {q:"How would you design a real-time leaderboard for a gaming backend?",a:`<p><strong>Core</strong>: Redis Sorted Set. <code>ZADD leaderboard {score} {player_id}</code>, <code>ZINCRBY</code> for increments, <code>ZREVRANK</code> for rank, <code>ZREVRANGE 0 99 WITHSCORES</code> for top 100. All O(log N). <strong>Scale</strong>: Shard by player ID range across Redis nodes. Hierarchical aggregation: local → regional → global on a schedule. For near-real-time global: Kafka → Flink windowed aggregation → Redis. <strong>Persistence</strong>: Snapshot sorted set to DynamoDB periodically. <strong>Friend leaderboard</strong>: Fetch friend list, batch <code>ZSCORE</code> via Redis pipelining. <strong>Anti-cheat</strong>: Server-side score validation, rate-limit submissions, anomaly detection on large deltas.</p>`},
+        {q:"Design an API gateway — what cross-cutting concerns does it handle?",a:`<p>Single entry point for all external clients. Cross-cutting concerns: (1) <strong>Auth/Authz</strong> — validate JWTs/API keys, forward user identity as trusted header. (2) <strong>Rate limiting</strong> — per client, endpoint, tier. (3) <strong>TLS termination</strong> — offload certificate management. (4) <strong>Request routing</strong> — path/host/version-based. (5) <strong>Transformation</strong> — header injection, protocol translation (REST→gRPC), payload shaping. (6) <strong>Load balancing</strong> — across service instances. (7) <strong>Circuit breaking + timeouts</strong>. (8) <strong>Observability</strong> — unified access logs, request ID injection, latency metrics per route. (9) <strong>Caching</strong> — edge-cache GET responses. Options: AWS API Gateway, Kong, NGINX Plus, Envoy. Service mesh (Istio) complements for east-west traffic.</p>`},
+        {q:"How would you design a multi-tenant SaaS backend with data isolation?",a:`<p>Three models: <strong>Silo</strong> (DB per tenant) — strongest isolation, simplest compliance, expensive. <strong>Bridge</strong> (schema per tenant) — middle ground. <strong>Pool</strong> (shared schema + tenant_id column) — most efficient, needs careful implementation. <strong>Pool best practices</strong>: Every table has indexed <code>tenant_id</code>. Use PostgreSQL <strong>Row-Level Security (RLS)</strong> to enforce <code>WHERE tenant_id = current_setting('app.tenant_id')</code> at DB level — not just application code. Middleware/ORM plugin injects tenant context automatically. Composite indexes <code>(tenant_id, entity_id)</code>. Per-tenant resource quotas in tenants table. For data residency (GDPR): regional deployments with tenant-to-region routing at signup.</p>`},
+        {q:"Design a distributed rate limiter that works across multiple backend instances.",a:`<p>Local in-process rate limiter breaks with horizontal scaling (effective limit = limit × instances). Need shared state. <strong>Fixed window — Redis</strong>: Lua script: <code>INCR key; if count==1 then EXPIRE key window end; return count</code>. If count > limit → 429. Simple but allows 2× burst at window boundary. <strong>Sliding window — Redis Sorted Set</strong>: On each request: <code>ZREMRANGEBYSCORE 0 (now-window)</code> → <code>ZCARD</code> → <code>ZADD now now</code> → if count ≥ limit → reject. Accurate but higher memory. <strong>Token bucket — Redis</strong>: Store <code>{tokens, last_updated}</code> in hash. Atomic Lua refill + decrement on each request. For very high throughput: local token bucket per instance refilled periodically from a Redis global budget (reduces Redis calls).</p>`},
+      ]
+    },
+    {
+      title:"Tech Lead Behavioral",icon:"👥",color:"rgba(79,255,176,0.06)",difficulty:"easy",
+      overview:`
+        <h4>STAR Framework for All Behavioral Answers</h4>
+        <ul>
+          <li><strong>S</strong>ituation — Concrete context. Team size, company stage, specific problem.</li>
+          <li><strong>T</strong>ask — Your role and the specific challenge you faced.</li>
+          <li><strong>A</strong>ction — What YOU specifically did. Steps taken, how you handled it.</li>
+          <li><strong>R</strong>esult — Measurable outcome. What improved, what you learned.</li>
+        </ul>
+        <h4>Tech Lead Core Responsibilities</h4>
+        <ul>
+          <li>Technical direction and architectural decisions (ADRs, RFCs).</li>
+          <li>Team productivity — removing blockers, mentoring, onboarding.</li>
+          <li>Engineering quality — code review standards, test culture, CI/CD.</li>
+          <li>Stakeholder communication — translating technical constraints into business language.</li>
+          <li>Tech debt management — making it visible and prioritized.</li>
+        </ul>
+        <h4>Build vs Buy Framework</h4>
+        <ul>
+          <li>Core competency? → Build. Commodity infra? → Buy.</li>
+          <li>TCO: include integration, maintenance, lock-in, migration risk.</li>
+          <li>Time to value: buying is weeks; building is months + ongoing maintenance.</li>
+          <li>Never build: auth from scratch, email delivery, payments, monitoring infra.</li>
+        </ul>
+        <h4>ADR (Architectural Decision Record) Format</h4>
+        <ul>
+          <li><strong>Title</strong> — Verb phrase. e.g. "Use PostgreSQL for transactional storage".</li>
+          <li><strong>Status</strong> — Proposed / Accepted / Deprecated / Superseded by ADR-042.</li>
+          <li><strong>Context</strong> — Problem, constraints, forces in tension.</li>
+          <li><strong>Decision</strong> — What and why, in plain language.</li>
+          <li><strong>Consequences</strong> — What becomes easier/harder, risks accepted, follow-up work.</li>
+        </ul>
+        <h4>Key Principles to Mention</h4>
+        <ul>
+          <li>Push back with data and alternatives — not objections alone.</li>
+          <li>Disagree and commit — model it explicitly for your team.</li>
+          <li>Make the right thing easy and the wrong thing visible.</li>
+          <li>Frame tech debt in business impact terms, not code quality terms.</li>
+          <li>Timebox unresolved technical debates — indecision has a cost.</li>
+        </ul>`,
+      qa:[
+        {q:"How do you make a build-vs-buy decision for a critical piece of infrastructure?",a:`<p>Framework: (1) <strong>Core competency</strong> — does this differentiate your product? Yes → build. Commodity infra → buy. (2) <strong>Total cost of ownership</strong> — vendor cost + integration + maintenance + lock-in + migration risk. (3) <strong>Time to value</strong> — buying: weeks; building: months + ongoing ownership. (4) <strong>Control and flexibility</strong> — how much customization needed? Vendor SLA alignment? (5) <strong>Team capability</strong> — can you hire/retain expertise to build and maintain this reliably? Process: write requirements first, evaluate 2–3 vendors seriously, build a PoC to validate assumptions. Document as an ADR with alternatives considered. Never build: auth, payments, email delivery, infra monitoring from scratch.</p>`},
+        {q:"Describe a time you had to push back on a technical direction from a stakeholder.",a:`<p>Use <strong>STAR</strong>. <em>Situation</em>: concrete context (e.g. "CTO wanted to rewrite the auth service in a new framework in 4 weeks"). <em>Task</em>: your role as tech lead responsible for delivery and team health. <em>Action</em>: gathered data (realistic timeline estimate with risks), identified the real business goal the stakeholder cared about, proposed an alternative achieving the goal with lower risk, built alignment with your team before the meeting, framed risk in business impact terms not technical complaints. <em>Result</em>: agreed on a phased approach; avoided a high-risk delivery. Key principles: push back with data + alternatives, not objections alone. Know when to disagree and commit once all info is on the table.</p>`},
+        {q:"How do you onboard a new engineer to a complex codebase quickly?",a:`<p><strong>Before day one</strong>: Living onboarding doc (architecture diagrams, key services, how to run locally as a working script, debugging patterns, who owns what). Assign a buddy. Pre-provision accounts and IDE setup. <strong>Week 1</strong>: Architecture walkthrough (why, not just what). Run the system end-to-end. Assign a well-scoped starter task — not trivial, not risky. Pair-program on first PR. <strong>Weeks 2–4</strong>: Progressive scope increase. Include in design discussions as observer first. Share ADRs for key past decisions. <strong>Ongoing</strong>: Regular 1:1s. Ask "what's the most confusing thing this week?" — engineers often don't ask for help when stuck. Measure time-to-first-independent-PR as an onboarding health metric.</p>`},
+        {q:"How do you balance technical debt reduction against feature velocity?",a:`<p>First make debt <strong>visible and quantified</strong>. Maintain a tech debt register with business impact — "auth fragility caused 3 incidents in Q3 at 40 engineering hours cost." Invisible debt never gets prioritized. Categorize: critical (security/data loss — fix now), high (measurably slowing delivery), low (annoyances). Strategies: (1) <strong>Fixed allocation</strong> — 15–20% of each sprint. (2) <strong>Boy Scout Rule</strong> — every PR leaves code slightly better. (3) <strong>Attach debt to features</strong> — refactor a module when building on it. (4) <strong>Frame in business terms</strong> — "current search causes 4 min of P1 incidents/week" lands better than "the code is messy." Surface debt at sprint level; escalate critical items to stakeholders with cost-of-delay analysis.</p>`},
+        {q:"Describe how you've driven adoption of a new standard or pattern across a team.",a:`<p>(1) <strong>Problem first</strong> — identify the pain the standard solves. Engineers need to feel the problem. (2) <strong>Pilot it</strong> — implement in one real service with a willing engineer. Measure outcomes. (3) <strong>Write an RFC/ADR</strong> — articulate why, alternatives considered, migration path. Async feedback 48–72 hours. (4) <strong>Present and demo</strong> — live demo beats slides. (5) <strong>Provide tooling</strong> — linter rule, Cookiecutter template, shared library. Documentation alone is not enough. (6) <strong>Reinforce in code review</strong> — consistently and kindly flag deviations with a link. (7) <strong>Measure adoption</strong> via static analysis in CI. Celebrate milestones. Meta-principle: make the right thing easy and the wrong thing visible.</p>`},
+        {q:"How do you run effective architectural decision records (ADRs)?",a:`<p><strong>Format</strong>: Title (verb phrase), Status (proposed/accepted/deprecated/superseded), Context (problem + constraints), Decision (what + why in plain language), Consequences (trade-offs, risks, follow-up work). 1–2 pages max. <strong>Process</strong>: Write ADRs for decisions that are hard to reverse, cross team boundaries, involve meaningful trade-offs, or would cause "why did we do this?" confusion. Open a PR against the repo (<code>/docs/adr/</code>, numbered sequentially). 48–72hr async review. Present high-impact decisions in tech sync. Once accepted, never update — create a new superseding ADR if the decision changes. The value is in context and reasoning, not just the outcome. An ADR that only documents the chosen option without alternatives is a decision log, not a decision record.</p>`},
+        {q:"How do you handle disagreement between engineers on a technical approach?",a:`<p>(1) <strong>Structured space</strong> — move out of Slack, ask each engineer to write up their proposal with trade-offs. Writing forces clarity and reduces heat. (2) <strong>Facts vs opinions</strong> — testable claims need benchmarks, not debates. (3) <strong>Explicit criteria</strong> — what matters most here: performance, simplicity, team familiarity, time to production? Disagreements often dissolve when criteria are made explicit. (4) <strong>Spike to resolve empirical disputes</strong> — 2-day technical spike with real data ends what hours of discussion cannot. (5) <strong>Timebox</strong> — set a decision deadline and honor it. (6) <strong>Tech lead breaks the tie</strong> — don't avoid the decision to avoid conflict. Document in an ADR. Normalize disagree-and-commit as a healthy team behavior — explicitly name and model it yourself.</p>`},
+      ]
+    },
+  ]},
+];
+
+let state = {};
+try { const s = localStorage.getItem('tl_v3'); if(s) state = JSON.parse(s); } catch(e){}
+function save() { try { localStorage.setItem('tl_v3', JSON.stringify(state)); } catch(e){} }
+
+let totalQ = 0;
+plan.forEach((w,wi) => w.topics.forEach((t,ti) => { totalQ += t.qa.length; }));
+function doneCount() { return Object.values(state).filter(Boolean).length; }
+
+function updateOverall() {
+  const d = doneCount();
+  document.getElementById('done-count').textContent = d;
+  document.getElementById('total-count').textContent = totalQ;
+  const pct = totalQ ? Math.round(d/totalQ*100) : 0;
+  document.getElementById('pct-val').textContent = pct + '%';
+  document.getElementById('overall-bar').style.width = pct + '%';
+  document.getElementById('overall-label').textContent = d + ' / ' + totalQ + ' questions complete';
+}
+
+function updateMiniBar(wi, ti) {
+  const topic = plan[wi].topics[ti];
+  const dc = topic.qa.filter((_,qi) => state[`${wi}-${ti}-${qi}`]).length;
+  const fill = document.getElementById(`mf-${wi}-${ti}`);
+  const txt = document.getElementById(`mt-${wi}-${ti}`);
+  if(fill) fill.style.width = Math.round(dc/topic.qa.length*100) + '%';
+  if(txt) txt.textContent = dc + '/' + topic.qa.length;
+}
+
+const sidebar = document.getElementById('sidebar');
+const content = document.getElementById('content');
+
+plan.forEach((week, wi) => {
+  const nav = document.createElement('a');
+  nav.className = 'nav-item' + (wi===0?' active':'');
+  nav.href = '#';
+  nav.innerHTML = `<div><div class="nav-week">Week ${wi+1}</div><div class="nav-label">${week.label}</div></div><div class="nav-dot"></div>`;
+  nav.onclick = (e) => {
+    e.preventDefault();
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.week-section').forEach(s=>s.classList.remove('active'));
+    nav.classList.add('active');
+    document.getElementById('week-'+wi).classList.add('active');
+    window.scrollTo(0,0);
+  };
+  sidebar.appendChild(nav);
+
+  const section = document.createElement('div');
+  section.className = 'week-section' + (wi===0?' active':'');
+  section.id = 'week-'+wi;
+  section.innerHTML = `<div class="week-heading"><span class="week-num">${week.week}</span><h2 class="week-title">${week.label}</h2></div><p class="week-desc">${week.desc}</p>`;
+
+  week.topics.forEach((topic, ti) => {
+    const card = document.createElement('div');
+    card.className = 'topic-card';
+
+    const diffClass = topic.difficulty==='hard'?'badge-hard':topic.difficulty==='med'?'badge-med':'badge-easy';
+    const diffLabel = topic.difficulty==='hard'?'Hard':topic.difficulty==='med'?'Medium':'Easy';
+
+    // Topic header
+    const header = document.createElement('div');
+    header.className = 'topic-header';
+    header.innerHTML = `<div class="topic-icon" style="background:${topic.color}">${topic.icon}</div><span class="topic-name">${topic.title}</span><span class="badge ${diffClass}">${diffLabel}</span><div class="topic-progress-mini"><div class="mini-bar"><div class="mini-fill" id="mf-${wi}-${ti}" style="width:0%"></div></div><span class="mini-text" id="mt-${wi}-${ti}">0/${topic.qa.length}</span></div><span class="chevron-icon">▾</span>`;
+    header.onclick = () => card.classList.toggle('open');
+
+    // Topic panel (overview + questions)
+    const panel = document.createElement('div');
+    panel.className = 'topic-panel';
+
+    // Overview section
+    const overviewWrap = document.createElement('div');
+    const overviewBar = document.createElement('div');
+    overviewBar.className = 'overview-bar';
+    overviewBar.innerHTML = `<div class="overview-bar-left"><span style="font-size:14px;">📖</span><span class="overview-label">Topic Overview &amp; Cheat Sheet</span></div><span class="overview-chevron">▾</span>`;
+    const overviewBody = document.createElement('div');
+    overviewBody.className = 'overview-body';
+    overviewBody.innerHTML = topic.overview;
+    overviewBar.onclick = () => overviewWrap.classList.toggle('overview-open');
+    overviewWrap.appendChild(overviewBar);
+    overviewWrap.appendChild(overviewBody);
+    panel.appendChild(overviewWrap);
+
+    // Questions section
+    const questionsPanel = document.createElement('div');
+    questionsPanel.className = 'questions-panel';
+    const qTitle = document.createElement('div');
+    qTitle.className = 'q-section-title';
+    qTitle.textContent = 'Interview Questions';
+    questionsPanel.appendChild(qTitle);
+
+    topic.qa.forEach(({q, a}, qi) => {
+      const key = `${wi}-${ti}-${qi}`;
+      const item = document.createElement('div');
+      item.className = 'q-item';
+
+      const qtop = document.createElement('div');
+      qtop.className = 'q-top';
+
+      const chk = document.createElement('div');
+      chk.className = 'q-check' + (state[key]?' checked':'');
+      const txt = document.createElement('span');
+      txt.className = 'q-text' + (state[key]?' done':'');
+      txt.textContent = q;
+
+      chk.onclick = () => {
+        state[key] = !state[key];
+        chk.classList.toggle('checked', state[key]);
+        txt.classList.toggle('done', state[key]);
+        save(); updateMiniBar(wi,ti); updateOverall();
+      };
+
+      qtop.appendChild(chk);
+      qtop.appendChild(txt);
+
+      const btn = document.createElement('button');
+      btn.className = 'ans-toggle';
+      btn.textContent = '▸ show answer';
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = a;
+      btn.onclick = () => { const o = box.classList.toggle('open'); btn.textContent = o ? '▾ hide answer' : '▸ show answer'; };
+
+      item.appendChild(qtop);
+      item.appendChild(btn);
+      item.appendChild(box);
+      questionsPanel.appendChild(item);
+    });
+
+    panel.appendChild(questionsPanel);
+    card.appendChild(header);
+    card.appendChild(panel);
+    section.appendChild(card);
+  });
+
+  content.appendChild(section);
+});
+
+plan.forEach((_,wi) => plan[wi].topics.forEach((_,ti) => updateMiniBar(wi,ti)));
+updateOverall();
+</script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

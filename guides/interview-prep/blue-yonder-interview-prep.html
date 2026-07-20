@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blue Yonder Interview Prep — Data Platforms & Integration</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0e14;
+    --surface: #111620;
+    --border: #1e2736;
+    --accent: #00c2ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6a;
+    --text: #cdd9e8;
+    --muted: #5a6a7e;
+    --heading: #eaf2ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,194,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,194,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 60px 32px 100px;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 40px;
+    margin-bottom: 56px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 3px 10px;
+    margin-bottom: 20px;
+    opacity: .8;
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 800;
+    color: var(--heading);
+    line-height: 1.1;
+    letter-spacing: -.02em;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: .06em;
+  }
+
+  /* TOC */
+  .toc {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 56px;
+  }
+
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: .04em;
+    transition: border-color .2s, color .2s;
+  }
+
+  .toc a:hover { border-color: var(--accent); color: var(--accent); }
+  .toc a .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* SECTION */
+  .section {
+    margin-bottom: 64px;
+    scroll-margin-top: 32px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--muted);
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--heading);
+    letter-spacing: -.01em;
+  }
+
+  .pill {
+    margin-left: auto;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .pill-blue { background: rgba(0,194,255,.12); color: var(--accent); border: 1px solid rgba(0,194,255,.25); }
+  .pill-orange { background: rgba(255,107,53,.12); color: var(--accent2); border: 1px solid rgba(255,107,53,.25); }
+  .pill-green { background: rgba(127,255,106,.12); color: var(--accent3); border: 1px solid rgba(127,255,106,.25); }
+
+  /* CARDS */
+  .cards { display: grid; gap: 14px; }
+  .cards.two { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 22px 24px;
+    position: relative;
+    transition: border-color .25s;
+  }
+
+  .card:hover { border-color: rgba(0,194,255,.3); }
+
+  .card-label {
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-label::before {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 1px;
+    background: currentColor;
+  }
+
+  .card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: 10px;
+  }
+
+  .card p, .card li { color: var(--text); font-size: 12.5px; }
+  .card ul { padding-left: 18px; }
+  .card li { margin-bottom: 5px; }
+
+  /* Q&A BLOCKS */
+  .qa { margin-bottom: 18px; }
+
+  .q {
+    background: rgba(0,194,255,.05);
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: var(--accent);
+    margin-bottom: 0;
+  }
+
+  .q::before { content: 'Q  '; font-weight: 500; opacity: .6; }
+
+  .a {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: none;
+    padding: 14px 16px 14px 20px;
+    font-size: 12.5px;
+    color: var(--text);
+  }
+
+  .a::before { content: 'A  '; color: var(--accent3); font-weight: 500; }
+
+  /* KEY CONCEPT BLOCKS */
+  .concept {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    padding: 18px 22px;
+    margin-bottom: 14px;
+  }
+
+  .concept-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+
+  /* CODE */
+  code {
+    background: rgba(0,194,255,.08);
+    color: var(--accent);
+    padding: 1px 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    border-radius: 2px;
+  }
+
+  /* TRADEOFFS TABLE */
+  .tradeoff-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .tradeoff-table th {
+    background: rgba(0,194,255,.08);
+    color: var(--accent);
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .tradeoff-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+  }
+  .tradeoff-table tr:last-child td { border-bottom: none; }
+  .tradeoff-table tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* TIPS STRIP */
+  .tips {
+    background: linear-gradient(135deg, rgba(0,194,255,.06), rgba(127,255,106,.04));
+    border: 1px solid rgba(0,194,255,.2);
+    padding: 24px 28px;
+    margin-top: 56px;
+  }
+
+  .tips h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: 14px;
+    letter-spacing: .04em;
+  }
+
+  .tips li { margin-bottom: 8px; font-size: 12.5px; }
+  .tips li::marker { color: var(--accent3); }
+  .tips ul { padding-left: 20px; }
+
+  /* DEEP DIVE EXPLANATION BLOCKS */
+  .deep-dive {
+    margin: 28px 0 32px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .deep-dive-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: rgba(0,194,255,.05);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .deep-dive-header:hover { background: rgba(0,194,255,.09); }
+
+  .deep-dive-icon {
+    font-size: 11px;
+    color: var(--accent);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(0,194,255,.3);
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+
+  .deep-dive-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--heading);
+    flex: 1;
+  }
+
+  .deep-dive-toggle {
+    font-size: 11px;
+    color: var(--muted);
+    transition: transform .3s;
+  }
+
+  .deep-dive-body {
+    padding: 22px 24px;
+    display: none;
+  }
+
+  .deep-dive-body.open { display: block; }
+
+  .deep-dive-toggle.open { transform: rotate(180deg); }
+
+  .explain-block { margin-bottom: 22px; }
+  .explain-block:last-child { margin-bottom: 0; }
+
+  .explain-block h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .explain-block h4::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .explain-block p {
+    color: var(--text);
+    font-size: 12.5px;
+    line-height: 1.8;
+    margin-bottom: 8px;
+  }
+
+  .explain-block p:last-child { margin-bottom: 0; }
+
+  .highlight-box {
+    background: rgba(255,107,53,.06);
+    border-left: 3px solid var(--accent2);
+    padding: 10px 16px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--text);
+  }
+
+  .highlight-box strong { color: var(--accent2); }
+
+  .flow-steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-top: 12px;
+    align-items: center;
+  }
+
+  .flow-step {
+    background: rgba(0,194,255,.08);
+    border: 1px solid rgba(0,194,255,.2);
+    padding: 7px 14px;
+    font-size: 11.5px;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .flow-arrow {
+    color: var(--muted);
+    font-size: 14px;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+
+  /* GLOW accent dots */
+  .glow {
+    position: fixed;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: .06;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow-1 { background: var(--accent); top: -100px; right: -100px; }
+  .glow-2 { background: var(--accent2); bottom: 100px; left: -150px; }
+
+  @media (max-width: 600px) {
+    .wrap { padding: 40px 18px 80px; }
+    .cards.two { grid-template-columns: 1fr; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="tag">Interview Prep · 2026</div>
+    <h1>Blue Yonder<br><span>Data Platforms</span> &amp; Integration</h1>
+    <p class="subtitle">// Kafka · ADF · Databricks · Multi-Tenancy · Kubernetes · Airflow/Spark</p>
+  </header>
+
+  <!-- TOC -->
+  <nav class="toc" aria-label="Sections">
+    <a href="#kafka"><span class="dot" style="background:var(--accent)"></span>Kafka Ingestion</a>
+    <a href="#azure"><span class="dot" style="background:var(--accent2)"></span>Azure Stack</a>
+    <a href="#airflow"><span class="dot" style="background:var(--accent3)"></span>Airflow / Spark</a>
+    <a href="#multitenancy"><span class="dot" style="background:#c77dff"></span>Multi-Tenancy</a>
+    <a href="#kubernetes"><span class="dot" style="background:#ffbe0b"></span>Kubernetes</a>
+    <a href="#tips"><span class="dot" style="background:#ff6b9d"></span>Interview Tips</a>
+  </nav>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 1. KAFKA                                     -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="section" id="kafka">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2>Kafka-Based Ingestion Pipelines</h2>
+      <span class="pill pill-blue">Core</span>
+    </div>
+
+    <div class="cards two">
+      <div class="card">
+        <div class="card-label">Architecture</div>
+        <h3>Key Concepts to Master</h3>
+        <ul>
+          <li><strong>Topics, Partitions, Offsets</strong> — partitions = parallelism; offsets = consumer position</li>
+          <li><strong>Consumer Groups</strong> — each partition consumed by one member; horizontal scaling</li>
+          <li><strong>Replication Factor</strong> — durability vs. storage tradeoff</li>
+          <li><strong>Log compaction</strong> — keep latest value per key; useful for CDC</li>
+          <li><strong>Exactly-once semantics (EOS)</strong> — idempotent producers + transactional APIs</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Production Patterns</div>
+        <h3>Pipeline Design</h3>
+        <ul>
+          <li><strong>Schema Registry</strong> — Avro/Protobuf schemas; enforce contracts at ingest</li>
+          <li><strong>Dead Letter Queue (DLQ)</strong> — route poison messages; never block main topic</li>
+          <li><strong>Kafka Connect</strong> — source/sink connectors (JDBC, S3, Azure Blob)</li>
+          <li><strong>Kafka Streams / ksqlDB</strong> — stateful stream processing at source</li>
+          <li><strong>Lag monitoring</strong> — consumer group lag = key operational metric</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DEEP DIVE: KAFKA -->
+    <div class="deep-dive">
+      <div class="deep-dive-header">
+        <span class="deep-dive-icon">Deep Dive</span>
+        <span class="deep-dive-title">How Kafka Ingestion Pipelines Actually Work</span>
+        <span class="deep-dive-toggle">▼</span>
+      </div>
+      <div class="deep-dive-body">
+
+        <div class="explain-block">
+          <h4>What Kafka Is</h4>
+          <p>Apache Kafka is a <strong>distributed event streaming platform</strong> — think of it as a massively scalable, durable, append-only log. Producers write messages to named <strong>topics</strong>. Consumers read from those topics, independently and at their own pace. Unlike a traditional message queue, messages aren't deleted after consumption — they're retained for a configurable period (e.g. 7 days or forever with log compaction), allowing multiple consumers to replay the same data.</p>
+          <p>This is what makes Kafka ideal for data ingestion pipelines: you can have real-time analytics consumers, data lake writers, and ML feature pipelines all reading the same stream independently — decoupled from producers completely.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Partitions — The Engine of Scale</h4>
+          <p>Every topic is split into <strong>partitions</strong>, which are the unit of parallelism. Each partition is an ordered, immutable sequence of messages. Producers assign messages to partitions (via a key hash or round-robin). Each partition is handled by exactly one consumer in a consumer group, so adding more partitions = more consumers = more throughput.</p>
+          <p><strong>Example:</strong> A topic with 12 partitions can be consumed by up to 12 consumers in parallel. A 13th consumer would sit idle — always keep consumers ≤ partitions.</p>
+          <div class="highlight-box"><strong>Key insight:</strong> Partition count is permanent (you can add but not reduce). Plan for 10–20× expected peak throughput from day one, especially in multi-tenant systems where tenant volume is unpredictable.</div>
+        </div>
+
+        <div class="explain-block">
+          <h4>Offsets — Your Position in the Log</h4>
+          <p>An <strong>offset</strong> is just a sequential integer — the position of a message within a partition. Consumers track their own offset. When a consumer restarts, it resumes from its last committed offset. This is why Kafka can guarantee at-least-once or exactly-once delivery: if you crash before committing, you re-read and reprocess. If you commit before processing completes, you might skip messages (at-most-once). The right pattern: process → write to downstream → then commit offset.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Consumer Groups — Horizontal Scaling</h4>
+          <p>A <strong>consumer group</strong> is a set of consumers sharing a group ID. Kafka balances partitions across members automatically (rebalancing). Two separate groups can each consume the same topic independently — they have separate offset tracking. This means you can have a real-time alerts consumer group and a batch data lake writer group on the same topic, completely independent.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Replication — Durability Without Tears</h4>
+          <p>Each partition has one <strong>leader</strong> broker and N-1 <strong>followers</strong> (replicas). Producers write to the leader; followers replicate asynchronously or synchronously depending on <code>acks</code> setting. With <code>acks=all</code> and <code>min.insync.replicas=2</code>, a write is confirmed only when at least 2 replicas have it — meaning you can lose one broker with zero data loss. For Blue Yonder's enterprise data, this is the minimum acceptable durability config.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Schema Registry — Contracts Between Teams</h4>
+          <p>Without schema enforcement, a producer can change a field type and silently break every downstream consumer. A <strong>Schema Registry</strong> (Confluent's is standard) solves this: producers register Avro or Protobuf schemas. Each message includes the schema ID. Consumers deserialize using that ID. The registry enforces <strong>compatibility rules</strong> — "backward" means new schema can read old data; "forward" means old schema can read new data. In a multi-tenant system, this is critical because different tenants may run different versions of your integration.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Typical Kafka Ingestion Flow at Blue Yonder Scale</h4>
+          <div class="flow-steps">
+            <span class="flow-step">Tenant System (ERP/WMS)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Kafka Producer (Schema-validated)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Kafka Topic (partitioned by tenant_id)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Kafka Connect Sink (ADLS Gen2)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Databricks Structured Streaming</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Delta Lake (Bronze)</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <br>
+    <div class="qa">
+      <div class="q">How do you guarantee no data loss in a Kafka ingestion pipeline?</div>
+      <div class="a">Use <code>acks=all</code> on producers, replication factor ≥ 3, <code>min.insync.replicas=2</code>, and commit offsets only after downstream write succeeds. For truly critical paths, enable idempotent producers and transactions for end-to-end exactly-once semantics.</div>
+    </div>
+    <div class="qa">
+      <div class="q">How do you handle schema evolution without breaking consumers?</div>
+      <div class="a">Use a Schema Registry with forward/backward compatibility rules on Avro/Protobuf schemas. Additive changes (new optional fields) are safe. Removing or renaming fields requires versioned consumers or a migration window. Never use JSON without a validation layer in production pipelines.</div>
+    </div>
+    <div class="qa">
+      <div class="q">How would you scale a Kafka consumer that's falling behind?</div>
+      <div class="a">First diagnose: is it CPU-bound, I/O-bound, or downstream bottleneck? Add partitions (requires message key re-balance planning), add consumer instances up to partition count, or optimize per-message processing. If the bottleneck is the sink (e.g., DB writes), batch commits or async writes help.</div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 2. AZURE STACK                              -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="section" id="azure">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2>Azure Data Factory · Functions · Databricks</h2>
+      <span class="pill pill-orange">Cloud</span>
+    </div>
+
+    <div class="cards two">
+      <div class="card">
+        <div class="card-label">Azure Data Factory</div>
+        <h3>What to Know</h3>
+        <ul>
+          <li><strong>Pipelines, Activities, Datasets, Linked Services</strong> — know the hierarchy</li>
+          <li><strong>Integration Runtimes</strong> — Azure IR vs. Self-hosted IR for on-prem connectivity</li>
+          <li><strong>Triggers</strong> — Schedule, Tumbling Window, Event-based (Blob created)</li>
+          <li><strong>Data Flows</strong> — visual Spark transformations; good for ETL without code</li>
+          <li><strong>Monitoring & alerts</strong> — pipeline run history, retry policies, alerting via Azure Monitor</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Databricks</div>
+        <h3>What to Know</h3>
+        <ul>
+          <li><strong>Delta Lake</strong> — ACID on object storage; time travel, MERGE, schema enforcement</li>
+          <li><strong>Unity Catalog</strong> — fine-grained data governance across workspaces</li>
+          <li><strong>Structured Streaming</strong> — micro-batch + continuous mode; checkpointing</li>
+          <li><strong>Cluster types</strong> — All-purpose vs. Job clusters; auto-scaling, spot instances</li>
+          <li><strong>Workflows (Jobs)</strong> — orchestrate notebooks/JARs; dependency graphs</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Azure Functions</div>
+        <h3>Integration Patterns</h3>
+        <ul>
+          <li><strong>Event-driven triggers</strong> — Blob, Event Hub, Service Bus, HTTP, Timer</li>
+          <li><strong>Durable Functions</strong> — fan-out/fan-in, chaining, human approval flows</li>
+          <li><strong>Cold start vs. Premium plan</strong> — tradeoff between cost and latency</li>
+          <li><strong>Bindings</strong> — input/output bindings reduce boilerplate for common integrations</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Typical Design Q</div>
+        <h3>ADF + Databricks + Kafka</h3>
+        <ul>
+          <li>Kafka ingests raw events → lands in Azure Data Lake (ADLS Gen2)</li>
+          <li>ADF triggers Databricks notebook on new file arrival</li>
+          <li>Databricks writes to Delta Lake (bronze → silver → gold lakehouse pattern)</li>
+          <li>Azure Functions serve lightweight API reads from gold layer</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DEEP DIVE: AZURE STACK -->
+    <div class="deep-dive">
+      <div class="deep-dive-header">
+        <span class="deep-dive-icon">Deep Dive</span>
+        <span class="deep-dive-title">Understanding ADF, Databricks &amp; Azure Functions Together</span>
+        <span class="deep-dive-toggle">▼</span>
+      </div>
+      <div class="deep-dive-body">
+
+        <div class="explain-block">
+          <h4>Azure Data Factory — The Orchestration Glue</h4>
+          <p><strong>ADF</strong> is Microsoft's cloud ETL and pipeline orchestration service. Think of it as the conductor — it doesn't do heavy computation itself; it coordinates other services. A <strong>Pipeline</strong> is a logical group of <strong>Activities</strong> (Copy Data, Execute Notebook, Web Call, etc.). <strong>Linked Services</strong> are connections to data stores or compute. <strong>Datasets</strong> describe the shape of data in those stores.</p>
+          <p>The real power is in <strong>Triggers</strong>: you can fire a pipeline on a schedule, every time a file lands in a blob container (event trigger), or on a tumbling window (non-overlapping time intervals — critical for backfill scenarios). ADF is the right choice when your pipeline touches non-Spark systems: copying from on-prem SQL Server to ADLS, calling an SAP API, or invoking a REST endpoint.</p>
+          <div class="highlight-box"><strong>Integration Runtime (IR)</strong> is the compute that ADF runs on. Azure IR is fully managed. Self-hosted IR runs on your own VM and lets ADF reach private networks or on-premises systems — critical for enterprise customers who haven't moved everything to cloud.</div>
+        </div>
+
+        <div class="explain-block">
+          <h4>Databricks — Unified Analytics Engine</h4>
+          <p>Databricks is a managed Apache Spark platform with a collaborative notebook UI, job scheduler, and a deep integration with Azure (ADLS Gen2, Azure AD, Key Vault). The biggest differentiator in Azure Databricks is <strong>Delta Lake</strong>: it sits on top of Parquet files on ADLS and adds a transaction log that enables ACID writes, UPSERT/MERGE SQL, time travel (query data as it was 30 days ago), and automatic data skipping via file-level statistics.</p>
+          <p>For ingestion pipelines, <strong>Structured Streaming</strong> is the key feature — it processes new data in micro-batches (seconds) or continuous mode, checkpoints its progress to storage, and can read directly from Kafka or from ADLS file arrival. This gives you low-latency pipelines without complex offset management code.</p>
+          <p><strong>Unity Catalog</strong> is the governance layer: it provides a three-level namespace (catalog → schema → table), fine-grained column-level access control, data lineage, and audit logs — all centralized across multiple Databricks workspaces. For a multi-tenant platform like Blue Yonder, each tenant's data can live in its own catalog with IAM controls enforced at the Unity Catalog level.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Azure Functions — The Lightweight Reactive Layer</h4>
+          <p><strong>Azure Functions</strong> is a serverless compute service — you deploy a small piece of code and Azure handles scaling, infrastructure, and execution. It's ideal for <strong>event-driven side tasks</strong> in a data pipeline: process a file the moment it lands, call a webhook when a pipeline completes, or serve a lightweight read API from a processed data store.</p>
+          <p><strong>Durable Functions</strong> extend this to stateful workflows: the <em>fan-out/fan-in</em> pattern spawns many parallel sub-functions and waits for all to complete — perfect for processing all tenant files in parallel, then aggregating results. Human approval patterns let you pause a workflow until a person approves in a web UI.</p>
+          <div class="highlight-box"><strong>Cold start trade-off:</strong> On the Consumption plan, a function not called recently takes 1–3 seconds to start. For latency-sensitive pipelines (triggered by Kafka via Event Hub), use the Premium plan or Dedicated plan — always-warm, no cold starts, but you pay for reserved capacity.</div>
+        </div>
+
+        <div class="explain-block">
+          <h4>The Medallion Architecture — Bronze → Silver → Gold</h4>
+          <p>This is the standard lakehouse pattern in Databricks. <strong>Bronze</strong> is raw ingested data — exactly as received from Kafka or source systems, never modified. <strong>Silver</strong> is cleaned, validated, and enriched — bad records filtered, data types cast, tenant IDs normalized. <strong>Gold</strong> is aggregated, business-ready data — tables optimized for BI tools, ML features, or APIs. Each layer is a Delta table, enabling full lineage and the ability to re-derive any layer from the one below.</p>
+          <div class="flow-steps">
+            <span class="flow-step">Raw Events (Kafka)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Bronze (Raw Delta)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Silver (Cleaned Delta)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Gold (Aggregated Delta)</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">Azure Function API / BI Tool</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <br>
+    <div class="qa">
+      <div class="q">When would you choose ADF over Databricks Workflows for orchestration?</div>
+      <div class="a">ADF is better for orchestrating heterogeneous systems (SQL, SFTP, REST APIs, SAP) without writing code, and when the team includes non-engineers. Databricks Workflows shine when all steps are Spark/Python-centric and you want tight coupling between compute and orchestration. In practice, ADF is often the outer orchestrator that triggers Databricks jobs.</div>
+    </div>
+    <div class="qa">
+      <div class="q">How does Delta Lake differ from a regular Parquet-on-S3/ADLS setup?</div>
+      <div class="a">Delta adds a transaction log (<code>_delta_log</code>) on top of Parquet files, enabling ACID transactions, schema enforcement, time travel (query older snapshots), and efficient MERGE/UPSERT operations — things that are fragile or impossible with plain Parquet. This is critical for CDC pipelines and multi-writer scenarios.</div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 3. AIRFLOW / SPARK                          -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="section" id="airflow">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2>Airflow / Spark Integration Abstractions</h2>
+      <span class="pill pill-green">Orchestration</span>
+    </div>
+
+    <div class="cards two">
+      <div class="card">
+        <div class="card-label">Airflow</div>
+        <h3>Core Concepts</h3>
+        <ul>
+          <li><strong>DAGs</strong> — directed acyclic graphs; define task dependencies declaratively</li>
+          <li><strong>Operators</strong> — PythonOperator, BashOperator, SparkSubmitOperator, KubernetesPodOperator</li>
+          <li><strong>XComs</strong> — pass small data between tasks (not DataFrames — use storage for large payloads)</li>
+          <li><strong>Sensors</strong> — wait for external conditions (file arrival, HTTP endpoint, Kafka lag)</li>
+          <li><strong>Dynamic DAG generation</strong> — factory pattern for multi-tenant pipelines</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Spark</div>
+        <h3>Integration Abstractions</h3>
+        <ul>
+          <li><strong>SparkSession</strong> — unified entry point; configure with builder pattern</li>
+          <li><strong>DataFrame API vs. SQL</strong> — prefer DataFrame for programmatic pipelines</li>
+          <li><strong>Partitioning strategy</strong> — partition on date + tenant_id for data locality</li>
+          <li><strong>Broadcast joins</strong> — small lookup tables → avoid shuffles</li>
+          <li><strong>Checkpointing</strong> — truncate lineage for streaming; prevent DAG blowup</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DEEP DIVE: AIRFLOW / SPARK -->
+    <div class="deep-dive">
+      <div class="deep-dive-header">
+        <span class="deep-dive-icon">Deep Dive</span>
+        <span class="deep-dive-title">Airflow &amp; Spark — Orchestration and Processing Explained</span>
+        <span class="deep-dive-toggle">▼</span>
+      </div>
+      <div class="deep-dive-body">
+
+        <div class="explain-block">
+          <h4>What Apache Airflow Is</h4>
+          <p><strong>Airflow</strong> is a workflow orchestration platform. You define pipelines as Python code — specifically as <strong>DAGs</strong> (Directed Acyclic Graphs), where nodes are Tasks and edges are dependencies. The key insight is that Airflow doesn't move or process data itself — it schedules and monitors the tools that do (Spark, SQL, REST calls, Kubernetes pods).</p>
+          <p>The Airflow scheduler continuously checks DAG definitions, determines which tasks are ready to run (all upstream dependencies succeeded), and sends them to a task queue. Workers pick up tasks and execute them. This architecture means Airflow can manage thousands of pipelines across hundreds of tenants without being a data bottleneck itself.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>DAGs, Tasks, and Operators in Practice</h4>
+          <p>An <strong>Operator</strong> defines what a task does: <code>PythonOperator</code> runs a Python function, <code>SparkSubmitOperator</code> submits a Spark job to a cluster, <code>KubernetesPodOperator</code> spins up a K8s pod and waits for it to complete (ideal for containerized data tasks). <code>Sensors</code> are special operators that poll until a condition is met — a file appears in ADLS, a Kafka consumer lag drops below a threshold, or an external API returns 200.</p>
+          <p><strong>XComs</strong> (cross-communications) let tasks share small values — a file path, a row count, a status flag. Never pass DataFrames through XComs; write large data to a shared storage location and pass the path.</p>
+          <div class="highlight-box"><strong>Execution date vs. run date:</strong> Airflow's <code>execution_date</code> is the logical date the DAG represents (e.g., "yesterday's data"), not when it actually runs. Always use <code>execution_date</code> as your partition key for idempotent pipelines — re-running a DAG for the same execution_date should produce the same result.</div>
+        </div>
+
+        <div class="explain-block">
+          <h4>Apache Spark — Distributed Data Processing</h4>
+          <p>Spark is a distributed compute engine. It splits data into <strong>partitions</strong>, distributes them across a cluster of workers, and executes operations in parallel. The <strong>DataFrame API</strong> provides a high-level abstraction: transformations (filter, join, groupBy) are lazy — Spark builds an execution plan and only runs it when you call an action (write, count, show). This lazy evaluation lets Spark's query optimizer (Catalyst) reorder and optimize operations before touching any data.</p>
+          <p><strong>Shuffles</strong> are the enemy of performance — they occur when data needs to be redistributed across partitions (joins on non-partition keys, groupBy). Each shuffle involves writing intermediate data to disk and sending it over the network. Minimizing shuffles via partitioning strategy, broadcast joins (for small tables), and pre-aggregation is the core of Spark performance tuning.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Spark Structured Streaming</h4>
+          <p>Structured Streaming treats a live data stream as an unbounded table. You write the same DataFrame API code as for batch; Spark handles the incremental execution. It reads new data in micro-batches (trigger interval: seconds to minutes), processes it, and writes to the sink. <strong>Checkpointing</strong> saves the stream's progress to storage — on restart, it resumes exactly where it left off. Combined with Delta Lake as the sink (which supports MERGE and idempotent writes), you get fault-tolerant, exactly-once stream processing.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Integration Abstraction Pattern — Operator Wrapping</h4>
+          <p>In mature pipelines, you create <strong>custom Airflow operators</strong> that encapsulate your platform's standards. Instead of every DAG author manually configuring Spark cluster settings, IAM credentials, and retry logic, they call your <code>TenantSparkOperator</code> with just business parameters. The operator handles tenant-specific cluster sizing, credential injection from Key Vault, standard logging, and alerting. This is what "integration abstraction" means in practice — hiding infrastructure concerns behind a clean interface.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <br>
+    <div class="concept">
+      <div class="concept-title">Abstraction Pattern — Multi-Tenant DAG Factory</div>
+      <p>At scale, don't write one DAG per tenant. Use a factory: read a config store (DB or YAML), loop to generate DAGs programmatically. Each DAG gets tenant-specific params injected via <code>default_args</code> or <code>params</code>. This keeps Airflow metadata DB lean and pipelines DRY.</p>
+    </div>
+
+    <div class="qa">
+      <div class="q">How do you handle a slow Spark job in a time-sensitive Airflow pipeline?</div>
+      <div class="a">Profile first with Spark UI — look for data skew, excessive shuffles, or spill to disk. Fix skew with salting or AQE (Adaptive Query Execution in Spark 3+). Reduce shuffles with broadcast joins or repartition hints. On the Airflow side, set SLAs and alerting so you catch regressions early. If it's a recurrent pattern, pre-compute aggregations upstream.</div>
+    </div>
+    <div class="qa">
+      <div class="q">How would you make Airflow pipelines idempotent?</div>
+      <div class="a">Design tasks to be re-runnable without side effects: use <code>execution_date</code> as a partition key, write to a staging location before atomically swapping, and use <code>MERGE</code> or <code>INSERT OVERWRITE PARTITION</code> instead of plain appends. Avoid global state; make each task self-contained given the same inputs.</div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 4. MULTI-TENANCY                            -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="section" id="multitenancy">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2>Multi-Tenancy Architecture</h2>
+      <span class="pill pill-blue">Architecture</span>
+    </div>
+
+    <div class="cards two">
+      <div class="card">
+        <div class="card-label">Tenant Identification</div>
+        <h3>Tagging Strategies</h3>
+        <ul>
+          <li><strong>Header-based</strong> — <code>X-Tenant-ID</code> in HTTP/Kafka headers; propagate through entire pipeline</li>
+          <li><strong>JWT claims</strong> — encode tenant in token; validated at every service boundary</li>
+          <li><strong>URL prefix / subdomain</strong> — <code>tenant1.api.domain.com</code> or <code>/api/t/{tenant_id}/</code></li>
+          <li><strong>Event envelope</strong> — always include <code>tenant_id</code> in message schema, never infer from topic alone</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Process Isolation</div>
+        <h3>Isolation Models</h3>
+        <ul>
+          <li><strong>Silo model</strong> — separate infra per tenant; max isolation, high cost</li>
+          <li><strong>Pool model</strong> — shared infra with logical separation; efficient but noisy-neighbor risk</li>
+          <li><strong>Bridge model</strong> — shared control plane, isolated data plane; Kubernetes namespaces, separate Spark clusters per tier</li>
+          <li><strong>Rate limiting per tenant</strong> — token bucket or leaky bucket at API/Kafka level</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DEEP DIVE: MULTI-TENANCY -->
+    <div class="deep-dive">
+      <div class="deep-dive-header">
+        <span class="deep-dive-icon">Deep Dive</span>
+        <span class="deep-dive-title">Multi-Tenancy Architecture — The Full Picture</span>
+        <span class="deep-dive-toggle">▼</span>
+      </div>
+      <div class="deep-dive-body">
+
+        <div class="explain-block">
+          <h4>What Multi-Tenancy Means</h4>
+          <p>A <strong>multi-tenant system</strong> serves multiple independent customers (tenants) from the same infrastructure. Each tenant's data must be logically (and often physically) isolated — tenant A must never see tenant B's data, and one tenant's workload must not degrade another's experience. This is Blue Yonder's core engineering challenge: hundreds of enterprise retailers and manufacturers share the same supply chain platform, each with completely different data volumes, SLAs, and compliance requirements.</p>
+          <p>Multi-tenancy is a spectrum. At one end: fully isolated infra per tenant (expensive but simple). At the other: fully shared everything (cheap but risky). Production systems live in between, with tiered isolation based on customer contract level.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Tenant Identification — Propagating Identity Through the Stack</h4>
+          <p>The first challenge is knowing <em>which tenant</em> a request or event belongs to. For HTTP APIs, this is typically a <code>X-Tenant-ID</code> header or a claim in the JWT access token. The critical rule: <strong>always include tenant_id in the event payload itself</strong> — never rely solely on which Kafka topic or storage path a message came from, because that context can be lost during DLQ replay, schema migration, or pipeline reprocessing.</p>
+          <p>Tenant identity must be propagated through every system boundary: API → Kafka message envelope → Spark job parameter → Delta Lake partition key → monitoring metrics label. If it breaks at any point, you lose the ability to audit, throttle, or isolate that tenant's data.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Process Isolation — Silo vs. Pool vs. Bridge</h4>
+          <p>The <strong>Silo model</strong> gives each tenant their own stack: dedicated Kafka cluster, Spark cluster, database. Maximum isolation, zero noisy-neighbor risk, but costs scale linearly with tenant count — impractical past a few dozen tenants.</p>
+          <p>The <strong>Pool model</strong> shares all infrastructure. A single Kafka cluster serves all tenants. A single Spark cluster processes all jobs. This is cost-efficient but requires careful resource governance to prevent one tenant from starving others.</p>
+          <p>The <strong>Bridge model</strong> is what sophisticated platforms use: shared control plane (Airflow scheduler, Kafka brokers, cluster manager) with isolated data planes. High-tier tenants get dedicated Spark job clusters or reserved Kafka partitions. Low-tier tenants share pooled resources. Kubernetes makes this tractable — namespaces, ResourceQuotas, and PriorityClasses create logical isolation on shared physical nodes.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>The Noisy-Neighbor Problem in Detail</h4>
+          <p>Imagine tenant A is a global retailer running a 500GB end-of-month batch. Tenant B is a small distributor expecting near-real-time order updates. On shared infrastructure, tenant A's batch can saturate Kafka broker I/O, exhaust Spark executor memory, or fill shared database connection pools — causing tenant B's real-time pipeline to fall behind by hours.</p>
+          <p>Solutions layer from the bottom up: <strong>Kafka client quotas</strong> limit bytes/second per producer or consumer client. <strong>Spark fair scheduler pools</strong> give each tenant a weight so no single job monopolizes executors. <strong>Kubernetes ResourceQuotas</strong> cap total CPU/memory per tenant namespace. <strong>Time-shifting</strong> schedules large batch jobs during off-peak windows via Airflow SLAs. And <strong>tenant tiering</strong> contractually defines what level of isolation and throughput each customer pays for.</p>
+          <div class="highlight-box"><strong>Design principle:</strong> Build throttling and quota enforcement at every layer independently. Never assume an upstream layer's quota is sufficient — each system should protect itself.</div>
+        </div>
+
+        <div class="explain-block">
+          <h4>Data Isolation Beyond Basic Segregation</h4>
+          <p>Row-level security (adding a <code>tenant_id</code> column and filtering queries) is the minimum. Real isolation goes deeper. <strong>Per-tenant encryption keys</strong> mean even if a data access bug bypasses RLS, tenant B still can't read tenant A's ciphertext without their key. <strong>Storage-level IAM</strong> on separate ADLS paths ensures a misconfigured Spark job that ignores tenant filters physically cannot read another tenant's files. <strong>Network policy</strong> in Kubernetes prevents a tenant's processing pod from making API calls to another tenant's namespace. Defense in depth — multiple independent isolation layers — is the enterprise standard.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <br>
+    <div class="card-label" style="padding: 8px 0; margin-bottom:16px;">DATA ISOLATION STRATEGIES</div>
+    <table class="tradeoff-table">
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>How it works</th>
+          <th>Best for</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Separate DB/schema</strong></td>
+          <td>Each tenant has own database or schema</td>
+          <td>High compliance (GDPR, HIPAA), enterprise SaaS</td>
+          <td>Expensive at scale; schema migrations complex</td>
+        </tr>
+        <tr>
+          <td><strong>Row-level security</strong></td>
+          <td><code>tenant_id</code> column + DB policy enforced at query layer</td>
+          <td>Cost-efficient; mid-tier isolation</td>
+          <td>Misconfigured policy = data leak; joins get complex</td>
+        </tr>
+        <tr>
+          <td><strong>Separate storage paths</strong></td>
+          <td>ADLS/S3 path: <code>/data/{tenant_id}/…</code> + IAM per path</td>
+          <td>Data lakes; works well with Delta Lake + Unity Catalog</td>
+          <td>IAM sprawl; cross-tenant aggregation is harder</td>
+        </tr>
+        <tr>
+          <td><strong>Kafka topic-per-tenant</strong></td>
+          <td>Dedicated topic per tenant; separate consumer groups</td>
+          <td>Strict audit trails; per-tenant replay</td>
+          <td>Topic explosion at scale; cluster management overhead</td>
+        </tr>
+        <tr>
+          <td><strong>Encrypted per-tenant keys</strong></td>
+          <td>Each tenant's data encrypted with unique key (KMS)</td>
+          <td>Compliance-heavy; layered on top of any model</td>
+          <td>Key management complexity; performance overhead</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <br>
+    <div class="qa">
+      <div class="q">How do you handle noisy-neighbor problems in a shared Kafka cluster?</div>
+      <div class="a">Apply per-tenant quotas via Kafka's built-in client quota APIs (<code>producer_byte_rate</code>, <code>consumer_byte_rate</code>). Assign high-priority tenants to dedicated partitions or topics. Use Cruise Control for partition rebalancing. At the application layer, implement a priority queue — high-tier tenant messages preempt lower tiers in the consumer processing loop.</div>
+    </div>
+    <div class="qa">
+      <div class="q">A large tenant's batch job is degrading performance for smaller tenants. How do you fix this architecturally?</div>
+      <div class="a">Short term: throttle or time-shift the large tenant's batch window. Medium term: implement tenant-tier–based resource pools — dedicated Spark clusters or ADF integration runtimes per tier. Long term: move to a queue-per-tier pattern with fair-share scheduling, and expose SLAs contractually so tenants understand their isolation guarantees.</div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- 5. KUBERNETES                               -->
+  <!-- ═══════════════════════════════════════════ -->
+  <section class="section" id="kubernetes">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2>Kubernetes &amp; Deployment Models</h2>
+      <span class="pill pill-orange">Platform</span>
+    </div>
+
+    <div class="cards two">
+      <div class="card">
+        <div class="card-label">Ingress & Routing</div>
+        <h3>Traffic Flow</h3>
+        <ul>
+          <li><strong>Ingress Controller</strong> — NGINX / Traefik / Kong; L7 routing rules into the cluster</li>
+          <li><strong>Ingress resource</strong> — host/path rules → backend Services</li>
+          <li><strong>ClusterIP / NodePort / LoadBalancer</strong> — service exposure types</li>
+          <li><strong>Service Mesh (Istio/Linkerd)</strong> — mTLS, traffic shifting, observability between pods</li>
+          <li><strong>Tenant routing</strong> — host-header based → different namespaces or deployments</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Blue-Green Deployments</div>
+        <h3>Rationale & Execution</h3>
+        <ul>
+          <li><strong>Two identical environments</strong> — blue (live), green (new version)</li>
+          <li><strong>Switch via Ingress</strong> — change service selector or Ingress backend; instant cut-over</li>
+          <li><strong>Zero-downtime rollout</strong> — green is fully warmed before any traffic shifts</li>
+          <li><strong>Instant rollback</strong> — flip selector back to blue; no re-deploy needed</li>
+          <li><strong>Cost</strong> — double resources during transition; mitigate with scheduled windows</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DEEP DIVE: KUBERNETES -->
+    <div class="deep-dive">
+      <div class="deep-dive-header">
+        <span class="deep-dive-icon">Deep Dive</span>
+        <span class="deep-dive-title">Kubernetes — Ingress, Routing &amp; Deployment Models Explained</span>
+        <span class="deep-dive-toggle">▼</span>
+      </div>
+      <div class="deep-dive-body">
+
+        <div class="explain-block">
+          <h4>What Kubernetes Does in a Data Platform</h4>
+          <p>Kubernetes (K8s) is a container orchestration system — it schedules containers onto a cluster of machines, ensures they stay running, handles scaling, and manages networking between them. In a data platform context, it runs the API services that serve processed data, the microservices that handle tenant management, the Airflow workers that execute pipeline tasks, and sometimes the Spark drivers themselves (via Spark-on-Kubernetes mode).</p>
+          <p>The abstraction hierarchy matters: <strong>Pods</strong> are the smallest deployable unit (one or more containers). <strong>Deployments</strong> manage a desired number of identical Pod replicas and handle rolling updates. <strong>Services</strong> provide stable network endpoints to reach a set of Pods. <strong>Ingress</strong> routes external HTTP/HTTPS traffic into services.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Ingress and Service Routing — How Traffic Flows</h4>
+          <p>An <strong>Ingress Controller</strong> is a reverse proxy (NGINX, Traefik, Kong) running inside the cluster that watches for <strong>Ingress resources</strong> — Kubernetes objects that define routing rules. An Ingress rule says: "requests to <code>api.platform.com/tenant/acme/orders</code> should go to the <code>acme-order-service</code> Service on port 8080." The controller translates this into proxy config and reloads dynamically as rules change.</p>
+          <p>For multi-tenant platforms, Ingress enables <strong>host-based routing</strong>: <code>acme.api.blueyonder.com</code> and <code>walmart.api.blueyonder.com</code> can route to completely different Deployments in different namespaces, all through one external load balancer. This is how you can give enterprise tenants a "dedicated" API endpoint backed by isolated compute without separate Kubernetes clusters.</p>
+          <div class="highlight-box"><strong>Service types explained:</strong> <code>ClusterIP</code> — internal only, no external access (use for service-to-service communication). <code>NodePort</code> — exposes on a port on every node, good for dev/debugging. <code>LoadBalancer</code> — provisions a cloud load balancer (Azure LB), used for external services that bypass Ingress. In production, most external traffic goes through Ingress + ClusterIP services.</div>
+        </div>
+
+        <div class="explain-block">
+          <h4>Blue-Green Deployment — Why and How</h4>
+          <p>A <strong>blue-green deployment</strong> solves a specific problem: how do you release a new version of a service with zero downtime and instant rollback capability? The answer is maintaining two complete, identical environments simultaneously.</p>
+          <p><strong>Blue</strong> is the current live environment serving 100% of traffic. <strong>Green</strong> is the new version, deployed and running but receiving no traffic. You run smoke tests, integration tests, and load tests against green. When confident, you update the Kubernetes Service selector to point to green pods — this is an atomic operation, traffic shifts instantly. If green shows errors (spike in 5xx responses, latency increase), you flip the selector back to blue in seconds — no re-deploy needed.</p>
+          <p>The trade-off is resource cost: you run 2× the pods during the transition window. For data platform services that are always running, this is manageable. For batch-only workers, you only pay during the deployment window.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Canary Releases — Gradual Confidence Building</h4>
+          <p>A <strong>canary release</strong> sends a small percentage of real production traffic (e.g., 5%) to the new version while the old version handles the rest. You observe error rates, latency, and business metrics for the canary. If healthy, progressively increase traffic: 5% → 25% → 50% → 100%. This is safer than blue-green for changes that might have subtle behavior differences under real load.</p>
+          <p>Implementation requires traffic splitting — either at the Ingress level (NGINX weighted backends, Istio VirtualService weights) or at the DNS level. Service meshes like <strong>Istio</strong> make this elegant: define a VirtualService that routes 5% to <code>v2</code> destination and 95% to <code>v1</code>, then update the weights incrementally without redeploying.</p>
+        </div>
+
+        <div class="explain-block">
+          <h4>Stateful Services — The Hard Part</h4>
+          <p>Stateless services (REST APIs) are easy to blue-green. Stateful services — Kafka consumers, Spark streaming jobs — are harder. A Kafka consumer in "blue" has uncommitted offsets in flight. If you kill it abruptly, those messages get reprocessed by green (at-least-once). To avoid this:</p>
+          <p>1) Use Kubernetes <code>preStop</code> lifecycle hooks to trigger a graceful shutdown signal. 2) The consumer processes its current batch, commits offsets to Kafka, and exits cleanly. 3) Only then does K8s terminate the pod and route to the green consumer. Combined with idempotent processing logic (duplicate messages produce the same output), this achieves zero data loss with minimal reprocessing.</p>
+          <div class="highlight-box"><strong>Schema migration rule:</strong> Never couple a schema change with a code deploy. First deploy a backward-compatible schema change (add new field as optional). Then deploy the code that uses it. Then — after all consumers are updated — clean up old fields. This "expand-contract" pattern keeps blue-green deployments safe even when the data schema evolves.</div>
+        </div>
+
+      </div>
+    </div>
+
+    <br>
+    <div class="concept">
+      <div class="concept-title">Production Rollout Strategy Spectrum</div>
+      <table class="tradeoff-table">
+        <thead>
+          <tr><th>Strategy</th><th>Mechanism</th><th>Rollback Speed</th><th>Risk</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Recreate</strong></td>
+            <td>Kill all old pods, start new</td>
+            <td>Minutes (re-deploy)</td>
+            <td>Downtime during switch</td>
+          </tr>
+          <tr>
+            <td><strong>Rolling Update</strong></td>
+            <td>Replace pods one-by-one; default K8s strategy</td>
+            <td>Fast (kubectl rollout undo)</td>
+            <td>Mixed versions briefly live</td>
+          </tr>
+          <tr>
+            <td><strong>Blue-Green</strong></td>
+            <td>Parallel env; traffic switch at once</td>
+            <td>Instant (selector flip)</td>
+            <td>2× resource cost; state sync complexity</td>
+          </tr>
+          <tr>
+            <td><strong>Canary</strong></td>
+            <td>Route X% traffic to new version; ramp up</td>
+            <td>Fast (remove canary)</td>
+            <td>Need traffic splitting (Istio/NGINX weights)</td>
+          </tr>
+          <tr>
+            <td><strong>Feature Flags</strong></td>
+            <td>Deploy code dark; enable per tenant/user</td>
+            <td>Instant (toggle off)</td>
+            <td>Dead code accumulation; testing complexity</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <br>
+    <div class="qa">
+      <div class="q">Walk me through executing a blue-green deployment in Kubernetes.</div>
+      <div class="a">Deploy the green version as a new Deployment with a different label (<code>version: green</code>). Keep the blue Deployment running. Once green passes health checks and smoke tests, update the Service selector from <code>version: blue</code> to <code>version: green</code> — traffic shifts atomically. Monitor error rates for 10–15 min. If clean, delete the blue Deployment. If issues arise, revert the selector in seconds.</div>
+    </div>
+    <div class="qa">
+      <div class="q">How do you handle a data pipeline service that cannot tolerate even brief mixed-version states?</div>
+      <div class="a">Use blue-green over rolling updates. For stateful services (Kafka consumers, Spark drivers), drain the old instance before starting the new one — use pre-stop hooks and graceful termination to commit final offsets/checkpoints. Coordinate schema migrations separately from code deploys using expand-contract (backward-compatible schema change first, then code, then cleanup).</div>
+    </div>
+    <div class="qa">
+      <div class="q">How do you configure resource limits for tenant workloads in Kubernetes?</div>
+      <div class="a">Use ResourceQuotas per namespace to cap total CPU/memory per tenant. Set LimitRanges to enforce default requests/limits per pod. For noisy workloads, use PriorityClasses — high-tier tenants get higher scheduling priority. Combine with HPA (Horizontal Pod Autoscaler) so individual tenant deployments scale within their quota bounds.</div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- TIPS                                         -->
+  <!-- ═══════════════════════════════════════════ -->
+  <div class="tips" id="tips">
+    <h3>// Interview Tips for Blue Yonder</h3>
+    <ul>
+      <li><strong>Anchor to supply chain context.</strong> Blue Yonder is a supply chain platform — connect your data engineering answers to real-time inventory, demand forecasting, and logistics use cases whenever possible.</li>
+      <li><strong>Lead with tradeoffs, not just answers.</strong> For architecture questions, always name 2–3 options and explain why you'd choose one given specific constraints (scale, latency, compliance).</li>
+      <li><strong>Multi-tenancy is their core challenge.</strong> They serve hundreds of enterprise customers on shared infrastructure — show depth here. Know the noisy-neighbor problem cold.</li>
+      <li><strong>Mention observability.</strong> Data pipelines without monitoring are incomplete. Mention OpenTelemetry, distributed tracing, Kafka lag dashboards, Spark UI, and alerting as natural parts of your designs.</li>
+      <li><strong>Show Kubernetes comfort at the platform layer.</strong> Don't just know what blue-green is — be able to describe the exact kubectl/manifest changes needed to execute it.</li>
+      <li><strong>Delta Lake + Unity Catalog = their likely stack.</strong> If you have Databricks experience, speak to Unity Catalog for governance in multi-tenant data lakes — it maps directly to their needs.</li>
+      <li><strong>Prepare a system design answer combining ≥3 of these tools.</strong> E.g. "Design a real-time inventory pipeline for 500 tenants" — Kafka → ADF/Functions → Databricks Delta Lake → K8s-served API.</li>
+    </ul>
+  </div>
+
+</div>
+<script>
+  document.querySelectorAll('.deep-dive-header').forEach(header => {
+    header.addEventListener('click', () => {
+      const body = header.nextElementSibling;
+      const toggle = header.querySelector('.deep-dive-toggle');
+      body.classList.toggle('open');
+      toggle.classList.toggle('open');
+    });
+  });
+  // Auto-open first deep dive in each section on load
+  document.querySelectorAll('.deep-dive-body').forEach((b,i) => {
+    if(i % 1 === 0) { b.classList.add('open'); b.previousElementSibling.querySelector('.deep-dive-toggle').classList.add('open'); }
+  });
+</script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

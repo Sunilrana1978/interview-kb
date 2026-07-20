@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enterprise Integration Planning Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1814;
+    --ink-muted: #5a5650;
+    --ink-faint: #9a9590;
+    --paper: #f7f4ef;
+    --paper-warm: #ede9e2;
+    --paper-card: #ffffff;
+    --rule: #d8d3ca;
+    --accent: #c0390f;
+    --accent-soft: #f5ede9;
+    --accent2: #1a5c8a;
+    --accent2-soft: #e8f2f8;
+    --teal: #0d6b5e;
+    --teal-soft: #e4f2f0;
+    --amber: #8a6000;
+    --amber-soft: #fdf3e0;
+    --purple: #5a3a8a;
+    --purple-soft: #f0ebfa;
+    --serif: 'Playfair Display', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 80px 60px 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,.04) 39px, rgba(255,255,255,.04) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,.04) 39px, rgba(255,255,255,.04) 40px);
+  }
+  .cover-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .cover h1 {
+    font-family: var(--serif);
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 700;
+    line-height: 1.12;
+    max-width: 620px;
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .cover h1 em {
+    font-style: italic;
+    color: #c8a882;
+  }
+  .cover-sub {
+    font-size: 15px;
+    color: rgba(247,244,239,.6);
+    max-width: 480px;
+    position: relative;
+    line-height: 1.65;
+  }
+  .cover-rule {
+    width: 56px;
+    height: 3px;
+    background: var(--accent);
+    margin: 32px 0;
+    position: relative;
+  }
+  .cover-meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgba(247,244,239,.4);
+    letter-spacing: .1em;
+    position: relative;
+    margin-top: 48px;
+  }
+
+  /* ── Layout ── */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── Table of contents ── */
+  .toc {
+    background: var(--paper-warm);
+    border-left: 3px solid var(--accent);
+    padding: 36px 40px;
+    margin: 48px 0;
+  }
+  .toc-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 20px;
+  }
+  .toc ol {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 32px;
+  }
+  .toc li { counter-increment: toc; }
+  .toc a {
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .toc a::before {
+    content: "0" counter(toc);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .toc a:hover { color: var(--accent); }
+
+  /* ── Phase sections ── */
+  .phase {
+    padding: 56px 0 48px;
+    border-top: 1px solid var(--rule);
+  }
+  .phase:first-of-type { border-top: none; }
+
+  .phase-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  .phase-number {
+    font-family: var(--serif);
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--paper-warm);
+    -webkit-text-stroke: 1.5px var(--rule);
+    flex-shrink: 0;
+    width: 56px;
+    text-align: center;
+    margin-top: -4px;
+  }
+  .phase-titles { flex: 1; }
+  .phase-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 4px;
+  }
+  .phase-title {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+
+  .phase-body {
+    padding-left: 80px;
+  }
+
+  .phase-intro {
+    font-size: 15px;
+    color: var(--ink-muted);
+    margin-bottom: 28px;
+    max-width: 640px;
+    font-style: italic;
+    border-left: 2px solid var(--rule);
+    padding-left: 16px;
+  }
+
+  /* ── Task lists ── */
+  .task-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .task-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+  .task-list li::before {
+    content: '';
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--rule);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .callout-icon {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: .1em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    text-transform: uppercase;
+  }
+  .callout-body { font-size: 14px; line-height: 1.65; }
+  .callout-body strong { font-weight: 500; }
+
+  .callout.note { background: var(--accent2-soft); }
+  .callout.note .callout-icon { background: var(--accent2); color: #fff; }
+  .callout.note .callout-body { color: #14415f; }
+
+  .callout.warn { background: var(--amber-soft); }
+  .callout.warn .callout-icon { background: var(--amber); color: #fff; }
+  .callout.warn .callout-body { color: #5c4000; }
+
+  .callout.tip { background: var(--teal-soft); }
+  .callout.tip .callout-icon { background: var(--teal); color: #fff; }
+  .callout.tip .callout-body { color: #0a4a42; }
+
+  /* ── Tables ── */
+  .table-wrap { overflow-x: auto; margin: 24px 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  thead tr {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  tbody tr { border-bottom: 1px solid var(--rule); }
+  tbody tr:nth-child(even) { background: var(--paper-warm); }
+  tbody td {
+    padding: 11px 16px;
+    vertical-align: top;
+    line-height: 1.55;
+    color: var(--ink);
+  }
+  tbody td:first-child {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* ── Code / tag pills ── */
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px 2px;
+    background: var(--paper-warm);
+    color: var(--ink-muted);
+    border: 1px solid var(--rule);
+  }
+  .pill.accent { background: var(--accent-soft); color: var(--accent); border-color: #e8b9aa; }
+  .pill.blue   { background: var(--accent2-soft); color: var(--accent2); border-color: #b5d0e8; }
+  .pill.teal   { background: var(--teal-soft); color: var(--teal); border-color: #a4d4ce; }
+  .pill.amber  { background: var(--amber-soft); color: var(--amber); border-color: #ddc47a; }
+  .pill.purple { background: var(--purple-soft); color: var(--purple); border-color: #c2a8e0; }
+
+  /* ── Checklist summary ── */
+  .checklist-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 28px 0;
+  }
+  .check-item {
+    background: var(--paper-card);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .check-num {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--rule);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 28px;
+  }
+  .check-text strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .check-text span {
+    font-size: 12px;
+    color: var(--ink-muted);
+    line-height: 1.4;
+  }
+
+  /* ── Section divider ── */
+  .section-break {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 8px 0 40px;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+  .section-break::before, .section-break::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--ink);
+    color: rgba(247,244,239,.4);
+    text-align: center;
+    padding: 32px 40px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    margin-top: 80px;
+  }
+
+  @media (max-width: 640px) {
+    .container { padding: 0 20px; }
+    .cover { padding: 48px 24px 40px; }
+    .toc ol { grid-template-columns: 1fr; }
+    .phase-body { padding-left: 0; }
+    .checklist-grid { grid-template-columns: 1fr; }
+    .phase-header { flex-direction: column; gap: 8px; }
+    .phase-number { font-size: 36px; }
+  }
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<!-- ── Cover ── -->
+<div class="cover">
+  <div class="cover-tag">Enterprise Architecture · Integration Practice</div>
+  <h1>Planning the Integration of a <em>New System</em> into the Enterprise Landscape</h1>
+  <div class="cover-rule"></div>
+  <p class="cover-sub">A step-by-step architect-level guide for onboarding a new SaaS or vendor application across Supply Chain, Product Creation, Finance, and Direct-to-Consumer domains.</p>
+  <div class="cover-meta">Version 1.0 &nbsp;·&nbsp; Enterprise Integration Architecture &nbsp;·&nbsp; Digital Technology Group</div>
+</div>
+
+<div class="container">
+
+  <!-- ── TOC ── -->
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <ol style="counter-reset: toc;">
+      <li><a href="#phase1">Discovery &amp; Landscape Assessment</a></li>
+      <li><a href="#phase2">Domain &amp; Data Flow Mapping</a></li>
+      <li><a href="#phase3">Integration Pattern Selection</a></li>
+      <li><a href="#phase4">API &amp; Canonical Data Model Design</a></li>
+      <li><a href="#phase5">Security &amp; Governance Review</a></li>
+      <li><a href="#phase6">Non-Functional Requirements</a></li>
+      <li><a href="#phase7">Build, Test &amp; Operate</a></li>
+      <li><a href="#summary">Summary Checklist</a></li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 1
+  ══════════════════════════════════════ -->
+  <div class="phase" id="phase1">
+    <div class="phase-header">
+      <div class="phase-number">1</div>
+      <div class="phase-titles">
+        <div class="phase-label">Phase One</div>
+        <div class="phase-title">Discovery &amp; Landscape Assessment</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">Before writing a single diagram, understand what already exists — on both sides of the integration boundary.</p>
+
+      <ul class="task-list">
+        <li>Audit the vendor's integration capabilities: REST APIs, webhooks, EDI, SFTP, or pre-built connectors</li>
+        <li>Map existing enterprise integration patterns already in use across your target domains</li>
+        <li>Identify the system of record for every shared entity (Product, Order, Inventory, Financial record)</li>
+        <li>Engage the vendor's technical team to understand their data model, rate limits, and versioning policy</li>
+        <li>Review the Enterprise Integration Architecture team's current standards and approved patterns</li>
+      </ul>
+
+      <div class="callout note">
+        <span class="callout-icon">Note</span>
+        <div class="callout-body"><strong>Engage architecture governance early.</strong> All external vendor integrations must align with the CDT architectural standards before design work begins. A late governance review is the most common cause of rework.</div>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon">Watch out</span>
+        <div class="callout-body"><strong>Avoid assuming data model parity.</strong> Vendor data models rarely match internal canonical models. Document mismatches during discovery — don't defer them to the build phase.</div>
+      </div>
+
+      <div class="section-break">Deliverables</div>
+      <ul class="task-list">
+        <li>Vendor integration capability matrix</li>
+        <li>System-of-record map per entity type</li>
+        <li>Architecture standards alignment checklist</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 2
+  ══════════════════════════════════════ -->
+  <div class="phase" id="phase2">
+    <div class="phase-header">
+      <div class="phase-number">2</div>
+      <div class="phase-titles">
+        <div class="phase-label">Phase Two</div>
+        <div class="phase-title">Domain &amp; Data Flow Mapping</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">Model what data needs to flow, in which direction, and at what frequency — for each domain pair.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th>Entities exchanged</th>
+              <th>Direction</th>
+              <th>Trigger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Supply chain / planning</td>
+              <td>Inventory levels, purchase orders, forecasts, shipment status</td>
+              <td>Bidirectional</td>
+              <td>Event-driven + nightly batch</td>
+            </tr>
+            <tr>
+              <td>Product creation / PLM</td>
+              <td>BOMs, material specs, colorways, product attributes</td>
+              <td>Inbound to vendor</td>
+              <td>On product lifecycle event</td>
+            </tr>
+            <tr>
+              <td>Finance / ERP (SAP)</td>
+              <td>GL entries, cost centers, invoices, payment status</td>
+              <td>Bidirectional</td>
+              <td>Scheduled batch + event triggers</td>
+            </tr>
+            <tr>
+              <td>DTC / eCommerce</td>
+              <td>Orders, catalog data, pricing, customer data</td>
+              <td>Bidirectional</td>
+              <td>Real-time event-driven</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">Tip</span>
+        <div class="callout-body">For each row in the table above, also define the <strong>latency SLA</strong> (e.g., "inventory updates must propagate within 5 minutes during peak trading") and the <strong>failure behavior</strong> (retry? dead-letter? alert?). These drive pattern selection in Phase 3.</div>
+      </div>
+
+      <div class="section-break">Deliverables</div>
+      <ul class="task-list">
+        <li>Data flow diagram per domain (entities, direction, frequency)</li>
+        <li>Latency SLA matrix</li>
+        <li>Failure behavior decision log</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 3
+  ══════════════════════════════════════ -->
+  <div class="phase" id="phase3">
+    <div class="phase-header">
+      <div class="phase-number">3</div>
+      <div class="phase-titles">
+        <div class="phase-label">Phase Three</div>
+        <div class="phase-title">Integration Pattern Selection</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">Map each data flow to the right architectural pattern. Mismatched patterns are the leading cause of reliability and maintainability problems.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Pattern</th>
+              <th>When to use</th>
+              <th>Platform tooling</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Async event-driven</td>
+              <td>Real-time triggers: order placed, inventory threshold crossed</td>
+              <td><span class="pill blue">Azure Service Bus</span> <span class="pill blue">Topics / queues</span></td>
+            </tr>
+            <tr>
+              <td>Sync API call</td>
+              <td>Request-response lookups: price check, stock availability query</td>
+              <td><span class="pill accent">Azure APIM</span></td>
+            </tr>
+            <tr>
+              <td>Scheduled batch</td>
+              <td>Bulk syncs: overnight PLM → ERP product data reconciliation</td>
+              <td><span class="pill blue">Azure Logic Apps</span> <span class="pill blue">Azure Data Factory</span></td>
+            </tr>
+            <tr>
+              <td>Orchestration</td>
+              <td>Multi-step workflows crossing two or more domains</td>
+              <td><span class="pill blue">Logic Apps stateful</span></td>
+            </tr>
+            <tr>
+              <td>Choreography</td>
+              <td>Loosely coupled domain events where no central coordinator is needed</td>
+              <td><span class="pill blue">Service Bus pub/sub</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout note">
+        <span class="callout-icon">Key decision</span>
+        <div class="callout-body"><strong>Orchestration vs. choreography</strong> is the most consequential architectural decision in this phase. For flows crossing SAP + PLM + Supply Chain simultaneously, <strong>orchestration</strong> provides better observability and error handling. For high-volume DTC event streams, <strong>choreography</strong> is more resilient and scalable.</div>
+      </div>
+
+      <div class="section-break">Deliverables</div>
+      <ul class="task-list">
+        <li>Pattern decision record per integration flow</li>
+        <li>Architecture Decision Record (ADR) for orchestration vs. choreography</li>
+        <li>Integration topology diagram</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 4
+  ══════════════════════════════════════ -->
+  <div class="phase" id="phase4">
+    <div class="phase-header">
+      <div class="phase-number">4</div>
+      <div class="phase-titles">
+        <div class="phase-label">Phase Four</div>
+        <div class="phase-title">API &amp; Canonical Data Model Design</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">This is the core technical design phase. Decisions here govern every downstream implementation choice.</p>
+
+      <ul class="task-list">
+        <li>Define canonical data models for all shared entities: <span class="pill teal">Product</span> <span class="pill teal">Order</span> <span class="pill teal">InventoryUnit</span> <span class="pill teal">CostRecord</span></li>
+        <li>Design vendor-to-canonical transformation mappings — document every field mismatch explicitly</li>
+        <li>Establish API versioning strategy (URI-based <code>/v1/</code> vs. header-based) and publish via APIM</li>
+        <li>Define backward-compatibility rules to protect downstream consumers from breaking changes</li>
+        <li>For SAP flows: choose the right interface mechanism</li>
+      </ul>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>SAP interface type</th>
+              <th>Use case</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>IDoc / BAPI</td>
+              <td>Legacy batch integrations, EDI-style messaging</td>
+              <td>Mature but verbose; prefer for existing SAP-to-SAP patterns</td>
+            </tr>
+            <tr>
+              <td>SAP Integration Suite</td>
+              <td>Managed SAP-native middleware</td>
+              <td>Best for SAP Cloud / S/4HANA; aligns with SAP roadmap</td>
+            </tr>
+            <tr>
+              <td>REST API via APIM</td>
+              <td>Modern event-driven or sync flows</td>
+              <td>Preferred for new integrations; provides gateway-level governance</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">Tip</span>
+        <div class="callout-body">Design the canonical model first, independently of both the vendor's model and the internal ERP model. The canonical model is a <strong>contract</strong>, not a copy of either side. This decoupling is what allows either side to evolve without breaking the other.</div>
+      </div>
+
+      <div class="section-break">Deliverables</div>
+      <ul class="task-list">
+        <li>Canonical data model definitions (OpenAPI / JSON Schema)</li>
+        <li>Field mapping documents per integration flow</li>
+        <li>API versioning policy document</li>
+        <li>SAP interface selection rationale</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 5
+  ══════════════════════════════════════ -->
+  <div class="phase" id="phase5">
+    <div class="phase-header">
+      <div class="phase-number">5</div>
+      <div class="phase-titles">
+        <div class="phase-label">Phase Five</div>
+        <div class="phase-title">Security &amp; Governance Review</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">No external system connects without passing a security and governance gate. This is a hard checkpoint, not a formality.</p>
+
+      <ul class="task-list">
+        <li>Authentication: OAuth 2.0 client credentials or API keys managed via APIM policies</li>
+        <li>Authorization: role-based access scoped per domain — Supply Chain data ≠ Finance data access</li>
+        <li>Data residency review: where does the vendor store data? Are global brand requirements met across US, EMEA, APAC?</li>
+        <li>PII &amp; sensitive data handling: customer order data (DTC) requires explicit classification and handling rules</li>
+        <li>Vendor security posture review: SOC 2 Type II, ISO 27001, penetration testing cadence, incident response SLA</li>
+        <li>Network topology review: VNet integration, private endpoints, or public API with IP allowlisting?</li>
+      </ul>
+
+      <div class="callout warn">
+        <span class="callout-icon">Watch out</span>
+        <div class="callout-body"><strong>DTC flows carry customer PII.</strong> Any integration touching the Direct-to-Consumer domain must go through a full data privacy review — including GDPR (EMEA), CCPA (California), and any applicable local data laws. This cannot be retrofitted after go-live.</div>
+      </div>
+
+      <div class="section-break">Deliverables</div>
+      <ul class="task-list">
+        <li>Security review sign-off from InfoSec</li>
+        <li>Data classification matrix per entity and domain</li>
+        <li>Vendor security assessment results</li>
+        <li>Network topology diagram with access control annotations</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 6
+  ══════════════════════════════════════ -->
+  <div class="phase" id="phase6">
+    <div class="phase-header">
+      <div class="phase-number">6</div>
+      <div class="phase-titles">
+        <div class="phase-label">Phase Six</div>
+        <div class="phase-title">Non-Functional Requirements</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">Define NFRs explicitly before build begins. They drive infrastructure sizing, SLA commitments, and on-call responsibilities.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>NFR category</th>
+              <th>Questions to answer</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Throughput</td>
+              <td>Peak transactions per minute? What is the seasonal multiplier (e.g., holiday peak for DTC)?</td>
+            </tr>
+            <tr>
+              <td>Latency</td>
+              <td>Acceptable end-to-end delay per flow? P95 and P99 targets, not just averages.</td>
+            </tr>
+            <tr>
+              <td>Reliability</td>
+              <td>Retry logic configured? Dead-letter queues monitored? Idempotency keys on all write operations?</td>
+            </tr>
+            <tr>
+              <td>Scalability</td>
+              <td>Auto-scale triggers defined in Azure? Maximum concurrency limits set on consumers?</td>
+            </tr>
+            <tr>
+              <td>Observability</td>
+              <td>Correlation IDs propagated end-to-end? Dashboards configured? Alert thresholds set?</td>
+            </tr>
+            <tr>
+              <td>Disaster recovery</td>
+              <td>RPO and RTO targets per domain? Failover topology documented and tested?</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout tip">
+        <span class="callout-icon">Tip</span>
+        <div class="callout-body">Model peak load at <strong>3–5× the expected average</strong> for DTC-connected flows. E-commerce workloads are highly spiky and integration layers are frequently the first bottleneck to surface under load.</div>
+      </div>
+
+      <div class="section-break">Deliverables</div>
+      <ul class="task-list">
+        <li>NFR specification document, signed off by product and engineering leads</li>
+        <li>Capacity model and Azure resource sizing estimate</li>
+        <li>SLA commitments documented per integration flow</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PHASE 7
+  ══════════════════════════════════════ -->
+  <div class="phase" id="phase7">
+    <div class="phase-header">
+      <div class="phase-number">7</div>
+      <div class="phase-titles">
+        <div class="phase-label">Phase Seven</div>
+        <div class="phase-title">Build, Test &amp; Operate</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">Design-first, test-first. Build sequence matters — starting with infrastructure before contracts is the most common source of integration debt.</p>
+
+      <div class="section-break">Build sequence</div>
+      <ul class="task-list">
+        <li>Publish API contracts in Azure APIM using design-first OpenAPI specifications</li>
+        <li>Build transformation logic and integration flows in lower environments (dev → staging)</li>
+        <li>Map vendor data to canonical model — handle field mismatches explicitly with documented transformations</li>
+        <li>Test with production-like volumes, including deliberate failure scenarios</li>
+        <li>Promote to production with staged rollout and feature flags where possible</li>
+      </ul>
+
+      <div class="section-break">Testing requirements</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Test type</th>
+              <th>What it validates</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Unit tests</td>
+              <td>Transformation logic: field mappings, data type coercions, null handling</td>
+            </tr>
+            <tr>
+              <td>Contract tests</td>
+              <td>Vendor schema vs. canonical model; detect breaking changes before they reach production</td>
+            </tr>
+            <tr>
+              <td>End-to-end tests</td>
+              <td>Full flow per domain: SaaS → integration layer → target system → response</td>
+            </tr>
+            <tr>
+              <td>Performance tests</td>
+              <td>Validate NFR targets under peak load, with real-world message sizes</td>
+            </tr>
+            <tr>
+              <td>Chaos / resilience tests</td>
+              <td>Vendor downtime, malformed payloads, SAP unavailability, Service Bus throttling</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-break">Operate</div>
+      <ul class="task-list">
+        <li>Instrument all integration flows with correlation IDs for end-to-end distributed tracing</li>
+        <li>Configure dead-letter queue alerting and automated requeue procedures</li>
+        <li>Build and publish runbooks for the top 5 expected failure scenarios per domain</li>
+        <li>Onboard to observability dashboards with alert routing to the on-call team</li>
+        <li>Schedule quarterly vendor API change reviews to catch deprecation notices early</li>
+      </ul>
+
+      <div class="callout note">
+        <span class="callout-icon">Note</span>
+        <div class="callout-body"><strong>Observability is not optional.</strong> An integration without correlation IDs, dead-letter monitoring, and structured logging is unoperatable at scale. Build this in from day one — retrofitting observability into a running integration is expensive and error-prone.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SUMMARY
+  ══════════════════════════════════════ -->
+  <div class="phase" id="summary">
+    <div class="phase-header">
+      <div class="phase-number" style="-webkit-text-stroke-color: var(--accent); color: var(--accent-soft);">✓</div>
+      <div class="phase-titles">
+        <div class="phase-label">Summary</div>
+        <div class="phase-title">Architect's Checklist</div>
+      </div>
+    </div>
+    <div class="phase-body">
+      <p class="phase-intro">All seven phases must be completed before production go-live. Each phase has a required deliverable set that gates the next phase.</p>
+
+      <div class="checklist-grid">
+        <div class="check-item">
+          <div class="check-num">1</div>
+          <div class="check-text">
+            <strong>Discovery</strong>
+            <span>Vendor capability audit · CDT landscape review · system-of-record map</span>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">2</div>
+          <div class="check-text">
+            <strong>Domain mapping</strong>
+            <span>Data flows, ownership, direction, frequency, and latency SLAs per domain</span>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">3</div>
+          <div class="check-text">
+            <strong>Pattern selection</strong>
+            <span>Async / sync / batch / orchestration / choreography — per flow with ADR</span>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">4</div>
+          <div class="check-text">
+            <strong>API &amp; canonical model</strong>
+            <span>OpenAPI contracts, versioning policy, SAP interface selection</span>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">5</div>
+          <div class="check-text">
+            <strong>Security &amp; governance</strong>
+            <span>Auth, data residency, PII review, vendor assessment, InfoSec sign-off</span>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">6</div>
+          <div class="check-text">
+            <strong>NFR definition</strong>
+            <span>Throughput, latency, reliability, scalability, observability, DR targets</span>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">7</div>
+          <div class="check-text">
+            <strong>Build &amp; test</strong>
+            <span>Design-first · contract tests · chaos tests · performance tests</span>
+          </div>
+        </div>
+        <div class="check-item">
+          <div class="check-num">8</div>
+          <div class="check-text">
+            <strong>Operate</strong>
+            <span>Correlation IDs · dead-letter alerting · runbooks · observability dashboards</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  Enterprise Integration Architecture &nbsp;·&nbsp; Digital Technology Group &nbsp;·&nbsp; Internal Use Only
+</footer>
+
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>

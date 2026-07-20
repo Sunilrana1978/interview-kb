@@ -16,14 +16,24 @@ A static web app — no build system, no package manager, no test runner. It is 
 ├── CLAUDE.md
 ├── .gitignore
 └── guides/
-    └── *.html          # 41 self-contained guide pages
+    ├── ai-rag/          # AI & RAG
+    ├── cloud-aws/       # Cloud & AWS
+    ├── devops/          # DevOps & Infrastructure
+    ├── system-design/   # System Design
+    ├── data-engineering/
+    ├── security/
+    ├── programming/
+    └── interview-prep/
+        └── *.html       # self-contained guide pages, one topic folder per sidebar category
 ```
+
+Guide pages live two levels deep (`guides/<topic>/file.html`), so their injected nav uses `../../index.html` and `../../favicon.svg` (not `../`).
 
 ## Viewing Locally
 
 ```bash
-open index.html                               # main landing page
-open "guides/kubernetes-guide.html"           # any individual guide
+open index.html                                        # main landing page
+open "guides/devops/kubernetes-guide.html"              # any individual guide
 ```
 
 No server required. Every file is a standalone HTML page.
@@ -48,13 +58,15 @@ Single-file app with all CSS and JS inline. Key sections:
 - **Sidebar filter** — clicking a `.sidebar-item[data-filter]` toggles `all-hidden` on sections whose `data-cat` doesn't match
 - **Search** — live `input` listener iterates `.card` elements, toggling `.hidden`; press `/` to focus, `Escape` to blur
 
-### Guide pages (`guides/*.html`)
+### Guide pages (`guides/<topic>/*.html`)
 
-Each guide is fully self-contained with its own embedded CSS, fonts, and content. Every guide has these snippets injected:
+Each guide is fully self-contained with its own embedded CSS, fonts, and content, and lives under a topic subfolder (`ai-rag`, `cloud-aws`, `devops`, `system-design`, `data-engineering`, `security`, `programming`, `interview-prep`). Every guide has these snippets injected:
 
 1. **Anti-flash script** — inline `<script>` in `<head>` reads `localStorage` and applies `html.dark` before paint
 2. **Shared CSS** (`<style id="kb-shared">`) — injected before `</head>`: overrides all guide pages with Inter font, consistent light/dark colours, table and code block styles
-3. **Blue topnav** — injected after `<body>`: fixed full-width nav with "Interview KB" brand, `← All Guides` link back to `../index.html`, and theme toggle
+3. **Blue topnav** — injected after `<body>`: fixed full-width nav with "Interview KB" brand, `← All Guides` link back to `../../index.html`, and theme toggle
+
+Because guides sit two levels deep, both the favicon `<link>` and the topnav links use `../../` — not `../`.
 
 ### Theme convention
 
@@ -69,30 +81,32 @@ Both `index.html` and guide pages use the same convention:
 
 ### Bulk-modifying guide pages
 
-Use Python to modify all 41 guides at once:
+Use Python to modify all guides at once (walk topic subfolders recursively):
 
 ```python
 import os, re
-directory = "/Users/sunilkumar/Documents/Personal/Interview Questions/guides"
-files = [f for f in os.listdir(directory) if f.endswith('.html') and not f.startswith('~')]
-for fname in files:
-    path = os.path.join(directory, fname)
-    with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-        content = f.read()
-    # modify content ...
-    content = re.sub(r'(</head>)', YOUR_SNIPPET + r'\n\1', content, count=1, flags=re.IGNORECASE)
-    with open(path, 'w', encoding='utf-8') as f:
-        f.write(content)
+root = "/Users/sunilkumar/Documents/Personal/Interview Questions/guides"
+for dirpath, _, filenames in os.walk(root):
+    for fname in filenames:
+        if not fname.endswith('.html') or fname.startswith('~'):
+            continue
+        path = os.path.join(dirpath, fname)
+        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        # modify content ...
+        content = re.sub(r'(</head>)', YOUR_SNIPPET + r'\n\1', content, count=1, flags=re.IGNORECASE)
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content)
 ```
 
 ### Adding a new guide
 
-1. Place the HTML file in `guides/`
-2. Ensure it has the standard nav injected (run the bulk-modify script or add manually)
+1. Place the HTML file in the matching `guides/<topic>/` folder (`ai-rag`, `cloud-aws`, `devops`, `system-design`, `data-engineering`, `security`, `programming`, `interview-prep`)
+2. Ensure it has the standard nav injected, using `../../index.html` and `../../favicon.svg` (two levels deep)
 3. Add a card to the correct `<div class="section cat-X">` block in `index.html`:
 
 ```html
-<a class="card" href="guides/your-file.html">
+<a class="card" href="guides/<topic>/your-file.html">
   <div class="card-top">
     <div class="card-title">Guide Title</div>
     <div class="card-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg></div>

@@ -1,0 +1,1760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Supply Chain System Design</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e14;
+  --bg2: #0f1520;
+  --bg3: #141c2b;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.14);
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #4ade80;
+  --accent-amber: #fbbf24;
+  --accent-red: #f87171;
+  --accent-purple: #a78bfa;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HEADER ── */
+header {
+  position: relative;
+  z-index: 10;
+  padding: 36px 40px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.header-left { display: flex; flex-direction: column; gap: 6px; }
+.header-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent-teal);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+}
+.header-badge::before {
+  content: '';
+  display: inline-block; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--accent-teal);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+h1 {
+  font-family: var(--mono);
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: #fff;
+  line-height: 1.1;
+}
+h1 span { color: var(--accent-blue); }
+
+.header-meta {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.stat-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+.stat-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 3px;
+  border: 1px solid var(--border2);
+  background: var(--bg3);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.stat-pill strong { color: var(--text); font-weight: 500; }
+
+/* ── MAIN LAYOUT ── */
+main {
+  position: relative;
+  z-index: 5;
+  padding: 32px 40px 60px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── SECTION LABELS ── */
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 12px;
+}
+.section-label::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--border);
+}
+
+/* ── TIER CONTAINERS ── */
+.tier {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 6px;
+  position: relative;
+  background: var(--bg2);
+  transition: border-color 0.2s;
+}
+.tier:hover { border-color: var(--border2); }
+.tier-tag {
+  position: absolute;
+  top: -1px; left: 16px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 0 0 4px 4px;
+  border: 1px solid;
+  border-top: none;
+}
+.tier-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 12px;
+  margin-top: 6px;
+  padding-left: 2px;
+}
+
+.tier-user    { border-color: rgba(56,189,248,.2); }
+.tier-user .tier-tag   { background: rgba(56,189,248,.08); color: var(--accent-blue); border-color: rgba(56,189,248,.3); }
+.tier-api     { border-color: rgba(167,139,250,.2); }
+.tier-api .tier-tag    { background: rgba(167,139,250,.08); color: var(--accent-purple); border-color: rgba(167,139,250,.3); }
+.tier-core    { border-color: rgba(45,212,191,.2); }
+.tier-core .tier-tag   { background: rgba(45,212,191,.08); color: var(--accent-teal); border-color: rgba(45,212,191,.3); }
+.tier-infra   { border-color: rgba(251,191,36,.2); }
+.tier-infra .tier-tag  { background: rgba(251,191,36,.08); color: var(--accent-amber); border-color: rgba(251,191,36,.3); }
+.tier-data    { border-color: rgba(248,113,113,.2); }
+.tier-data .tier-tag   { background: rgba(248,113,113,.08); color: var(--accent-red); border-color: rgba(248,113,113,.3); }
+
+/* ── BOX GRID ── */
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+.box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 12px 10px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+.box::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.box:hover { border-color: var(--border2); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+.box:hover::before { opacity: 1; }
+
+.box-icon {
+  font-size: 18px;
+  margin-bottom: 8px;
+  display: block;
+  line-height: 1;
+}
+.box-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  color: #fff;
+}
+.box-sub {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+  border: 1px solid currentColor;
+  opacity: 0.7;
+}
+
+.box-blue   { color: var(--accent-blue); }
+.box-teal   { color: var(--accent-teal); }
+.box-green  { color: var(--accent-green); }
+.box-amber  { color: var(--accent-amber); }
+.box-red    { color: var(--accent-red); }
+.box-purple { color: var(--accent-purple); }
+
+/* ── CONNECTOR ── */
+.connector {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; height: 28px;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+.conn-line { flex: 1; max-width: 240px; display: flex; align-items: center; gap: 4px; }
+.conn-line::before, .conn-line::after { content: ''; flex: 1; height: 1px; background: var(--border2); }
+.conn-arrow { font-size: 14px; color: var(--border2); }
+
+/* ── USE CASE SECTION ── */
+.uc-section { margin-top: 28px; }
+.uc-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+.uc-tab {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  padding: 6px 14px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+}
+.uc-tab:hover { border-color: var(--border2); color: var(--text); }
+.uc-tab.active { background: rgba(56,189,248,.1); border-color: rgba(56,189,248,.4); color: var(--accent-blue); }
+.uc-tab-saga { border-color: rgba(167,139,250,.25); color: rgba(167,139,250,.6); }
+.uc-tab-saga.active { background: rgba(167,139,250,.1); border-color: rgba(167,139,250,.5); color: var(--accent-purple); }
+.uc-tab-saga:hover { border-color: rgba(167,139,250,.4); color: var(--accent-purple); }
+.uc-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 24px;
+}
+.saga-card {
+  background: var(--bg2);
+  border: 1px solid rgba(167,139,250,.2);
+  border-radius: 6px;
+  padding: 0;
+  overflow: hidden;
+}
+.saga-header {
+  padding: 16px 24px 12px;
+  border-bottom: 1px solid rgba(167,139,250,.15);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.saga-title {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  color: var(--accent-purple);
+  display: flex; align-items: center; gap: 10px;
+}
+.saga-title::before { content: '//'; color: var(--muted); }
+.saga-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.saga-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.saga-pill {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 2px 8px; border-radius: 2px;
+  border: 1px solid rgba(167,139,250,.3); color: var(--accent-purple);
+  background: rgba(167,139,250,.07);
+}
+.saga-diagram {
+  padding: 16px 20px 8px;
+  overflow-x: auto;
+}
+.saga-diagram svg { display: block; min-width: 600px; }
+.saga-steps-title {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 12px 24px 6px;
+  border-top: 1px solid var(--border);
+}
+.saga-steps { padding: 0 24px 16px; display: flex; flex-direction: column; gap: 0; }
+.saga-step {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+.saga-step:last-child { border-bottom: none; }
+.saga-step-num {
+  font-family: var(--mono); font-size: 10px;
+  width: 20px; height: 20px; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.saga-step-num.happy { background: rgba(45,212,191,.1); border: 1px solid rgba(45,212,191,.3); color: var(--accent-teal); }
+.saga-step-num.comp  { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); color: var(--accent-red); }
+.saga-step-num.wait  { background: rgba(251,191,36,.1);  border: 1px solid rgba(251,191,36,.3);  color: var(--accent-amber); }
+.saga-step-body { flex: 1; }
+.saga-step-action {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  margin-bottom: 2px;
+}
+.saga-step-action.happy { color: var(--accent-teal); }
+.saga-step-action.comp  { color: var(--accent-red); }
+.saga-step-action.wait  { color: var(--accent-amber); }
+.saga-step-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.saga-step-compensate {
+  font-size: 11px; color: var(--accent-red);
+  font-family: var(--mono); margin-top: 3px;
+  opacity: 0.8;
+}
+.saga-principle {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 8px 24px 8px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.saga-principle-icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+.saga-principle-text { color: var(--muted); line-height: 1.55; }
+.saga-principle-text strong { color: var(--text); font-weight: 500; }
+.uc-title {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.uc-title::before { content: '//'; color: var(--muted); }
+.uc-steps { display: flex; flex-direction: column; gap: 0; }
+.uc-step {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  animation: stepIn 0.3s ease both;
+}
+.uc-step:last-child { border-bottom: none; }
+@keyframes stepIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+.uc-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  width: 22px; height: 22px;
+  border-radius: 2px;
+  background: rgba(56,189,248,.1);
+  border: 1px solid rgba(56,189,248,.3);
+  color: var(--accent-blue);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.uc-text { font-size: 13px; color: #94a3b8; line-height: 1.55; }
+.uc-domain {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 2px;
+  margin-right: 4px;
+  background: rgba(45,212,191,.08);
+  color: var(--accent-teal);
+  border: 1px solid rgba(45,212,191,.2);
+  white-space: nowrap;
+}
+
+/* ── PANEL ── */
+.panel-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.6);
+  backdrop-filter: blur(4px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.22s;
+}
+.panel-overlay.open { opacity: 1; pointer-events: all; }
+.panel {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: 380px;
+  max-width: 90vw;
+  background: var(--bg2);
+  border-left: 1px solid var(--border2);
+  padding: 0;
+  z-index: 201;
+  transform: translateX(100%);
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.panel.open { transform: translateX(0); }
+
+.panel-header {
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--bg2);
+  z-index: 1;
+}
+.panel-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 28px; height: 28px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 3px; cursor: pointer;
+  color: var(--muted); font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.panel-close:hover { border-color: var(--border2); color: var(--text); }
+.panel-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+.panel-title { font-family: var(--mono); font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.panel-sub { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+.panel-body { padding: 20px 24px; flex: 1; }
+.panel-section {
+  font-family: var(--mono); font-size: 9px;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--muted);
+  margin: 18px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.panel-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.panel-tag {
+  font-family: var(--mono); font-size: 10px;
+  padding: 3px 9px; border-radius: 2px;
+  background: var(--bg3); border: 1px solid var(--border2);
+  color: #94a3b8;
+}
+.metric-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.metric-row:last-child { border-bottom: none; }
+.metric-row span:first-child { color: var(--muted); }
+.metric-row span:last-child { font-family: var(--mono); color: var(--accent-teal); font-weight: 500; }
+.case-row {
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px; color: #94a3b8; line-height: 1.5;
+  display: flex; gap: 8px; align-items: flex-start;
+}
+.case-row:last-child { border-bottom: none; }
+.case-row::before { content: '→'; color: var(--muted); flex-shrink: 0; }
+.panel-ask-btn {
+  display: block; width: 100%;
+  margin-top: 20px; padding: 10px;
+  background: rgba(56,189,248,.08);
+  border: 1px solid rgba(56,189,248,.3);
+  border-radius: 4px;
+  font-family: var(--mono); font-size: 12px;
+  color: var(--accent-blue); cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.panel-ask-btn:hover { background: rgba(56,189,248,.14); border-color: rgba(56,189,248,.5); }
+.panel-ask-btn::before { content: '$ '; opacity: .5; }
+
+/* ── LEGEND ── */
+.legend {
+  display: flex; flex-wrap: wrap; gap: 16px;
+  margin-top: 28px; padding: 16px 20px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.legend-item { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── PAGE NAV ── */
+.page-nav {
+  position: relative; z-index: 10;
+  display: flex; gap: 2px;
+  padding: 0 40px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.page-nav-btn {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+  text-transform: uppercase; padding: 12px 18px;
+  border: none; border-bottom: 2px solid transparent;
+  background: transparent; color: var(--muted);
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.15s;
+}
+.page-nav-btn:hover { color: var(--text); }
+.page-nav-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
+.page-section { display: none; }
+.page-section.active { display: block; }
+.arch-diagram-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 6px; overflow-x: auto; margin-top: 20px;
+}
+.arch-diagram-wrap svg { display: block; min-width: 700px; width: 100%; }
+.arch-note {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  padding: 12px 20px; border-top: 1px solid var(--border);
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.arch-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; display:inline-block; margin-right:5px; vertical-align:middle; }
+.cmp-header-row {
+  display: grid; grid-template-columns: 160px 1fr 1fr;
+  background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 4px 4px 0 0;
+}
+.cmp-header-cell {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 14px;
+}
+.cmp-header-cell.azure { color: #60b0ff; border-left: 1px solid var(--border); }
+.cmp-header-cell.aws   { color: #ff9a60; border-left: 1px solid var(--border); }
+.cmp-group { border: 1px solid var(--border); border-top: none; }
+.cmp-group:last-of-type { border-radius: 0 0 4px 4px; overflow: hidden; }
+.cmp-group-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  padding: 7px 14px; background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.cmp-row {
+  display: grid; grid-template-columns: 160px 1fr 1fr;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.12s;
+}
+.cmp-row:last-child { border-bottom: none; }
+.cmp-row:hover { background: rgba(255,255,255,.025); }
+.cmp-cat { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 10px 14px; border-right: 1px solid var(--border); }
+.cmp-cell { padding: 10px 14px; border-right: 1px solid var(--border); }
+.cmp-cell:last-child { border-right: none; }
+.cmp-svc { font-family: var(--mono); font-size: 12px; font-weight: 600; margin-bottom: 2px; }
+.cmp-svc.azure { color: #60b0ff; }
+.cmp-svc.aws   { color: #ff9a60; }
+.cmp-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.cmp-badge {
+  display: inline-block; font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 2px; margin-top: 4px;
+}
+.cmp-same    { background: rgba(74,222,128,.1);  color: #4ade80; border: 1px solid rgba(74,222,128,.3); }
+.cmp-similar { background: rgba(251,191,36,.1);  color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+.cmp-diff    { background: rgba(248,113,113,.1); color: #f87171; border: 1px solid rgba(248,113,113,.3); }
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px) {
+  main { padding: 20px 16px 40px; }
+  header { padding: 24px 16px 20px; }
+  .boxes { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .page-nav { padding: 0 16px; }
+  .cmp-header-row, .cmp-row { grid-template-columns: 110px 1fr 1fr; }
+}
+</style>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='light'||(!t&&!p))document.documentElement.classList.add('light');})();
+</script>
+<script>
+(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();
+</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1;"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px;"></div>
+
+
+<header>
+  <div class="header-left">
+    <div class="header-badge">System architecture · v2.1</div>
+    <h1>Supply Chain <span>System Design</span></h1>
+    <div class="header-meta">Scalable · Resilient · Observable · ML-Powered</div>
+  </div>
+  <div class="stat-pills">
+    <div class="stat-pill"><strong>6</strong> core domains</div>
+    <div class="stat-pill"><strong>5</strong> architecture tiers</div>
+    <div class="stat-pill"><strong>99.99%</strong> availability target</div>
+    <div class="stat-pill"><strong>&lt;200ms</strong> P99 latency</div>
+    <div class="stat-pill"><strong>500k</strong> msg/s event bus</div>
+  </div>
+</header>
+
+<nav class="page-nav" role="navigation" aria-label="Page sections">
+  <button class="page-nav-btn active" onclick="showPage('overview',this)">System overview</button>
+  <button class="page-nav-btn" onclick="showPage('architecture',this)">Azure architecture</button>
+  <button class="page-nav-btn" onclick="showPage('comparison',this)">Azure vs AWS</button>
+</nav>
+
+<div id="page-overview" class="page-section active">
+<main>
+
+  <!-- USER LAYER -->
+  <div class="section-label">Personas &amp; interaction channels</div>
+  <div class="tier tier-user">
+    <div class="tier-tag">User layer</div>
+    <div class="tier-title">web · mobile · API clients · external partners — OAuth 2.0 · SSO · Role-based access</div>
+    <div class="boxes">
+      <div class="box box-blue" onclick="showPanel('planner')">
+        <span class="box-icon">📈</span>
+        <div class="box-title">Demand planner</div>
+        <div class="box-sub">Forecast review, trend analysis, scenario planning</div>
+        <span class="badge">Analytics</span>
+      </div>
+      <div class="box box-green" onclick="showPanel('buyer')">
+        <span class="box-icon">🏪</span>
+        <div class="box-title">Procurement buyer</div>
+        <div class="box-sub">Create POs, multi-level approvals, spend analytics</div>
+        <span class="badge">Operations</span>
+      </div>
+      <div class="box box-amber" onclick="showPanel('warehouse_op')">
+        <span class="box-icon">🏭</span>
+        <div class="box-title">Warehouse operator</div>
+        <div class="box-sub">Pick, pack, receive, RFID scan, cycle counts</div>
+        <span class="badge">Fulfillment</span>
+      </div>
+      <div class="box box-teal" onclick="showPanel('logistics_mgr')">
+        <span class="box-icon">🚛</span>
+        <div class="box-title">Logistics manager</div>
+        <div class="box-sub">Track shipments, manage carriers, resolve exceptions</div>
+        <span class="badge">Tracking</span>
+      </div>
+      <div class="box box-green" onclick="showPanel('supplier_portal')">
+        <span class="box-icon">🔌</span>
+        <div class="box-title">Supplier portal</div>
+        <div class="box-sub">Confirm POs, send ASN, view scorecards</div>
+        <span class="badge">External</span>
+      </div>
+      <div class="box box-red" onclick="showPanel('exec')">
+        <span class="box-icon">📊</span>
+        <div class="box-title">Executive</div>
+        <div class="box-sub">KPIs, risk dashboard, board-level reporting</div>
+        <span class="badge">Oversight</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <div class="conn-line"></div>
+    <span class="conn-arrow">↕</span>
+    <span>REST / GraphQL · WebSocket · OAuth 2.0 · mTLS</span>
+    <div class="conn-line"></div>
+  </div>
+
+  <!-- API LAYER -->
+  <div class="tier tier-api">
+    <div class="tier-tag">API gateway &amp; orchestration</div>
+    <div class="tier-title">rate limiting · auth · routing · circuit breaker · distributed transactions</div>
+    <div class="boxes">
+      <div class="box box-purple" onclick="showPanel('gateway')">
+        <span class="box-icon">🛡️</span>
+        <div class="box-title">API gateway</div>
+        <div class="box-sub">Auth, throttle, route, TLS termination</div>
+        <span class="badge">Kong / APIGW</span>
+      </div>
+      <div class="box box-amber" onclick="showPanel('event_bus')">
+        <span class="box-icon">⚡</span>
+        <div class="box-title">Event bus</div>
+        <div class="box-sub">Async domain events, compacted topics, DLQ</div>
+        <span class="badge">Kafka / SNS</span>
+      </div>
+      <div class="box box-green" onclick="showPanel('orchestrator')">
+        <span class="box-icon">🔀</span>
+        <div class="box-title">Saga orchestrator</div>
+        <div class="box-sub">Distributed tx, compensating actions, replay</div>
+        <span class="badge">Temporal</span>
+      </div>
+      <div class="box box-blue" onclick="showPanel('cache')">
+        <span class="box-icon">💾</span>
+        <div class="box-title">Cache layer</div>
+        <div class="box-sub">Hot data, sessions, pub/sub fanout</div>
+        <span class="badge">Redis cluster</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <div class="conn-line"></div>
+    <span class="conn-arrow">↕</span>
+    <span>gRPC · async events · service mesh (Istio)</span>
+    <div class="conn-line"></div>
+  </div>
+
+  <!-- CORE DOMAINS -->
+  <div class="section-label">Core supply chain domains</div>
+  <div class="tier tier-core">
+    <div class="tier-tag">Microservices</div>
+    <div class="tier-title">each domain owns its data · horizontally scalable · health-checked · schema-per-service</div>
+    <div class="boxes">
+      <div class="box box-blue" onclick="showPanel('demand')">
+        <span class="box-icon">📉</span>
+        <div class="box-title">Demand</div>
+        <div class="box-sub">ML forecast, seasonal signals, trend detection</div>
+        <span class="badge">ML forecasting</span>
+      </div>
+      <div class="box box-green" onclick="showPanel('inventory')">
+        <span class="box-icon">📦</span>
+        <div class="box-title">Inventory</div>
+        <div class="box-sub">Real-time stock ledger, reservations, reorder alerts</div>
+        <span class="badge">Real-time</span>
+      </div>
+      <div class="box box-amber" onclick="showPanel('procurement')">
+        <span class="box-icon">🧾</span>
+        <div class="box-title">Procurement</div>
+        <div class="box-sub">PO lifecycle, approval workflows, 3-way match</div>
+        <span class="badge">Workflow</span>
+      </div>
+      <div class="box box-teal" onclick="showPanel('logistics')">
+        <span class="box-icon">🗺️</span>
+        <div class="box-title">Logistics &amp; shipping</div>
+        <div class="box-sub">Routes, carrier APIs, GPS tracking, ETA prediction</div>
+        <span class="badge">GPS · ETA</span>
+      </div>
+      <div class="box box-green" onclick="showPanel('warehouse')">
+        <span class="box-icon">🏗️</span>
+        <div class="box-title">Warehouse</div>
+        <div class="box-sub">WMS, slotting, wave picking, RFID, robotics</div>
+        <span class="badge">IoT / RFID</span>
+      </div>
+      <div class="box box-red" onclick="showPanel('supplier')">
+        <span class="box-icon">👥</span>
+        <div class="box-title">Supplier</div>
+        <div class="box-sub">Profiles, performance scores, risk ratings, ESG</div>
+        <span class="badge">Risk scoring</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <div class="conn-line"></div>
+    <span class="conn-arrow">↕</span>
+    <span>reads · writes · event sourcing · CQRS</span>
+    <div class="conn-line"></div>
+  </div>
+
+  <!-- INFRASTRUCTURE -->
+  <div class="tier tier-infra">
+    <div class="tier-tag">Data stores &amp; infrastructure</div>
+    <div class="tier-title">sharded · replicated · geo-redundant · PITR backups</div>
+    <div class="boxes">
+      <div class="box box-amber" onclick="showPanel('postgres')">
+        <span class="box-icon">🗄️</span>
+        <div class="box-title">PostgreSQL (OLTP)</div>
+        <div class="box-sub">Transactional records, Citus sharding, read replicas</div>
+        <span class="badge">Citus</span>
+      </div>
+      <div class="box box-amber" onclick="showPanel('timeseries')">
+        <span class="box-icon">⏱️</span>
+        <div class="box-title">TimescaleDB</div>
+        <div class="box-sub">Sensor &amp; GPS time-series, hypertables, compression</div>
+        <span class="badge">IoT data</span>
+      </div>
+      <div class="box box-blue" onclick="showPanel('search')">
+        <span class="box-icon">🔍</span>
+        <div class="box-title">Elasticsearch</div>
+        <div class="box-sub">Product &amp; supplier search, full-text, aggregations</div>
+        <span class="badge">Full-text</span>
+      </div>
+      <div class="box box-amber" onclick="showPanel('objectstore')">
+        <span class="box-icon">📁</span>
+        <div class="box-title">Object store</div>
+        <div class="box-sub">Docs, invoices, images, ML model artifacts</div>
+        <span class="badge">S3 / GCS</span>
+      </div>
+      <div class="box box-green" onclick="showPanel('queue')">
+        <span class="box-icon">📋</span>
+        <div class="box-title">Job queue</div>
+        <div class="box-sub">Async tasks, retries, dead-letter, cron jobs</div>
+        <span class="badge">BullMQ / SQS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTOR -->
+  <div class="connector">
+    <div class="conn-line"></div>
+    <span class="conn-arrow">↕</span>
+    <span>ETL / CDC (Debezium) → data lake · streaming ingestion</span>
+    <div class="conn-line"></div>
+  </div>
+
+  <!-- ANALYTICS & MONITORING -->
+  <div class="section-label">Analytics, forecasting &amp; observability</div>
+  <div class="tier tier-data">
+    <div class="tier-tag">Analytics &amp; observability</div>
+    <div class="tier-title">trend detection · demand forecasting · anomaly detection · full-stack monitoring · SLO tracking</div>
+    <div class="boxes">
+      <div class="box box-red" onclick="showPanel('datalake')">
+        <span class="box-icon">🌊</span>
+        <div class="box-title">Data lake</div>
+        <div class="box-sub">Parquet, Delta Lake, bronze/silver/gold layers</div>
+        <span class="badge">Petabyte</span>
+      </div>
+      <div class="box box-red" onclick="showPanel('warehouse_ana')">
+        <span class="box-icon">📐</span>
+        <div class="box-title">Data warehouse</div>
+        <div class="box-sub">Snowflake / BigQuery, columnar OLAP, dbt models</div>
+        <span class="badge">OLAP</span>
+      </div>
+      <div class="box box-red" onclick="showPanel('ml')">
+        <span class="box-icon">🧠</span>
+        <div class="box-title">ML platform</div>
+        <div class="box-sub">Forecast, anomaly, risk scoring, feature store</div>
+        <span class="badge">Prophet · XGBoost</span>
+      </div>
+      <div class="box box-red" onclick="showPanel('bi')">
+        <span class="box-icon">📊</span>
+        <div class="box-title">BI dashboards</div>
+        <div class="box-sub">Looker · Metabase, self-serve, embedded analytics</div>
+        <span class="badge">Self-serve</span>
+      </div>
+      <div class="box box-amber" onclick="showPanel('monitoring')">
+        <span class="box-icon">📡</span>
+        <div class="box-title">Observability</div>
+        <div class="box-sub">Metrics, distributed traces, structured logs, APM</div>
+        <span class="badge">Datadog · OTel</span>
+      </div>
+      <div class="box box-red" onclick="showPanel('alerting')">
+        <span class="box-icon">🔔</span>
+        <div class="box-title">Alerting</div>
+        <div class="box-sub">PagerDuty · Slack, SLA tracking, escalation policy</div>
+        <span class="badge">SLA tracking</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- USE CASES -->
+  <div class="uc-section">
+    <div class="section-label">User interaction flows</div>
+    <div class="uc-tabs" id="uc-tabs">
+      <button class="uc-tab active" onclick="setUC('reorder',this)">Reorder cycle</button>
+      <button class="uc-tab" onclick="setUC('forecast',this)">Demand forecast</button>
+      <button class="uc-tab" onclick="setUC('shipment',this)">Shipment tracking</button>
+      <button class="uc-tab" onclick="setUC('onboard',this)">Supplier onboard</button>
+      <button class="uc-tab" onclick="setUC('alert',this)">Stock alert</button>
+      <button class="uc-tab uc-tab-saga" onclick="setUC('saga_reorder',this)">⟳ Saga: reorder tx</button>
+      <button class="uc-tab uc-tab-saga" onclick="setUC('saga_stockout',this)">⟳ Saga: stockout tx</button>
+    </div>
+    <div class="uc-card" id="uc-content"></div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent-blue)"></div>Blue — user/API/search</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent-purple)"></div>Purple — orchestration</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent-teal)"></div>Teal — core domains</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent-green)"></div>Green — ops/fulfillment</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent-amber)"></div>Amber — infra/storage</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent-red)"></div>Red — analytics/risk</div>
+    <div class="legend-item" style="margin-left:auto;font-size:10px;">Click any component for details</div>
+  </div>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE: AZURE ARCHITECTURE
+     ══════════════════════════════════════════ -->
+<div id="page-architecture" class="page-section">
+<main>
+  <div class="section-label" style="margin-top:8px">Azure cloud topology — all domains on Azure with Kafka event streaming</div>
+
+  <div class="arch-diagram-wrap">
+    <svg width="100%" viewBox="0 0 900 820" xmlns="http://www.w3.org/2000/svg" style="font-family:'IBM Plex Mono',monospace">
+      <defs>
+        <marker id="aarrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- Azure subscription outer -->
+      <rect x="8" y="8" width="884" height="800" rx="12" fill="none" stroke="#1e4a8c" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <text x="22" y="28" font-size="11" fill="#60b0ff" font-weight="600" letter-spacing="1">AZURE SUBSCRIPTION  —  East US 2  |  Paired: West US 2  |  99.99% SLA</text>
+
+      <!-- VNet -->
+      <rect x="18" y="38" width="864" height="580" rx="8" fill="none" stroke="#1D9E75" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="30" y="56" font-size="10" fill="#2dd4bf" letter-spacing="0.8">AZURE VNET  10.0.0.0/16</text>
+
+      <!-- Ingress subnet -->
+      <rect x="28" y="62" width="844" height="56" rx="4" fill="rgba(83,74,183,0.12)" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="42" y="82" font-size="10" fill="#a78bfa" font-weight="600">INGRESS SUBNET</text>
+      <text x="42" y="98" font-size="9" fill="#7f77dd">Azure Front Door + WAF  ·  Azure API Management  ·  Private Endpoints  ·  Azure AD / B2C</text>
+
+      <!-- AKS subnet header -->
+      <rect x="28" y="126" width="844" height="238" rx="4" fill="rgba(13,71,161,0.08)" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="42" y="145" font-size="10" fill="#38bdf8" font-weight="600">AKS SERVICES SUBNET  (Azure Kubernetes Service  1.30)</text>
+
+      <!-- Domain pods row 1: 3 pods -->
+      <!-- Demand x=42 w=256 -->
+      <rect x="42" y="154" width="256" height="68" rx="4" fill="rgba(83,74,183,0.15)" stroke="#534AB7" stroke-width="0.8"/>
+      <text x="170" y="178" font-size="11" fill="#a78bfa" font-weight="600" text-anchor="middle">Demand service</text>
+      <text x="170" y="194" font-size="9" fill="#7f77dd" text-anchor="middle">AKS pod  ·  Azure Cache for Redis</text>
+      <text x="170" y="210" font-size="9" fill="#534AB7" text-anchor="middle">Prophet / XGBoost forecast</text>
+
+      <!-- Inventory x=310 w=256 -->
+      <rect x="310" y="154" width="256" height="68" rx="4" fill="rgba(83,74,183,0.15)" stroke="#534AB7" stroke-width="0.8"/>
+      <text x="438" y="178" font-size="11" fill="#a78bfa" font-weight="600" text-anchor="middle">Inventory service</text>
+      <text x="438" y="194" font-size="9" fill="#7f77dd" text-anchor="middle">AKS pod  ·  Azure Cache for Redis</text>
+      <text x="438" y="210" font-size="9" fill="#534AB7" text-anchor="middle">Real-time stock ledger</text>
+
+      <!-- Procurement x=578 w=286 -->
+      <rect x="578" y="154" width="286" height="68" rx="4" fill="rgba(83,74,183,0.15)" stroke="#534AB7" stroke-width="0.8"/>
+      <text x="721" y="178" font-size="11" fill="#a78bfa" font-weight="600" text-anchor="middle">Procurement service</text>
+      <text x="721" y="194" font-size="9" fill="#7f77dd" text-anchor="middle">AKS pod  ·  Temporal workflow worker</text>
+      <text x="721" y="210" font-size="9" fill="#534AB7" text-anchor="middle">PO lifecycle  ·  3-way match</text>
+
+      <!-- Domain pods row 2 -->
+      <!-- Logistics x=42 w=256 -->
+      <rect x="42" y="232" width="256" height="68" rx="4" fill="rgba(83,74,183,0.15)" stroke="#534AB7" stroke-width="0.8"/>
+      <text x="170" y="256" font-size="11" fill="#a78bfa" font-weight="600" text-anchor="middle">Logistics service</text>
+      <text x="170" y="272" font-size="9" fill="#7f77dd" text-anchor="middle">AKS pod  ·  Azure Maps</text>
+      <text x="170" y="288" font-size="9" fill="#534AB7" text-anchor="middle">GPS  ·  carrier APIs  ·  ETA ML</text>
+
+      <!-- Warehouse x=310 w=256 -->
+      <rect x="310" y="232" width="256" height="68" rx="4" fill="rgba(83,74,183,0.15)" stroke="#534AB7" stroke-width="0.8"/>
+      <text x="438" y="256" font-size="11" fill="#a78bfa" font-weight="600" text-anchor="middle">Warehouse service</text>
+      <text x="438" y="272" font-size="9" fill="#7f77dd" text-anchor="middle">AKS pod  ·  Azure IoT Hub</text>
+      <text x="438" y="288" font-size="9" fill="#534AB7" text-anchor="middle">WMS  ·  RFID  ·  IoT telemetry</text>
+
+      <!-- Supplier x=578 w=286 -->
+      <rect x="578" y="232" width="286" height="68" rx="4" fill="rgba(83,74,183,0.15)" stroke="#534AB7" stroke-width="0.8"/>
+      <text x="721" y="256" font-size="11" fill="#a78bfa" font-weight="600" text-anchor="middle">Supplier service</text>
+      <text x="721" y="272" font-size="9" fill="#7f77dd" text-anchor="middle">AKS pod  ·  Azure AD B2C</text>
+      <text x="721" y="288" font-size="9" fill="#534AB7" text-anchor="middle">Profiles  ·  risk scoring  ·  portal</text>
+
+      <!-- down arrows from pods to kafka -->
+      <line x1="170" y1="300" x2="170" y2="324" stroke="#BA7517" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#aarrow)"/>
+      <line x1="438" y1="300" x2="438" y2="324" stroke="#BA7517" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#aarrow)"/>
+      <line x1="721" y1="300" x2="721" y2="324" stroke="#BA7517" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#aarrow)"/>
+
+      <!-- Kafka / Event Hubs bus -->
+      <rect x="42" y="326" width="822" height="58" rx="4" fill="rgba(186,117,23,0.15)" stroke="#BA7517" stroke-width="1"/>
+      <text x="453" y="348" font-size="12" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure Event Hubs  —  Kafka-compatible event streaming</text>
+      <text x="453" y="368" font-size="9" fill="#EF9F27" text-anchor="middle">stock.events  ·  procurement.events  ·  logistics.events  ·  warehouse.events  ·  supplier.events  ·  demand.forecasts</text>
+
+      <!-- up arrows from kafka back to pods (consume) -->
+      <line x1="260" y1="326" x2="260" y2="300" stroke="#534AB7" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#aarrow)"/>
+      <line x1="530" y1="326" x2="530" y2="300" stroke="#534AB7" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#aarrow)"/>
+      <line x1="800" y1="326" x2="800" y2="300" stroke="#534AB7" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#aarrow)"/>
+
+      <!-- Data subnet -->
+      <rect x="28" y="394" width="844" height="216" rx="4" fill="rgba(15,110,86,0.08)" stroke="#0F6E56" stroke-width="0.5"/>
+      <text x="42" y="413" font-size="10" fill="#2dd4bf" font-weight="600">DATA SUBNET</text>
+
+      <!-- DB for PG -->
+      <rect x="42" y="422" width="195" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="139" y="444" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure DB  PostgreSQL</text>
+      <text x="139" y="460" font-size="9" fill="#EF9F27" text-anchor="middle">Flexible Server  ·  Zone HA</text>
+      <text x="139" y="474" font-size="9" fill="#854F0B" text-anchor="middle">OLTP  ·  50k TPS</text>
+
+      <!-- Cosmos DB -->
+      <rect x="249" y="422" width="195" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="346" y="444" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure Cosmos DB</text>
+      <text x="346" y="460" font-size="9" fill="#EF9F27" text-anchor="middle">NoSQL  ·  global replication</text>
+      <text x="346" y="474" font-size="9" fill="#854F0B" text-anchor="middle">Supplier  ·  catalog</text>
+
+      <!-- Redis -->
+      <rect x="456" y="422" width="195" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="553" y="444" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure Cache for Redis</text>
+      <text x="553" y="460" font-size="9" fill="#EF9F27" text-anchor="middle">Premium  ·  geo-replication</text>
+      <text x="553" y="474" font-size="9" fill="#854F0B" text-anchor="middle">Hot data  ·  pub/sub</text>
+
+      <!-- ADLS Gen2 -->
+      <rect x="663" y="422" width="201" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="763" y="444" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">ADLS Gen2</text>
+      <text x="763" y="460" font-size="9" fill="#EF9F27" text-anchor="middle">Delta Lake  ·  Parquet</text>
+      <text x="763" y="474" font-size="9" fill="#854F0B" text-anchor="middle">Bronze / Silver / Gold</text>
+
+      <!-- AI Search -->
+      <rect x="42" y="492" width="195" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="139" y="514" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure AI Search</text>
+      <text x="139" y="530" font-size="9" fill="#EF9F27" text-anchor="middle">Semantic + vector</text>
+      <text x="139" y="546" font-size="9" fill="#854F0B" text-anchor="middle">Product  ·  supplier</text>
+
+      <!-- Blob Storage -->
+      <rect x="249" y="492" width="195" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="346" y="514" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure Blob Storage</text>
+      <text x="346" y="530" font-size="9" fill="#EF9F27" text-anchor="middle">Invoices  ·  docs  ·  models</text>
+      <text x="346" y="546" font-size="9" fill="#854F0B" text-anchor="middle">Object store  ·  CDN</text>
+
+      <!-- Service Bus -->
+      <rect x="456" y="492" width="195" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="553" y="514" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure Service Bus</text>
+      <text x="553" y="530" font-size="9" fill="#EF9F27" text-anchor="middle">Saga steps  ·  DLQ</text>
+      <text x="553" y="546" font-size="9" fill="#854F0B" text-anchor="middle">Exactly-once delivery</text>
+
+      <!-- IoT Hub -->
+      <rect x="663" y="492" width="201" height="58" rx="3" fill="rgba(186,117,23,0.12)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="763" y="514" font-size="10" fill="#fbbf24" font-weight="600" text-anchor="middle">Azure IoT Hub</text>
+      <text x="763" y="530" font-size="9" fill="#EF9F27" text-anchor="middle">RFID  ·  GPS telemetry</text>
+      <text x="763" y="546" font-size="9" fill="#854F0B" text-anchor="middle">Warehouse  ·  cold-chain</text>
+
+      <!-- Arrow Kafka down to data -->
+      <line x1="453" y1="384" x2="453" y2="420" stroke="#BA7517" stroke-width="0.8" marker-end="url(#aarrow)"/>
+
+      <!-- Platform services band -->
+      <rect x="18" y="628" width="864" height="162" rx="8" fill="rgba(100,116,139,0.08)" stroke="#334155" stroke-width="0.5"/>
+      <text x="30" y="648" font-size="10" fill="#64748b" font-weight="600" letter-spacing="0.8">AZURE PLATFORM SERVICES</text>
+
+      <!-- Synapse -->
+      <rect x="30" y="656" width="156" height="64" rx="3" fill="rgba(248,113,113,0.1)" stroke="#A32D2D" stroke-width="0.5"/>
+      <text x="108" y="676" font-size="10" fill="#f87171" font-weight="600" text-anchor="middle">Azure Synapse</text>
+      <text x="108" y="692" font-size="9" fill="#E24B4A" text-anchor="middle">OLAP  ·  Spark</text>
+      <text x="108" y="706" font-size="9" fill="#A32D2D" text-anchor="middle">dbt  ·  Power BI</text>
+
+      <!-- Azure ML -->
+      <rect x="198" y="656" width="156" height="64" rx="3" fill="rgba(248,113,113,0.1)" stroke="#A32D2D" stroke-width="0.5"/>
+      <text x="276" y="676" font-size="10" fill="#f87171" font-weight="600" text-anchor="middle">Azure ML</text>
+      <text x="276" y="692" font-size="9" fill="#E24B4A" text-anchor="middle">Forecast  ·  anomaly</text>
+      <text x="276" y="706" font-size="9" fill="#A32D2D" text-anchor="middle">MLflow  ·  endpoints</text>
+
+      <!-- Monitor -->
+      <rect x="366" y="656" width="156" height="64" rx="3" fill="rgba(100,116,139,0.12)" stroke="#475569" stroke-width="0.5"/>
+      <text x="444" y="676" font-size="10" fill="#94a3b8" font-weight="600" text-anchor="middle">Azure Monitor</text>
+      <text x="444" y="692" font-size="9" fill="#64748b" text-anchor="middle">App Insights  ·  OTel</text>
+      <text x="444" y="706" font-size="9" fill="#475569" text-anchor="middle">Log Analytics</text>
+
+      <!-- Key Vault -->
+      <rect x="534" y="656" width="156" height="64" rx="3" fill="rgba(100,116,139,0.12)" stroke="#475569" stroke-width="0.5"/>
+      <text x="612" y="676" font-size="10" fill="#94a3b8" font-weight="600" text-anchor="middle">Azure Key Vault</text>
+      <text x="612" y="692" font-size="9" fill="#64748b" text-anchor="middle">Secrets  ·  certs</text>
+      <text x="612" y="706" font-size="9" fill="#475569" text-anchor="middle">Managed Identity</text>
+
+      <!-- DevOps -->
+      <rect x="702" y="656" width="162" height="64" rx="3" fill="rgba(100,116,139,0.12)" stroke="#475569" stroke-width="0.5"/>
+      <text x="783" y="676" font-size="10" fill="#94a3b8" font-weight="600" text-anchor="middle">Azure DevOps</text>
+      <text x="783" y="692" font-size="9" fill="#64748b" text-anchor="middle">CI/CD  ·  GitOps  ·  ACR</text>
+      <text x="783" y="706" font-size="9" fill="#475569" text-anchor="middle">Helm  ·  Flux</text>
+
+      <!-- connector VNet to platform -->
+      <line x1="453" y1="620" x2="453" y2="654" stroke="#334155" stroke-width="0.8" stroke-dasharray="3 2" marker-end="url(#aarrow)"/>
+
+      <!-- legend bottom -->
+      <rect x="30" y="736" width="10" height="10" rx="1" fill="rgba(83,74,183,0.5)" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="46" y="744" font-size="9" fill="#64748b">Domain microservices (AKS)</text>
+      <rect x="200" y="736" width="10" height="10" rx="1" fill="rgba(186,117,23,0.5)" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="216" y="744" font-size="9" fill="#64748b">Event Hubs / Kafka</text>
+      <rect x="340" y="736" width="10" height="10" rx="1" fill="rgba(13,158,117,0.5)" stroke="#1D9E75" stroke-width="0.5"/>
+      <text x="356" y="744" font-size="9" fill="#64748b">VNet boundary</text>
+      <rect x="460" y="736" width="10" height="10" rx="1" fill="rgba(248,113,113,0.3)" stroke="#A32D2D" stroke-width="0.5"/>
+      <text x="476" y="744" font-size="9" fill="#64748b">Analytics / ML</text>
+      <rect x="570" y="736" width="10" height="10" rx="1" fill="rgba(100,116,139,0.3)" stroke="#475569" stroke-width="0.5"/>
+      <text x="586" y="744" font-size="9" fill="#64748b">Platform services</text>
+      <text x="870" y="744" font-size="9" fill="#334155" text-anchor="end">Paired region: West US 2  ·  RPO &lt; 1 min</text>
+    </svg>
+  </div>
+
+  <div class="arch-note">
+    <span><span class="arch-dot" style="background:#534AB7"></span>AKS pods publish &amp; subscribe via Event Hubs topics</span>
+    <span><span class="arch-dot" style="background:#BA7517"></span>Kafka-compatible — no client code changes needed</span>
+    <span><span class="arch-dot" style="background:#1D9E75"></span>All PaaS services use Private Endpoints inside VNet</span>
+    <span><span class="arch-dot" style="background:#f87171"></span>CDC (Debezium) streams PostgreSQL changes to data lake</span>
+    <span><span class="arch-dot" style="background:#64748b"></span>Managed Identity — zero secrets in code</span>
+  </div>
+
+</main>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE: AZURE vs AWS COMPARISON
+     ══════════════════════════════════════════ -->
+<div id="page-comparison" class="page-section">
+<main>
+  <div class="section-label" style="margin-top:8px">Azure vs AWS service mapping — same architecture, different cloud</div>
+
+  <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.4);display:inline-block"></span>Equivalent — near-identical capability</div>
+    <div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);display:inline-block"></span>Similar — same intent, some differences</div>
+    <div style="display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.4);display:inline-block"></span>Different — meaningful gap, review carefully</div>
+  </div>
+
+  <div class="cmp-header-row">
+    <div class="cmp-header-cell" style="color:var(--muted)">Category</div>
+    <div class="cmp-header-cell azure">Azure service</div>
+    <div class="cmp-header-cell aws">AWS equivalent</div>
+  </div>
+
+  <!-- GROUP: Ingress & Security -->
+  <div class="cmp-group">
+    <div class="cmp-group-label" style="color:var(--accent-purple)">Ingress &amp; security</div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Edge / CDN + WAF</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Front Door</div><div class="cmp-sub">Global load balancing, WAF, TLS offload, anycast routing</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">CloudFront + AWS WAF</div><div class="cmp-sub">CDN with WAF rules; Route 53 for DNS-level routing</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">API gateway</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure API Management</div><div class="cmp-sub">Full lifecycle: JWT auth, rate limiting, dev portal, versioning</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon API Gateway</div><div class="cmp-sub">HTTP/REST/WebSocket APIs; lacks built-in dev portal</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Identity / auth</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure AD + Azure AD B2C</div><div class="cmp-sub">Internal: Azure AD (OIDC). External suppliers: B2C with custom policies</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon Cognito</div><div class="cmp-sub">User Pools (auth) + Identity Pools (federated); similar B2C pattern</div></div>
+    </div>
+  </div>
+
+  <!-- GROUP: Compute -->
+  <div class="cmp-group">
+    <div class="cmp-group-label" style="color:var(--accent-blue)">Compute &amp; orchestration</div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Container platform</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">AKS (Azure Kubernetes Service)</div><div class="cmp-sub">Managed Kubernetes; HPA autoscaling; Workload Identity for pod auth</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon EKS</div><div class="cmp-sub">Managed Kubernetes; KEDA for event-driven autoscaling; IRSA for pod auth</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Container registry</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Container Registry (ACR)</div><div class="cmp-sub">Geo-replicated private registry; integrated with AKS pull</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon ECR</div><div class="cmp-sub">Fully managed; cross-region replication; integrated with EKS</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Saga / workflow</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Temporal Cloud (on AKS)</div><div class="cmp-sub">Durable workflows; signal/wait; compensating actions; full audit history</div><span class="cmp-badge cmp-diff">different</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">AWS Step Functions</div><div class="cmp-sub">Standard/Express workflows; no native signal/wait — needs SQS bridge for human gates</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Serverless</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Functions</div><div class="cmp-sub">Durable Functions for stateful orchestration; Kafka trigger support</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">AWS Lambda</div><div class="cmp-sub">Event source mappings for MSK (Kafka); Step Functions for stateful patterns</div></div>
+    </div>
+  </div>
+
+  <!-- GROUP: Event Streaming -->
+  <div class="cmp-group">
+    <div class="cmp-group-label" style="color:var(--accent-amber)">Event streaming &amp; messaging</div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Kafka event bus</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Event Hubs (Kafka mode)</div><div class="cmp-sub">Serverless Kafka endpoint — no cluster to manage; auto-inflate scaling; Premium tier zone-redundant</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon MSK</div><div class="cmp-sub">Managed Kafka brokers — more control (custom configs, exactly-once tuning); MSK Serverless also available</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Message queue / DLQ</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Service Bus</div><div class="cmp-sub">Topics + subscriptions; exactly-once; DLQ; 256 KB–100 MB messages; sessions for ordered processing</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon SQS + SNS</div><div class="cmp-sub">SQS for queuing (FIFO for ordering); SNS for fan-out; max 256 KB messages</div></div>
+    </div>
+  </div>
+
+  <!-- GROUP: Data Stores -->
+  <div class="cmp-group">
+    <div class="cmp-group-label" style="color:var(--accent-teal)">Data stores</div>
+    <div class="cmp-row">
+      <div class="cmp-cat">OLTP / relational</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure DB for PostgreSQL Flexible</div><div class="cmp-sub">Zone-redundant HA; read replicas; Citus extension for sharding; PITR</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon RDS / Aurora PostgreSQL</div><div class="cmp-sub">Aurora offers higher throughput; multi-AZ; Aurora Global for cross-region reads</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">In-memory cache</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Cache for Redis (Premium)</div><div class="cmp-sub">Geo-replication; VNet injection; 99.9% SLA; up to 1.2 TB</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon ElastiCache (Redis OSS)</div><div class="cmp-sub">Multi-AZ; Global Datastore for replication; Graviton2-based nodes</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">NoSQL / document</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Cosmos DB</div><div class="cmp-sub">Multi-model (SQL, Mongo, Cassandra APIs); multi-region writes; 99.999% SLA</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon DynamoDB</div><div class="cmp-sub">Key-value + document only; Global Tables for multi-region; on-demand pricing</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Data lake / object store</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">ADLS Gen2 + Azure Blob Storage</div><div class="cmp-sub">Hierarchical namespace for data lake; Delta Lake on Synapse; lifecycle policies</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon S3 + S3 Glacier</div><div class="cmp-sub">Object store with intelligent tiering; Delta Lake via AWS Glue; S3 Tables for Iceberg</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Full-text search</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure AI Search</div><div class="cmp-sub">Semantic + vector + keyword search; integrated with OpenAI embeddings</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon OpenSearch Service</div><div class="cmp-sub">Managed OpenSearch/Elasticsearch; k-NN for vector search</div></div>
+    </div>
+  </div>
+
+  <!-- GROUP: Analytics & ML -->
+  <div class="cmp-group">
+    <div class="cmp-group-label" style="color:var(--accent-red)">Analytics, ML &amp; BI</div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Data warehouse</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Synapse Analytics</div><div class="cmp-sub">Serverless SQL + dedicated pools + Spark — all in one workspace; Power BI direct integration</div><span class="cmp-badge cmp-diff">different</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon Redshift</div><div class="cmp-sub">Pure columnar DW; pair with AWS Glue + EMR for Spark; QuickSight for BI — separate services</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">ML platform</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Machine Learning</div><div class="cmp-sub">MLflow native; managed endpoints; tight Synapse + Power BI integration; responsible AI dashboards</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon SageMaker</div><div class="cmp-sub">Broader managed algorithm library; SageMaker Studio; JumpStart foundation models; more ML-specific tooling</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">BI / dashboards</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Power BI + Synapse Link</div><div class="cmp-sub">Row-level security; embedded analytics; direct query to Synapse with live data</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Amazon QuickSight + Athena</div><div class="cmp-sub">Serverless BI; Athena for S3 queries; ML Insights built-in; pay-per-session pricing</div></div>
+    </div>
+  </div>
+
+  <!-- GROUP: Platform -->
+  <div class="cmp-group">
+    <div class="cmp-group-label" style="color:var(--muted)">Platform services</div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Observability / APM</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Monitor + App Insights</div><div class="cmp-sub">OTel native; distributed traces; Log Analytics workspaces; SLO tracking dashboards</div><span class="cmp-badge cmp-similar">similar</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">CloudWatch + AWS X-Ray</div><div class="cmp-sub">Metrics + logs in CloudWatch; X-Ray for distributed traces; Container Insights for EKS</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">Secrets &amp; identity</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure Key Vault + Managed Identity</div><div class="cmp-sub">Workload Identity for AKS pods — no credentials stored anywhere in code or config</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">Secrets Manager + IAM Roles</div><div class="cmp-sub">IRSA (IAM Roles for Service Accounts) provides same zero-secret pattern on EKS</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">IoT / device telemetry</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure IoT Hub + Azure Maps</div><div class="cmp-sub">Device-to-cloud messaging; routing to Event Hubs; Maps for shipment route visualisation</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">AWS IoT Core + Location Service</div><div class="cmp-sub">MQTT device gateway; rules engine to Kinesis/SQS; Location Service for GPS tracking</div></div>
+    </div>
+    <div class="cmp-row">
+      <div class="cmp-cat">CI/CD &amp; GitOps</div>
+      <div class="cmp-cell"><div class="cmp-svc azure">Azure DevOps + Flux</div><div class="cmp-sub">Pipelines for build/test; Flux for GitOps on AKS; Helm chart deployments; ACR tasks</div><span class="cmp-badge cmp-same">equivalent</span></div>
+      <div class="cmp-cell"><div class="cmp-svc aws">CodePipeline + ArgoCD</div><div class="cmp-sub">CodePipeline/CodeBuild for CI; ArgoCD for GitOps on EKS; Helm via CodeDeploy hooks</div></div>
+    </div>
+  </div>
+
+</main>
+</div>
+<div class="panel-overlay" id="overlay" onclick="closePanel()"></div>
+<div class="panel" id="panel" role="dialog" aria-modal="true">
+  <div class="panel-header" id="panel-header"></div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<script>
+const DATA = {
+  planner: { icon:'📈', color:'var(--accent-blue)', title:'Demand planner', sub:'Analyzes historical sales, seasonal patterns, and market signals to produce forecasts that drive inventory and procurement decisions.',
+    tags:['Forecast review','Trend analysis','Scenario planning','Alert management','Overrides'],
+    metrics:[['Forecast accuracy (MAPE)','< 8%'],['Review cycle','Weekly'],['Horizon','12–52 wks'],['Auto-approval rate','72%']],
+    cases:['Review AI-generated demand forecast and override with market intelligence','Set reorder point thresholds per SKU category','Run promotional lift scenario and export to procurement','Monitor forecast deviation alerts in real time'],
+    prompt:'Walk me through the demand planning workflow in this system' },
+  buyer: { icon:'🏪', color:'var(--accent-green)', title:'Procurement buyer', sub:'Manages the full PO lifecycle — from requisition through approval, dispatch, receipt, and 3-way invoice matching.',
+    tags:['PO creation','3-way match','Approval workflow','Supplier negotiation','Spend analytics'],
+    metrics:[['PO cycle time','< 2 days'],['Auto-approval rate','72%'],['Savings vs budget','4.1%'],['Maverick spend','< 3%']],
+    cases:['Create PO from automated reorder trigger','Route PO for multi-level approval by spend tier','Compare supplier quotes side by side','Resolve invoice discrepancy with 3-way match'],
+    prompt:'Explain the procurement approval workflow in detail' },
+  warehouse_op: { icon:'🏭', color:'var(--accent-amber)', title:'Warehouse operator', sub:'Executes pick, pack, and receive tasks guided by WMS, RFID readers, and mobile scan devices.',
+    tags:['Pick list','RFID scan','Putaway','Cycle count','Wave picking'],
+    metrics:[['Pick accuracy','99.7%'],['Avg pick time','42 sec'],['Dock-to-stock','< 4 hrs'],['Lines/hr','320']],
+    cases:['Receive inbound ASN and match against PO','Execute wave pick from mobile scan device','Perform bin-to-bin transfer with scan verification','Run cycle count and reconcile discrepancies'],
+    prompt:'How does the warehouse receiving and putaway process work?' },
+  logistics_mgr: { icon:'🚛', color:'var(--accent-teal)', title:'Logistics manager', sub:'Tracks all in-transit shipments, manages carrier SLAs, and resolves delivery exceptions.',
+    tags:['Carrier API','ETA prediction','Exception mgmt','Route optimization','POD capture'],
+    metrics:[['On-time delivery','94.2%'],['Cost per shipment','↓ 6% YoY'],['Exception auto-resolve','61%'],['Tracking freshness','< 2 min']],
+    cases:['Monitor live shipment map with GPS telemetry','Reroute shipment around carrier delay','Audit carrier SLA compliance monthly','Trigger proof-of-delivery photo capture'],
+    prompt:'How does real-time shipment tracking work in this system?' },
+  supplier_portal: { icon:'🔌', color:'var(--accent-green)', title:'Supplier portal', sub:'External-facing portal for suppliers to acknowledge POs, submit ASNs, upload invoices, and view scorecards.',
+    tags:['PO confirmation','ASN submission','Invoice upload','Scorecard view','Compliance docs'],
+    metrics:[['Portal adoption','88%'],['ASN lead time','48 hrs'],['EDI fallback','12%'],['SSO enabled','Yes']],
+    cases:['Supplier logs in via SSO and confirms PO lines','Attaches packing list and compliance certificates','Views real-time quality and delivery scorecard','Submits corrected invoice after dispute resolution'],
+    prompt:'What data flows between suppliers and the procurement domain?' },
+  exec: { icon:'📊', color:'var(--accent-red)', title:'Executive dashboard', sub:'Real-time KPI overview covering fill rate, inventory turns, supplier risk, and cost performance with drill-down to region and SKU level.',
+    tags:['Fill rate','Inventory turns','Supplier risk','Cost variance','Mobile-ready'],
+    metrics:[['Data freshness','< 5 min'],['Drill-down levels','4'],['Dashboard load','< 1.2 sec'],['Export formats','PDF · CSV']],
+    cases:['Review weekly supply chain health score','Drill into regional stockout events','Compare forecast vs actual spend','Export board-level PDF report'],
+    prompt:'What KPIs should be on a supply chain executive dashboard?' },
+  gateway: { icon:'🛡️', color:'var(--accent-purple)', title:'API gateway', sub:'Single ingress for all client traffic. Handles JWT validation, rate limiting per tenant, TLS termination, and smart routing to microservices.',
+    tags:['JWT auth','Rate limiting','mTLS','Circuit breaker','Request tracing','WAF'],
+    metrics:[['P99 latency','< 18ms'],['Throughput','120k req/s'],['Availability','99.99%'],['Auth overhead','< 2ms']],
+    cases:['Authenticate API key from supplier EDI integration','Route /inventory/* to inventory service','Rate-limit burst traffic during peak season','Return 429 with retry-after header on throttle'],
+    prompt:'How does the API gateway integrate with the supply chain microservices?' },
+  event_bus: { icon:'⚡', color:'var(--accent-amber)', title:'Event bus (Kafka)', sub:'Kafka cluster enabling async, decoupled communication between all domains. Schema registry enforces contracts. DLQ handles poison pills.',
+    tags:['Domain events','At-least-once','Dead-letter queue','Schema registry','Compaction','Partitioning'],
+    metrics:[['End-to-end lag','< 200ms'],['Throughput','500k msg/s'],['Retention','7 days'],['Partitions','240']],
+    cases:['Inventory emits "stock_low" → procurement auto-creates PO','PO confirmed → logistics schedules carrier pickup','Shipment delivered → inventory updates stock balance','Alert fan-out to monitoring and BI pipelines'],
+    prompt:'Walk me through the event-driven flow between inventory and procurement' },
+  orchestrator: { icon:'🔀', color:'var(--accent-green)', title:'Saga orchestrator (Temporal)', sub:'Manages long-running distributed transactions with compensating actions for partial failures. Full audit trail for every state transition.',
+    tags:['Saga pattern','Compensating tx','Timeout handling','Step replay','Audit trail'],
+    metrics:[['Saga completion','99.2%'],['Avg saga steps','6'],['MTTR on failure','< 30 sec'],['Visibility UI','Yes']],
+    cases:['Coordinate reserve → allocate → ship → confirm','Rollback stock reservation on payment failure','Retry failed carrier booking with backoff','Log full audit trail for compliance'],
+    prompt:'Explain how the saga pattern handles distributed transactions in supply chain' },
+  cache: { icon:'💾', color:'var(--accent-blue)', title:'Cache layer (Redis)', sub:'Redis cluster serving hot data: stock levels, pricing, session state, and real-time pub/sub. Reduces DB load and improves latency significantly.',
+    tags:['Stock counters','Rate-limit windows','Session store','Pub/sub fanout','Atomic ops','LRU eviction'],
+    metrics:[['Hit rate','94%'],['Eviction policy','LRU'],['Max memory','64 GB'],['Cluster nodes','6']],
+    cases:['Serve inventory counts without DB roundtrip','Cache supplier profile for portal session duration','Fan-out real-time stock alert to WebSocket clients','Atomic decrement on concurrent stock reservations'],
+    prompt:'How is Redis used across the supply chain microservices?' },
+  demand: { icon:'📉', color:'var(--accent-blue)', title:'Demand domain', sub:'Ingests POS data, market signals, and historical orders to produce short- and long-term demand forecasts consumed by procurement and inventory.',
+    tags:['Time-series ML','Seasonality','Causal factors','Scenario modelling','Alert rules','Override API'],
+    metrics:[['Forecast horizon','52 wks'],['MAPE target','< 8%'],['Reforecast cadence','Weekly'],['Signal sources','12']],
+    cases:['Planner reviews AI forecast and adjusts with market intel','System detects demand spike, triggers procurement alert','Run promotional simulation: +30% lift scenario','Feed updated forecast to safety-stock calculator'],
+    prompt:'How does the demand forecasting ML model work in this system?' },
+  inventory: { icon:'📦', color:'var(--accent-green)', title:'Inventory domain', sub:'Maintains a real-time ledger of stock levels across all warehouses, handling reservations, adjustments, and automatic reorder triggers.',
+    tags:['Real-time ledger','Multi-location','Reservation engine','Safety stock','Reorder rules','Lot tracking'],
+    metrics:[['Stock accuracy','99.8%'],['Update latency','< 500ms'],['Locations','50+'],['SKUs','380k']],
+    cases:['Reserve stock atomically on order placement','Receive inbound PO and update multi-location balance','Trigger reorder event at configurable min-stock threshold','Virtual audit across all warehouse locations'],
+    prompt:'How does the real-time inventory ledger handle concurrent stock updates?' },
+  procurement: { icon:'🧾', color:'var(--accent-amber)', title:'Procurement domain', sub:'Manages the complete PO lifecycle from requisition to receipt. Integrates with supplier portal, approval engine, and accounts payable.',
+    tags:['PO workflow','Multi-level approval','3-way match','Spend analytics','Catalog mgmt','EDI 850/810'],
+    metrics:[['Auto-PO from reorder','78%'],['Approval SLA','< 24 hrs'],['Maverick spend','< 3%'],['Suppliers active','1,200']],
+    cases:['Auto-create PO when inventory hits reorder point','Multi-level approval routing by spend tier and category','Match invoice against PO and goods receipt note','Supplier diversity and ESG spend reporting'],
+    prompt:'How does procurement integrate with inventory and supplier domains?' },
+  logistics: { icon:'🗺️', color:'var(--accent-teal)', title:'Logistics &amp; shipping domain', sub:'Plans and tracks all outbound and inbound shipments. Integrates with 40+ carrier APIs, GPS telemetry, and customs/compliance systems.',
+    tags:['Carrier API','GPS telemetry','ETA ML model','Exception mgmt','Last-mile','Cold chain'],
+    metrics:[['Tracking freshness','< 2 min'],['ETA accuracy','± 1.2 hrs'],['Carrier integrations','40+'],['On-time rate','94.2%']],
+    cases:['Book carrier and generate label on PO dispatch','Track package via GPS and carrier webhooks in real time','Predict ETA using ML on historical and live telemetry','Auto-flag delayed shipment and notify stakeholders'],
+    prompt:'How does real-time GPS tracking integrate with the logistics domain?' },
+  warehouse: { icon:'🏗️', color:'var(--accent-green)', title:'Warehouse domain', sub:'WMS managing inbound receipts, slotting optimization, wave picking, packing verification, and outbound dispatch. Integrates with RFID and robotics.',
+    tags:['WMS','RFID / barcode','Wave picking','Slotting optimizer','Labor mgmt','AMR integration'],
+    metrics:[['Order accuracy','99.95%'],['Lines/hr','320'],['Space utilisation','87%'],['Dock-to-stock','< 4 hrs']],
+    cases:['Receive ASN and direct putaway to optimal slot','Generate optimized pick wave for order batch','Scan-verify pack and print shipping label','Dispatch outbound and close shipment in logistics domain'],
+    prompt:'How does the WMS integrate with RFID and IoT sensors?' },
+  supplier: { icon:'👥', color:'var(--accent-red)', title:'Supplier domain', sub:'Maintains supplier master data, qualification status, ML-driven risk scores, performance scorecards, and contract terms.',
+    tags:['Master data','Risk scoring','Scorecard KPIs','Alternative sourcing','ESG metrics','Geopolitical risk'],
+    metrics:[['Active suppliers','1,200'],['Risk-scored','100%'],['Avg scorecard refresh','Monthly'],['Alt-source coverage','94%']],
+    cases:['Onboard new supplier with document verification','Calculate monthly quality and delivery scorecard','Flag supplier for geopolitical or financial risk event','Suggest alternative supplier on shortage or disruption'],
+    prompt:'How is supplier risk scoring calculated in this system?' },
+  postgres: { icon:'🗄️', color:'var(--accent-amber)', title:'PostgreSQL (OLTP)', sub:'Primary transactional store with Citus horizontal sharding. Schema-per-service isolation. Logical replication feeds Debezium CDC pipeline.',
+    tags:['Citus sharding','Read replicas','PITR backup','Row-level security','Logical replication','Vacuum tuning'],
+    metrics:[['Write throughput','50k TPS'],['Replication lag','< 50ms'],['Backup RPO','1 min'],['Shard count','32']],
+    cases:['Write PO records with full ACID guarantees','Shard inventory table by SKU hash for scale','Read replica serves heavy reporting queries','CDC via Debezium streams changes to Kafka'],
+    prompt:'How does the database sharding strategy work for supply chain domains?' },
+  timeseries: { icon:'⏱️', color:'var(--accent-amber)', title:'TimescaleDB', sub:'Time-series extension on PostgreSQL for high-frequency IoT sensor readings, warehouse telemetry, and GPS pings. 10:1 compression ratio.',
+    tags:['Hypertable','Continuous aggregates','Retention policies','Compression','GPS pings','Cold-chain sensors'],
+    metrics:[['Ingest rate','2M rows/min'],['Compression ratio','10:1'],['Query P95','< 80ms'],['Retention','2 years']],
+    cases:['Store temperature sensor data from cold-chain trucks','Aggregate hourly warehouse throughput metrics','Compress and archive data older than 90 days','Feed anomaly detection model with rolling time windows'],
+    prompt:'What IoT and sensor data flows into TimescaleDB?' },
+  search: { icon:'🔍', color:'var(--accent-blue)', title:'Elasticsearch', sub:'Powers product catalog search, supplier discovery, and full-text document retrieval across POs, contracts, and compliance documents.',
+    tags:['Inverted index','Fuzzy search','Facets','Document store','Aggregations','Vector search'],
+    metrics:[['Index size','800M docs'],['Query P99','< 25ms'],['Shards','24'],['Replica sets','2']],
+    cases:['Buyer searches product catalog by keyword and category','Supplier lookup with fuzzy name matching and facets','Full-text search across millions of PO documents','Aggregate spend by category in near-real-time'],
+    prompt:'How is Elasticsearch integrated with the procurement and supplier domains?' },
+  objectstore: { icon:'📁', color:'var(--accent-amber)', title:'Object store (S3/GCS)', sub:'Stores all unstructured assets: invoices, delivery photos, contracts, CSV exports, and ML model artifacts. CDN-backed for performance.',
+    tags:['Presigned URLs','Lifecycle policies','Versioning','CDN-backed','Virus scan','Encryption at rest'],
+    metrics:[['Storage','850 TB'],['Object count','120M'],['CDN hit rate','91%'],['Avg object size','2.1 MB']],
+    cases:['Supplier uploads invoice PDF via secured presigned URL','Driver captures proof-of-delivery photo','Compliance team retrieves archived contract version','BI export downloads large partitioned CSV report'],
+    prompt:'What types of documents are stored in the object store?' },
+  queue: { icon:'📋', color:'var(--accent-green)', title:'Job queue (BullMQ/SQS)', sub:'Manages async background jobs: notifications, report generation, EDI batch processing, and scheduled recurring tasks.',
+    tags:['Delayed jobs','Priority queues','Dead-letter queue','Retry backoff','Cron schedules','Fan-out'],
+    metrics:[['Jobs/day','4M'],['Avg wait time','< 2 sec'],['Failed rate','0.04%'],['Worker concurrency','128']],
+    cases:['Queue reorder notification email after stock dip','Batch process EDI 850 purchase orders overnight','Schedule weekly demand forecast refresh job','Retry failed carrier booking with exponential backoff'],
+    prompt:'How does the job queue handle retry logic for failed supply chain operations?' },
+  datalake: { icon:'🌊', color:'var(--accent-red)', title:'Data lake (Delta Lake)', sub:'Central store for all raw and curated data in Parquet/Delta Lake format. Layered medallion architecture: bronze → silver → gold.',
+    tags:['Delta Lake','CDC ingestion','Data catalog','Parquet','Lakehouse','dbt transformations'],
+    metrics:[['Data volume','2.4 PB'],['Ingestion lag','< 5 min'],['Tables catalogued','2,800+'],['Query engines','Spark · Trino']],
+    cases:['Store 5 years of order history for trend analysis','Land Kafka events into bronze layer in real time','Run dbt transformations to produce gold tables','Feed ML training datasets from curated gold layer'],
+    prompt:'How is the data lake structured for supply chain analytics?' },
+  warehouse_ana: { icon:'📐', color:'var(--accent-red)', title:'Data warehouse (Snowflake/BigQuery)', sub:'Columnar OLAP store for BI queries and ad-hoc analysis. Fed from gold layer via scheduled ELT pipelines with < 30 min freshness.',
+    tags:['Columnar OLAP','Materialized views','Role-based access','Consumption pricing','dbt models','Query caching'],
+    metrics:[['Query P95','< 3 sec'],['Concurrent users','500+'],['Data freshness','< 30 min'],['Tables','2,200+']],
+    cases:['Run monthly fill-rate analysis across all regions','Calculate supplier scorecard aggregates at scale','Support CFO ad-hoc spend query without degradation','Power embedded analytics in external supplier portal'],
+    prompt:'What supply chain metrics are modeled in the data warehouse?' },
+  ml: { icon:'🧠', color:'var(--accent-red)', title:'ML platform', sub:'End-to-end ML lifecycle for demand forecasting, anomaly detection, lead time prediction, and supplier risk scoring. MLflow for experiment tracking.',
+    tags:['Prophet / ARIMA','XGBoost','Feature store','MLflow','Model serving','A/B testing','Retraining pipelines'],
+    metrics:[['Models in prod','14'],['Forecast MAPE','< 8%'],['Retraining cadence','Weekly'],['Inference P99','< 50ms']],
+    cases:['Train Prophet on 3-year POS + seasonal signals','Serve demand forecast API to demand microservice','Detect anomalous inventory shrinkage with isolation forest','Score supplier risk from multi-source financial and geopolitical signals'],
+    prompt:'What ML models power the demand forecasting and anomaly detection?' },
+  bi: { icon:'📊', color:'var(--accent-red)', title:'BI dashboards (Looker/Metabase)', sub:'Self-serve analytics for all roles with pre-built supply chain KPI dashboards, drill-down to SKU/region, and scheduled email reports.',
+    tags:['LookML / SQL','Embedded analytics','Scheduled reports','Threshold alerts','Export','Row-level security'],
+    metrics:[['Active dashboards','340'],['Daily active users','2,100'],['Avg load time','1.2 sec'],['Scheduled reports','180/day']],
+    cases:['Planner views 13-week demand waterfall with actuals overlay','Buyer reviews spend by supplier and category with YoY delta','Exec drills into regional fulfillment rate by week','Analyst exports raw dataset for external econometric model'],
+    prompt:'What are the most important supply chain dashboards to build?' },
+  monitoring: { icon:'📡', color:'var(--accent-amber)', title:'Observability (Datadog + OpenTelemetry)', sub:'Full-stack observability: distributed tracing across all microservices, structured logs, infrastructure metrics, and SLO burn-rate tracking.',
+    tags:['Distributed traces','Metrics','Structured logs','APM','SLO tracking','Synthetic monitoring'],
+    metrics:[['Trace sample rate','10%'],['Log retention','30 days'],['SLO P99 latency','< 200ms'],['Error budget','0.01%']],
+    cases:['Trace slow PO creation across 4 downstream services','Alert on inventory service error rate exceeding 0.1%','Detect latency regression after deployment via canary','Correlate carrier API errors with delayed shipments'],
+    prompt:'How is distributed tracing implemented across the supply chain microservices?' },
+  alerting: { icon:'🔔', color:'var(--accent-red)', title:'Alerting &amp; incident management', sub:'Multi-channel alerting via PagerDuty and Slack. Rules cover SLA breaches, stock anomalies, forecast deviations, and system health events.',
+    tags:['PagerDuty','Slack webhooks','Runbooks','SLA breach','Escalation policy','RCA templates'],
+    metrics:[['MTTA','< 3 min'],['MTTR','< 22 min'],['Alert noise','< 5% false pos'],['Runbooks','47 active']],
+    cases:['Page on-call when fill rate drops below configured threshold','Slack alert when forecast deviation exceeds 15%','Auto-escalate unresolved P1 incident after 15 min','Post structured RCA to Slack after incident resolution'],
+    prompt:'What are the critical alerts to configure for a supply chain system?' }
+};
+
+const UCS = {
+  reorder: { title:'Automated reorder cycle', steps:[
+    { domain:'Inventory', text:'Detects SKU stock falls below dynamic reorder point' },
+    { domain:'Event bus', text:'Publishes "stock_low" event to Kafka topic' },
+    { domain:'Procurement', text:'Consumes event and auto-creates draft PO' },
+    { domain:'Approval', text:'Routes PO for buyer review and multi-level sign-off' },
+    { domain:'Supplier portal', text:'PO dispatched; supplier confirms and submits ASN' },
+    { domain:'Logistics', text:'Books carrier, generates shipping label and tracking ID' },
+    { domain:'Warehouse', text:'Receives inbound shipment, scans and updates stock ledger' },
+    { domain:'Inventory', text:'Stock level updated; reorder point recalibrated by ML model' }
+  ]},
+  forecast: { title:'Demand forecast review & action', steps:[
+    { domain:'ML platform', text:'Weekly Prophet retraining job runs on 3-year gold-layer data' },
+    { domain:'Demand', text:'Forecast published to demand service via event bus' },
+    { domain:'BI', text:'Demand planner opens 13-week waterfall dashboard in Looker' },
+    { domain:'Demand', text:'Planner overrides model for promotional campaign period' },
+    { domain:'Inventory', text:'Safety-stock levels recalculated from updated forecast' },
+    { domain:'Procurement', text:'Reorder points adjusted; POs triggered where needed' },
+    { domain:'Observability', text:'Forecast accuracy MAPE tracked and alerted if threshold breached' }
+  ]},
+  shipment: { title:'Live shipment tracking & exception handling', steps:[
+    { domain:'UI', text:'Logistics manager opens live shipment map in web app' },
+    { domain:'API gateway', text:'Authenticates JWT, routes to logistics microservice' },
+    { domain:'Cache', text:'Redis serves last GPS position (< 2 min staleness)' },
+    { domain:'WebSocket', text:'Push gateway streams live GPS updates to browser' },
+    { domain:'ML platform', text:'ETA model recalculates arrival window on each new ping' },
+    { domain:'Alerting', text:'Exception detected: carrier delay exceeds SLA threshold' },
+    { domain:'PagerDuty', text:'Slack notification fires; manager contacts carrier' },
+    { domain:'Logistics', text:'Rerouted shipment updated; stakeholders notified via portal' }
+  ]},
+  onboard: { title:'Supplier onboarding workflow', steps:[
+    { domain:'Procurement', text:'Buyer invites new supplier via portal with onboarding link' },
+    { domain:'Supplier portal', text:'Supplier completes profile and uploads compliance documents' },
+    { domain:'Object store', text:'Documents stored in S3 with virus scan and encryption' },
+    { domain:'Elasticsearch', text:'Supplier profile indexed for search and duplicate detection' },
+    { domain:'ML platform', text:'Risk score calculated from financial, geographic, and ESG signals' },
+    { domain:'Supplier', text:'Buyer reviews scorecard and approves supplier status' },
+    { domain:'SSO', text:'Portal access activated; supplier added to approved-source list' },
+    { domain:'Event bus', text:'Supplier onboarded event triggers catalog and spend data setup' }
+  ]},
+  alert: { title:'Critical stock-out alert & response', steps:[
+    { domain:'TimescaleDB', text:'Anomaly job detects abnormal depletion rate via rolling window' },
+    { domain:'Inventory', text:'Validates alert and publishes "critical_stock" domain event' },
+    { domain:'PagerDuty', text:'On-call inventory analyst paged within 3 minutes' },
+    { domain:'BI', text:'Analyst opens dashboard: views affected SKUs, locations, velocity' },
+    { domain:'ML platform', text:'System suggests alternative supplier with available inventory' },
+    { domain:'Procurement', text:'Emergency PO fast-tracked via expedite workflow bypass' },
+    { domain:'Logistics', text:'Priority carrier arranged for compressed lead time' },
+    { domain:'Observability', text:'Exec dashboard updated; incident logged with RCA template' }
+  ]},
+  saga_reorder: { type: 'saga',
+    title: 'Distributed tx — Automated reorder saga',
+    desc: 'A five-step saga coordinated by Temporal. Each domain makes a local commit. If any step fails, compensating actions run in reverse order — no distributed locks, no two-phase commit.',
+    pills: ['Temporal orchestrator','Idempotent steps','Compensating actions','Audit trail','< 30 sec MTTR'],
+    diagram: `<svg width="100%" viewBox="0 0 680 330" xmlns="http://www.w3.org/2000/svg" style="font-family:IBM Plex Mono,monospace">
+      <defs>
+        <marker id="arrs" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <text x="68" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">ORCHESTRATOR</text>
+      <line x1="68" y1="22" x2="68" y2="310" stroke="#64748b" stroke-width="0.5" stroke-dasharray="3 3"/>
+      <text x="190" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">INVENTORY</text>
+      <text x="300" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">PROCUREMENT</text>
+      <text x="430" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">SUPPLIER</text>
+      <text x="570" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">LOGISTICS</text>
+
+      <rect x="20" y="28" width="96" height="36" rx="3" fill="#0f1520" stroke="#1D9E75" stroke-width="0.5"/>
+      <text x="68" y="43" font-size="10" fill="#2dd4bf" text-anchor="middle" font-weight="600">1. Reserve stock</text>
+      <text x="68" y="57" font-size="9" fill="#64748b" text-anchor="middle">→ inventory</text>
+      <line x1="116" y1="46" x2="152" y2="46" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrs)"/>
+      <rect x="154" y="28" width="72" height="36" rx="3" fill="#04342c" stroke="#1D9E75" stroke-width="0.5"/>
+      <text x="190" y="43" font-size="10" fill="#2dd4bf" text-anchor="middle" font-weight="600">Lock qty</text>
+      <text x="190" y="57" font-size="9" fill="#5DCAA5" text-anchor="middle">reserved ✓</text>
+
+      <rect x="20" y="82" width="96" height="36" rx="3" fill="#0f1520" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="68" y="97" font-size="10" fill="#fbbf24" text-anchor="middle" font-weight="600">2. Create PO</text>
+      <text x="68" y="111" font-size="9" fill="#64748b" text-anchor="middle">→ procurement</text>
+      <line x1="116" y1="100" x2="262" y2="100" stroke="#BA7517" stroke-width="1" marker-end="url(#arrs)"/>
+      <rect x="264" y="82" width="72" height="36" rx="3" fill="#412402" stroke="#BA7517" stroke-width="0.5"/>
+      <text x="300" y="97" font-size="10" fill="#fbbf24" text-anchor="middle" font-weight="600">PO draft</text>
+      <text x="300" y="111" font-size="9" fill="#EF9F27" text-anchor="middle">persisted ✓</text>
+
+      <rect x="20" y="136" width="96" height="36" rx="3" fill="#0f1520" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="68" y="151" font-size="10" fill="#a78bfa" text-anchor="middle" font-weight="600">3. Notify supplier</text>
+      <text x="68" y="165" font-size="9" fill="#64748b" text-anchor="middle">→ supplier</text>
+      <line x1="116" y1="154" x2="392" y2="154" stroke="#534AB7" stroke-width="1" marker-end="url(#arrs)"/>
+      <rect x="394" y="136" width="72" height="36" rx="3" fill="#26215c" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="430" y="151" font-size="10" fill="#a78bfa" text-anchor="middle" font-weight="600">PO sent</text>
+      <text x="430" y="165" font-size="9" fill="#AFA9EC" text-anchor="middle">confirmed ✓</text>
+
+      <rect x="20" y="190" width="96" height="36" rx="3" fill="#0f1520" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="68" y="205" font-size="10" fill="#38bdf8" text-anchor="middle" font-weight="600">4. Book carrier</text>
+      <text x="68" y="219" font-size="9" fill="#64748b" text-anchor="middle">→ logistics</text>
+      <line x1="116" y1="208" x2="532" y2="208" stroke="#185FA5" stroke-width="1" marker-end="url(#arrs)"/>
+      <rect x="534" y="190" width="72" height="36" rx="3" fill="#042c53" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="570" y="205" font-size="10" fill="#38bdf8" text-anchor="middle" font-weight="600">Label</text>
+      <text x="570" y="219" font-size="9" fill="#85B7EB" text-anchor="middle">generated ✓</text>
+
+      <rect x="20" y="244" width="96" height="36" rx="3" fill="#0f1520" stroke="#3B6D11" stroke-width="0.5"/>
+      <text x="68" y="259" font-size="10" fill="#4ade80" text-anchor="middle" font-weight="600">5. Complete</text>
+      <text x="68" y="273" font-size="9" fill="#64748b" text-anchor="middle">emit event</text>
+      <rect x="130" y="244" width="476" height="36" rx="3" fill="#173404" stroke="#3B6D11" stroke-width="0.5"/>
+      <text x="368" y="267" font-size="10" fill="#4ade80" text-anchor="middle" font-weight="600">Saga complete — stock reserved · PO live · carrier booked ✓</text>
+
+      <line x1="20" y1="302" x2="660" y2="302" stroke="#A32D2D" stroke-width="0.5" stroke-dasharray="4 3"/>
+      <text x="340" y="318" font-size="9" fill="#f87171" text-anchor="middle" letter-spacing="0.5">FAILURE at step 4 triggers reverse compensation: cancel supplier → void PO → release stock reservation</text>
+    </svg>`,
+    steps: [
+      { type:'happy', action:'1. Reserve stock', detail:'Inventory service atomically decrements available qty and records a reservation. Compensating action: release reservation.', comp:'Compensate: inventory.releaseReservation(reservationId)' },
+      { type:'happy', action:'2. Create PO', detail:'Procurement service persists a draft PO in PENDING state. Compensating action: mark PO as VOIDED.', comp:'Compensate: procurement.voidPO(poId)' },
+      { type:'happy', action:'3. Notify supplier', detail:'Supplier domain sends PO to supplier via portal/EDI and awaits ASN confirmation. Compensating action: send cancellation notice.', comp:'Compensate: supplier.cancelPONotification(poId)' },
+      { type:'happy', action:'4. Book carrier', detail:'Logistics calls carrier API (external). This is the most failure-prone step — network timeouts, unavailability. Retried 3× with backoff before compensating.', comp:'Compensate: logistics.cancelBooking(bookingId)' },
+      { type:'happy', action:'5. Saga complete', detail:'Orchestrator marks saga COMPLETED and emits a "reorder_saga_completed" domain event consumed by monitoring and BI.' },
+      { type:'comp', action:'Rollback — carrier booking fails', detail:'Temporal re-drives compensation steps in reverse order. Each compensating action is also idempotent and retried if it fails.', comp:'' }
+    ],
+    principles: [
+      { icon:'🔁', text:'<strong>Idempotency</strong> — every step checks if it already ran before executing. Safe to replay after a worker crash without double-booking or double-reserving.' },
+      { icon:'📋', text:'<strong>Audit trail</strong> — Temporal persists full event history. Engineers can inspect every step input/output, duration, and retry count from the Temporal UI.' },
+      { icon:'⚡', text:'<strong>No distributed locks</strong> — domains release locks after their local commit. The system is never blocked waiting for another service to finish.' }
+    ]
+  },
+  saga_stockout: { type: 'saga',
+    title: 'Distributed tx — Stockout emergency saga (with human gate)',
+    desc: 'A more complex saga that pauses for human approval mid-execution. Temporal "signals" let the workflow sleep for hours without holding threads or DB connections, then resume exactly where it paused.',
+    pills: ['Human-in-the-loop','Signal/wait pattern','2-hr timeout','Auto-escalation','External API retry'],
+    diagram: `<svg width="100%" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" style="font-family:IBM Plex Mono,monospace">
+      <defs>
+        <marker id="arrs2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+      <text x="68" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">TEMPORAL</text>
+      <line x1="68" y1="22" x2="68" y2="310" stroke="#64748b" stroke-width="0.5" stroke-dasharray="3 3"/>
+      <text x="185" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">INVENTORY</text>
+      <text x="295" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">ML PLATFORM</text>
+      <text x="415" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">PROCUREMENT</text>
+      <text x="570" y="18" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="1">LOGISTICS</text>
+
+      <rect x="20" y="28" width="96" height="36" rx="3" fill="#0f1520" stroke="#A32D2D" stroke-width="0.5"/>
+      <text x="68" y="43" font-size="10" fill="#f87171" text-anchor="middle" font-weight="600">1. Detect critical</text>
+      <text x="68" y="57" font-size="9" fill="#64748b" text-anchor="middle">→ inventory</text>
+      <line x1="116" y1="46" x2="148" y2="46" stroke="#A32D2D" stroke-width="1" marker-end="url(#arrs2)"/>
+      <rect x="150" y="28" width="70" height="36" rx="3" fill="#501313" stroke="#A32D2D" stroke-width="0.5"/>
+      <text x="185" y="43" font-size="10" fill="#f87171" text-anchor="middle" font-weight="600">Publish</text>
+      <text x="185" y="57" font-size="9" fill="#F09595" text-anchor="middle">event fired ✓</text>
+
+      <rect x="20" y="82" width="96" height="36" rx="3" fill="#0f1520" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="68" y="97" font-size="10" fill="#a78bfa" text-anchor="middle" font-weight="600">2. Score suppliers</text>
+      <text x="68" y="111" font-size="9" fill="#64748b" text-anchor="middle">→ ML platform</text>
+      <line x1="116" y1="100" x2="258" y2="100" stroke="#534AB7" stroke-width="1" marker-end="url(#arrs2)"/>
+      <rect x="260" y="82" width="70" height="36" rx="3" fill="#26215c" stroke="#534AB7" stroke-width="0.5"/>
+      <text x="295" y="97" font-size="10" fill="#a78bfa" text-anchor="middle" font-weight="600">Ranked</text>
+      <text x="295" y="111" font-size="9" fill="#AFA9EC" text-anchor="middle">list returned ✓</text>
+
+      <rect x="20" y="136" width="96" height="46" rx="3" fill="#0f1520" stroke="#854F0B" stroke-width="1"/>
+      <text x="68" y="151" font-size="10" fill="#fbbf24" text-anchor="middle" font-weight="600">3. ⏸ Wait signal</text>
+      <text x="68" y="163" font-size="9" fill="#64748b" text-anchor="middle">buyer approval</text>
+      <text x="68" y="175" font-size="9" fill="#854F0B" text-anchor="middle">timeout: 2 hrs</text>
+      <line x1="116" y1="159" x2="148" y2="159" stroke="#854F0B" stroke-width="1" stroke-dasharray="3 2" marker-end="url(#arrs2)"/>
+      <rect x="150" y="136" width="90" height="46" rx="3" fill="#412402" stroke="#854F0B" stroke-width="0.5"/>
+      <text x="195" y="151" font-size="10" fill="#fbbf24" text-anchor="middle" font-weight="600">Notification</text>
+      <text x="195" y="163" font-size="9" fill="#EF9F27" text-anchor="middle">sent to buyer</text>
+      <text x="195" y="175" font-size="9" fill="#854F0B" text-anchor="middle">waiting…</text>
+      <text x="280" y="152" font-size="9" fill="#4ade80" text-anchor="middle">approved →</text>
+      <line x1="242" y1="159" x2="378" y2="159" stroke="#3B6D11" stroke-width="1" marker-end="url(#arrs2)"/>
+
+      <rect x="20" y="200" width="96" height="36" rx="3" fill="#0f1520" stroke="#1D9E75" stroke-width="0.5"/>
+      <text x="68" y="215" font-size="10" fill="#2dd4bf" text-anchor="middle" font-weight="600">4. Emergency PO</text>
+      <text x="68" y="229" font-size="9" fill="#64748b" text-anchor="middle">→ procurement</text>
+      <line x1="116" y1="218" x2="378" y2="218" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrs2)"/>
+      <rect x="380" y="200" width="70" height="36" rx="3" fill="#04342c" stroke="#1D9E75" stroke-width="0.5"/>
+      <text x="415" y="215" font-size="10" fill="#2dd4bf" text-anchor="middle" font-weight="600">Expedite</text>
+      <text x="415" y="229" font-size="9" fill="#5DCAA5" text-anchor="middle">PO created ✓</text>
+
+      <rect x="20" y="254" width="96" height="36" rx="3" fill="#0f1520" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="68" y="269" font-size="10" fill="#38bdf8" text-anchor="middle" font-weight="600">5. Priority carrier</text>
+      <text x="68" y="283" font-size="9" fill="#64748b" text-anchor="middle">→ logistics</text>
+      <line x1="116" y1="272" x2="532" y2="272" stroke="#185FA5" stroke-width="1" marker-end="url(#arrs2)"/>
+      <rect x="534" y="254" width="72" height="36" rx="3" fill="#042c53" stroke="#185FA5" stroke-width="0.5"/>
+      <text x="570" y="269" font-size="10" fill="#38bdf8" text-anchor="middle" font-weight="600">Booked</text>
+      <text x="570" y="283" font-size="9" fill="#85B7EB" text-anchor="middle">ETA set ✓</text>
+
+      <text x="340" y="310" font-size="9" fill="#64748b" text-anchor="middle" letter-spacing="0.5">Saga parks at step 3 with zero resource locks — resumes on approval signal or escalates after 2 hrs</text>
+    </svg>`,
+    steps: [
+      { type:'happy', action:'1. Detect critical stock event', detail:'Inventory domain publishes a "critical_stock" event. Temporal starts a new saga workflow instance. State persisted to durable storage immediately.' },
+      { type:'happy', action:'2. Score alternative suppliers', detail:'ML platform ranks available suppliers by lead time, cost, reliability score, and risk rating. Returns a sorted list within ~50ms.' },
+      { type:'wait', action:'3. ⏸ Wait for buyer approval (human gate)', detail:'Orchestrator sends a notification to the buyer and parks the workflow. No threads blocked, no DB locks held. Temporal timer fires after 2 hrs if no signal received.', comp:'Timeout path: auto-escalate to procurement manager, extend wait by 1 hr.' },
+      { type:'happy', action:'4. Emergency PO — expedite path', detail:'Procurement creates a PO flagged as EXPEDITE, bypassing standard approval tiers. Supplier notified immediately via portal push and EDI 850.' },
+      { type:'happy', action:'5. Priority carrier booking', detail:'Logistics calls premium carrier API with guaranteed next-day service. If carrier API times out, retried 3× with 5s/15s/30s backoff before alerting on-call.' },
+      { type:'comp', action:'Compensation: carrier unavailable', detail:'If all priority carriers are full, saga compensates: void expedite PO, notify buyer, fall back to standard reorder with elevated priority flag.' }
+    ],
+    principles: [
+      { icon:'⏸', text:'<strong>Signal/wait pattern</strong> — Temporal workflows can sleep for hours or days waiting for external input (a human click, a webhook, a timer) without consuming server resources.' },
+      { icon:'🔄', text:'<strong>Auto-escalation</strong> — if no approval arrives within 2 hours, Temporal fires a timer activity that re-routes to the manager and extends the wait window, rather than failing the saga.' },
+      { icon:'🛡️', text:'<strong>External API resilience</strong> — carrier booking is wrapped in a Temporal activity with configurable retry policy. The orchestrator retries transparently; the domain service code stays simple.' }
+    ]
+  }
+};
+
+function showPanel(key) {
+  const d = DATA[key]; if (!d) return;
+  document.getElementById('panel-header').innerHTML = `
+    <button class="panel-close" onclick="closePanel()" aria-label="Close">✕</button>
+    <div class="panel-icon">${d.icon}</div>
+    <div class="panel-title">${d.title}</div>
+    <div class="panel-sub">${d.sub}</div>
+  `;
+  const tags = d.tags.map(t=>`<span class="panel-tag">${t}</span>`).join('');
+  const metrics = d.metrics.map(([k,v])=>`<div class="metric-row"><span>${k}</span><span>${v}</span></div>`).join('');
+  const cases = d.cases.map(c=>`<div class="case-row">${c}</div>`).join('');
+  document.getElementById('panel-body').innerHTML = `
+    <div class="panel-section">Capabilities</div>
+    <div class="panel-tags">${tags}</div>
+    <div class="panel-section">Key metrics</div>${metrics}
+    <div class="panel-section">Example interactions</div>${cases}
+    <button class="panel-ask-btn" onclick="askAbout('${d.prompt.replace(/'/g,"\\'")}')">ask: ${d.prompt} ↗</button>
+  `;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function askAbout(prompt) {
+  if (typeof sendPrompt === 'function') sendPrompt(prompt);
+  closePanel();
+}
+
+function closePanel() {
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function setUC(key, btn) {
+  document.querySelectorAll('.uc-tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const uc = UCS[key];
+  const el = document.getElementById('uc-content');
+
+  if (uc.type === 'saga') {
+    const pills = uc.pills.map(p=>`<span class="saga-pill">${p}</span>`).join('');
+    const stepNums = { happy: '✓', comp: '✕', wait: '⏸' };
+    const stepsHtml = uc.steps.map((s,i)=>`
+      <div class="saga-step" style="animation-delay:${i*40}ms">
+        <div class="saga-step-num ${s.type}">${stepNums[s.type]||i+1}</div>
+        <div class="saga-step-body">
+          <div class="saga-step-action ${s.type}">${s.action}</div>
+          <div class="saga-step-detail">${s.detail}</div>
+          ${s.comp ? `<div class="saga-step-compensate">↺ ${s.comp}</div>` : ''}
+        </div>
+      </div>`).join('');
+    const principlesHtml = uc.principles.map(p=>`
+      <div class="saga-principle">
+        <span class="saga-principle-icon">${p.icon}</span>
+        <span class="saga-principle-text">${p.text}</span>
+      </div>`).join('');
+    el.className = '';
+    el.innerHTML = `<div class="saga-card">
+      <div class="saga-header">
+        <div class="saga-title">${uc.title}</div>
+        <div class="saga-desc">${uc.desc}</div>
+        <div class="saga-pills">${pills}</div>
+      </div>
+      <div class="saga-diagram">${uc.diagram}</div>
+      <div class="saga-steps-title">Step-by-step breakdown</div>
+      <div class="saga-steps">${stepsHtml}</div>
+      ${principlesHtml}
+    </div>`;
+  } else {
+    el.className = 'uc-card';
+    const steps = uc.steps.map((s,i)=>`
+      <div class="uc-step" style="animation-delay:${i*35}ms">
+        <div class="uc-num">${i+1}</div>
+        <div class="uc-text"><span class="uc-domain">${s.domain}</span>${s.text}</div>
+      </div>`).join('');
+    el.innerHTML = `<div class="uc-title">${uc.title}</div><div class="uc-steps">${steps}</div>`;
+  }
+}
+
+const firstTab = document.querySelector('.uc-tab');
+firstTab && setUC('reorder', firstTab);
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closePanel(); });
+
+function showPage(id, btn) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.page-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+<script data-goatcounter="https://interview-kb.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+<div id="giscus-container" style="max-width:860px;margin:3rem auto 2rem;padding:2rem 1.5rem 1.5rem;border-top:2px solid #e2e8f0;font-family:'Inter',system-ui,sans-serif;">
+  <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#6b7280;margin-bottom:1.25rem;">Reactions &amp; Discussion</div>
+  <script>
+    (function(){
+      var t=localStorage.getItem('theme')==='dark'?'dark':'light';
+      var s=document.createElement('script');
+      s.src='https://giscus.app/client.js';
+      s.dataset.repo='Sunilrana1978/interview-kb';
+      s.dataset.repoId='R_kgDOTM67Pw';
+      s.dataset.category='General';
+      s.dataset.categoryId='DIC_kwDOTM67P84DAdz3';
+      s.dataset.mapping='pathname';
+      s.dataset.strict='0';
+      s.dataset.reactionsEnabled='1';
+      s.dataset.emitMetadata='0';
+      s.dataset.inputPosition='bottom';
+      s.dataset.theme=t;
+      s.dataset.lang='en';
+      s.crossOrigin='anonymous';
+      s.async=true;
+      document.getElementById('giscus-container').appendChild(s);
+      new MutationObserver(function(){
+        var dark=document.documentElement.classList.contains('dark');
+        var f=document.querySelector('iframe.giscus-frame');
+        if(f)f.contentWindow.postMessage({giscus:{setConfig:{theme:dark?'dark':'light'}}},'https://giscus.app');
+      }).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+    })();
+  </script>
+</div>
+</body>
+</html>
