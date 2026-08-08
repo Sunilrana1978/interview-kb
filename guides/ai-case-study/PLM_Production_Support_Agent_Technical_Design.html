@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PLM Production Support Agent — Technical Design</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js"></script>
+<style>
+  :root {
+    --ink: #1a1d23;
+    --muted: #5b6270;
+    --accent: #c8102e;
+    --line: #e4e6eb;
+    --bg-code: #f4f5f7;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 24px 100px;
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  h1 {
+    font-size: 2.1em;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+  }
+  h2 {
+    font-size: 1.4em;
+    margin-top: 2.4em;
+    padding-top: 0.6em;
+    border-top: 1px solid var(--line);
+    color: #111;
+  }
+  h3 {
+    font-size: 1.12em;
+    margin-top: 1.8em;
+    color: #222;
+  }
+  p, li { color: #2b2f38; }
+  strong { color: #111; }
+  code {
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--bg-code);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  pre code { background: none; padding: 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.2em 0;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th { background: var(--bg-code); }
+  hr {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 2.5em 0;
+  }
+  .mermaid {
+    background: #fff;
+    padding: 20px 0;
+  }
+  .doc-meta {
+    color: var(--muted);
+    font-size: 0.95em;
+    margin-bottom: 2em;
+  }
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<h1 id="technical-design-document-plm-production-support-agent">Technical Design Document: PLM Production Support Agent</h1>
+<p><strong>Companion to:</strong> PLM_Production_Support_Agent_PRD.md
+<strong>Orchestration Framework:</strong> Google Agent Development Kit (ADK), consistent with the existing internal data agent
+<strong>Target Platform:</strong> Google Cloud Platform</p>
+<hr />
+<h2 id="1-architecture-overview">1. Architecture Overview</h2>
+<p>The agent is a backend-orchestrated conversational service embedded as a chat panel inside the PLM application. It uses an ADK-based root agent that routes each user turn to one of three capability paths: knowledge retrieval (RAG over Confluence), structured status lookup (season-style API), or ServiceNow ticket operations (MCP-based tool calls). A confidence-gating layer sits between the knowledge path and the user, ensuring low-confidence answers fall back to ticket creation instead of being presented as fact.</p>
+<div class="mermaid">flowchart TB
+    subgraph Client[&quot;PLM Application&quot;]
+        UI[Embedded Chat Panel]
+    end
+
+    subgraph Edge[&quot;Edge / Access Layer&quot;]
+        LB[HTTPS Load Balancer]
+        IAP[Identity-Aware Proxy]
+        OKTA[Okta SSO / Workforce Identity Federation]
+    end
+
+    subgraph Service[&quot;Agent Service - Cloud Run&quot;]
+        API[FastAPI Endpoint]
+        ORCH[ADK Root Agent / Orchestrator]
+        CLASS[Intent + Domain Classifier]
+        CONF[Confidence Gate]
+
+        subgraph Tools[&quot;ADK Tools&quot;]
+            RAGTOOL[Knowledge Retrieval Tool]
+            STATUSTOOL[Status Lookup Tool]
+            SNOWTOOL[ServiceNow Tool]
+        end
+    end
+
+    subgraph Data[&quot;Data + Knowledge Layer&quot;]
+        VSEARCH[Vertex AI Vector Search]
+        EMBED[Vertex AI Embeddings]
+        INGEST[Confluence Ingestion Pipeline]
+        CONFLUENCE[(Confluence Wiki)]
+    end
+
+    subgraph External[&quot;External Systems&quot;]
+        STATUSAPI[[PLM Season-Style Status API]]
+        SNOWMCP[ServiceNow MCP Server]
+        SNOW[(ServiceNow Instance)]
+    end
+
+    subgraph Ops[&quot;Observability + Governance&quot;]
+        LOGS[Cloud Logging / Audit Trail]
+        MON[Cloud Monitoring + Dashboard]
+        SECRET[Secret Manager]
+        EVAL[Evaluation Harness - RAGAS style]
+    end
+
+    UI --&gt; LB --&gt; IAP --&gt; OKTA
+    IAP --&gt; API
+    API --&gt; ORCH
+    ORCH --&gt; CLASS --&gt; ORCH
+    ORCH --&gt; Tools
+    RAGTOOL --&gt; VSEARCH
+    RAGTOOL --&gt; CONF
+    CONF --&gt;|low confidence| SNOWTOOL
+    CONF --&gt;|high confidence| API
+    STATUSTOOL --&gt; STATUSAPI
+    SNOWTOOL --&gt; SNOWMCP --&gt; SNOW
+    INGEST --&gt; CONFLUENCE
+    INGEST --&gt; EMBED --&gt; VSEARCH
+    ORCH --&gt; LOGS
+    ORCH --&gt; MON
+    ORCH -.-&gt; SECRET
+    LOGS --&gt; EVAL
+</div>
+<hr />
+<h2 id="2-component-breakdown">2. Component Breakdown</h2>
+<h3 id="21-client-layer">2.1 Client Layer</h3>
+<ul>
+<li><strong>Embedded Chat Panel:</strong> Lightweight chat UI rendered inside the existing PLM application shell. Communicates with the agent backend over HTTPS. No direct ServiceNow or Confluence access from the client.</li>
+</ul>
+<h3 id="22-edge-access-layer">2.2 Edge / Access Layer</h3>
+<ul>
+<li><strong>HTTPS Load Balancer:</strong> Single entry point for the agent service; terminates TLS.</li>
+<li><strong>Identity-Aware Proxy (IAP):</strong> Enforces that only authenticated Nike users can reach the Cloud Run service.</li>
+<li><strong>Okta Federation:</strong> Existing Okta SSO federated via Workforce Identity Federation, so the agent inherits the same identity and permission model as the PLM application itself. User identity flows through to every downstream call (status API, ServiceNow) for permission scoping.</li>
+</ul>
+<h3 id="23-agent-service-cloud-run">2.3 Agent Service (Cloud Run)</h3>
+<ul>
+<li><strong>FastAPI Endpoint:</strong> Stateless HTTP entry point handling chat turns, session ID management, and streaming responses back to the client.</li>
+<li><strong>ADK Root Agent / Orchestrator:</strong> Owns the conversation loop, session/memory state, and decides which tool(s) to invoke per turn.</li>
+<li><strong>Intent + Domain Classifier:</strong> A lightweight, cheaper-model classification step (e.g., a smaller Gemini model) that tags each query with a domain (costing, BOM, line planning, library, platform/technical) before routing. This mapping also drives ServiceNow assignment group selection.</li>
+<li><strong>Confidence Gate:</strong> Evaluates retrieval/answer confidence from the knowledge tool. Below threshold → triggers ticket-creation flow instead of returning an answer. This is the concrete mechanism behind the PRD's "never hallucinate" requirement.</li>
+</ul>
+<h3 id="24-adk-tools">2.4 ADK Tools</h3>
+<ul>
+<li><strong>Knowledge Retrieval Tool:</strong> Wraps a query against Vertex AI Vector Search, returns top-k passages plus a groundedness/confidence score, and generates the final answer with source citations.</li>
+<li><strong>Status Lookup Tool:</strong> Wraps the existing season-style status API call; passes through the authenticated user's identity for permission-scoped results.</li>
+<li><strong>ServiceNow Tool:</strong> Wraps ServiceNow MCP server calls (create, read, update, cancel, list/search tickets). Includes a summarization step that converts conversation context into a clean, technical-only summary before it's ever sent to ServiceNow (SOX requirement from the PRD).</li>
+</ul>
+<h3 id="25-data-knowledge-layer">2.5 Data / Knowledge Layer</h3>
+<ul>
+<li><strong>Confluence Ingestion Pipeline:</strong> Scheduled or webhook-triggered job that pulls updated Confluence pages, chunks them, and re-embeds changed content only (incremental indexing) rather than a full reload each time.</li>
+<li><strong>Vertex AI Embeddings + Vector Search:</strong> Stores the embedded knowledge base; queried by the Knowledge Retrieval Tool at conversation time.</li>
+</ul>
+<h3 id="26-external-systems">2.6 External Systems</h3>
+<ul>
+<li><strong>PLM Season-Style Status API:</strong> Existing internal API, called directly — no direct database access.</li>
+<li><strong>ServiceNow MCP Server:</strong> Preferred integration path (GA in 2026); exposes ServiceNow tables/actions as callable tools. REST Table API is the documented fallback if the Nike instance doesn't yet support it.</li>
+</ul>
+<h3 id="27-observability-and-governance">2.7 Observability and Governance</h3>
+<ul>
+<li><strong>Cloud Logging / Audit Trail:</strong> Every tool call (especially ServiceNow create/update/cancel) logged with a link back to the originating conversation ID, satisfying the PRD's audit requirement.</li>
+<li><strong>Cloud Monitoring + Dashboard:</strong> Tracks deflection rate, routing accuracy, latency, error rate, and cost per conversation.</li>
+<li><strong>Secret Manager:</strong> Holds ServiceNow service account credentials and any other integration secrets.</li>
+<li><strong>Evaluation Harness:</strong> RAGAS-style regression suite run pre-deployment and on a recurring schedule against production traffic samples.</li>
+</ul>
+<hr />
+<h2 id="3-data-flow-primary-conversation-turn">3. Data Flow (Primary Conversation Turn)</h2>
+<ol>
+<li>User sends a message from the embedded chat panel.</li>
+<li>Request passes through the load balancer, IAP, and Okta-based identity check.</li>
+<li>FastAPI endpoint receives the request with the authenticated user context and session ID.</li>
+<li>ADK root agent loads session state/history and passes the query to the intent/domain classifier.</li>
+<li>Based on classification, the orchestrator selects a tool path:
+   - <strong>Knowledge path:</strong> Knowledge Retrieval Tool queries Vector Search → confidence gate evaluates the result → if confident, answer is returned with citations; if not, falls through to ticket creation.
+   - <strong>Status path:</strong> Status Lookup Tool calls the season-style API with the user's identity → result formatted conversationally.
+   - <strong>Ticket path:</strong> ServiceNow Tool generates a clean technical summary → calls the MCP server to create/update/cancel/list a ticket → returns ticket number/status to the user.</li>
+<li>Response streamed back to the client; all tool invocations logged for audit.</li>
+</ol>
+<hr />
+<h2 id="4-security-and-compliance-notes">4. Security and Compliance Notes</h2>
+<ul>
+<li>All downstream calls (status API, ServiceNow) are scoped to the authenticated user's own permissions — the agent does not have a standing "super user" identity for data access.</li>
+<li>ServiceNow tool is constrained so a user can only update or cancel their own tickets, never arbitrary ticket numbers (per the prompt-injection/abuse mitigation identified in the PRD).</li>
+<li>Conversation content sent to ServiceNow is always a generated technical summary, never raw transcript text, to satisfy SOX.</li>
+<li>Secrets (ServiceNow service account, API keys) live in Secret Manager, never in code or environment files.</li>
+</ul>
+<hr />
+<h2 id="5-phased-implementation-plan">5. Phased Implementation Plan</h2>
+<h3 id="phase-1-foundation-knowledge-and-status-mvp">Phase 1: Foundation — Knowledge and Status (MVP)</h3>
+<ul>
+<li>Stand up Cloud Run service, FastAPI skeleton, ADK root agent with a single tool: Knowledge Retrieval.</li>
+<li>Build the Confluence ingestion pipeline (initial full load) and Vertex AI Vector Search index.</li>
+<li>Implement the confidence gate (initially can just message "I'm not confident, would you like me to create a ticket?" without live ServiceNow integration yet).</li>
+<li>Integrate the Status Lookup Tool against the season-style API.</li>
+<li>Basic Okta/IAP authentication wired end-to-end.</li>
+<li><strong>Exit criteria:</strong> Agent answers how-to and status questions accurately in a dev/staging environment; eval harness passes baseline accuracy targets.</li>
+</ul>
+<h3 id="phase-2-core-servicenow-integration">Phase 2: Core ServiceNow Integration</h3>
+<ul>
+<li>Integrate ServiceNow MCP server (or REST fallback) for ticket <strong>creation only</strong>, with intent-based assignment group routing.</li>
+<li>Build the clean-summary generation step for SOX compliance.</li>
+<li>Return ticket numbers to users; log every creation for audit.</li>
+<li><strong>Exit criteria:</strong> Agent reliably creates correctly-routed tickets from real unresolved conversations in staging.</li>
+</ul>
+<h3 id="phase-3-full-ticket-lifecycle-and-production-hardening">Phase 3: Full Ticket Lifecycle and Production Hardening</h3>
+<ul>
+<li>Add ServiceNow read/update/cancel/list-search capabilities.</li>
+<li>Implement rate limiting, retry/backoff for downstream calls, and graceful degradation messaging.</li>
+<li>Build the admin/observability dashboard (deflection rate, routing accuracy, latency, cost).</li>
+<li>Define and instrument SLA targets.</li>
+<li>Formalize data retention/purge policy for logs.</li>
+<li><strong>Exit criteria:</strong> Agent passes a production-readiness review against the PRD's non-functional requirements.</li>
+</ul>
+<h3 id="phase-4-scaled-production-rollout">Phase 4: Scaled Production Rollout</h3>
+<ul>
+<li>Promote through dev → staging → prod with CI/CD and the eval suite as a regression gate.</li>
+<li>Roll out to a limited user group first, monitor dashboard metrics, then expand PLM-wide.</li>
+<li>Assign ongoing knowledge base content ownership within the support/product team.</li>
+<li><strong>Exit criteria:</strong> Stable operation at full user load, meeting defined SLA and cost targets.</li>
+</ul>
+<h3 id="phase-5-version-two-enhancements">Phase 5: Version Two Enhancements</h3>
+<ul>
+<li>Jira integration to surface linked tickets against ServiceNow incidents.</li>
+<li>Proactive status-change notifications.</li>
+<li>Feedback loop (thumbs up/down) feeding back into knowledge base gap analysis and the eval suite.</li>
+<li><strong>Exit criteria:</strong> Each v2 feature independently evaluated and rolled out without regressing core v1 functionality.</li>
+</ul>
+<hr />
+<h2 id="6-open-technical-questions">6. Open Technical Questions</h2>
+<ul>
+<li>Exact model choice for the intent classifier vs. the answer-generation model (cost/latency tradeoff).</li>
+<li>Whether Vector Search or a lighter-weight alternative is justified at current knowledge base size.</li>
+<li>Specific numeric confidence threshold and how it's calibrated against the eval harness.</li>
+<li>Whether session state is held in-memory per Cloud Run instance or externalized (e.g., Firestore/Memorystore) for multi-instance consistency.</li>
+<li>Final MCP vs. REST decision, pending confirmation of the Nike ServiceNow instance version.</li>
+</ul>
+<script>mermaid.initialize({startOnLoad:true, theme:'neutral'});</script>
+</body>
+</html>

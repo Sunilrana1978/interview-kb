@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05 · Production Engineering — Signal Path</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> SIGNAL&nbsp;PATH</div>
+  <nav>
+    <a href="index.html">Map</a>
+    <a href="01-ml-fundamentals.html">01 Fundamentals</a>
+    <a href="02-deep-learning.html">02 Deep Learning</a>
+    <a href="03-llms.html">03 LLMs</a>
+    <a href="04-ai-engineering.html">04 AI Engineering</a>
+    <a href="05-production.html" class="current">05 Production</a>
+  </nav>
+  <a class="back-link" href="../../index.html">&larr; All Guides</a>
+</div>
+
+<div class="shell">
+
+  <aside class="toc">
+    <div class="toc-label">On this page</div>
+    <ol>
+      <li><a href="#debugging">Debug Failures</a></li>
+      <li><a href="#latency">Optimize Latency</a></li>
+      <li><a href="#costs">Reduce Costs</a></li>
+      <li><a href="#reliability">Improve Reliability</a></li>
+      <li><a href="#scalability">Design Scalable Systems</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow"><span class="rail"></span>STAGE 05</div>
+      <h1>Think like a Production Engineer</h1>
+      <p class="dek">Everything so far explains how these systems work. This stage is about keeping them working — for real users, at real scale, under real budget constraints — by pulling on the specific mechanisms from Stages 2–4 rather than guessing.</p>
+      <div class="chain">
+        <span>01 Fundamentals</span><span>02 Deep Learning</span><span>03 LLMs</span><span>04 AI Engineering</span><span class="active">05 Production</span>
+      </div>
+    </div>
+
+    <div class="rail-wrap">
+
+      <section class="node" id="debugging">
+        <span class="node-id">§5.1 — DEBUG FAILURES</span>
+        <h2>Debug Failures</h2>
+        <p class="node-tagline">LLM system failures are rarely "the model is bad" — they're almost always attributable to a specific pipeline stage, if you can see inside it.</p>
+
+        <div class="panel">
+          <div class="panel-title">A working failure taxonomy</div>
+          <ul>
+            <li><strong>Retrieval failures</strong> — the right chunk was never retrieved (embedding mismatch, poor chunking, over-aggressive metadata filter) — diagnose with retrieval-only metrics (§4.8) before blaming generation.</li>
+            <li><strong>Grounding/faithfulness failures</strong> — the right context was retrieved but the model ignored it or contradicted it — a prompting or instruction-following issue, not a retrieval one.</li>
+            <li><strong>Hallucination</strong> — confident, fluent, and wrong; more likely with weak grounding, ambiguous prompts, or a question genuinely outside the model's or the corpus's knowledge.</li>
+            <li><strong>Tool/agent failures</strong> — wrong tool selected, malformed arguments, misinterpreted tool output, or a planning loop that never terminates — needs step-level tracing (§4.10) to isolate which hop broke.</li>
+            <li><strong>Format/parsing failures</strong> — the model's output doesn't match the schema your code expects — commonly fixed with stricter structured-output constraints or output validation (§4.9), not more prompt pleading.</li>
+            <li><strong>Regression after a change</strong> — a prompt, model version, or retrieval tweak that improved one case degraded another — this is exactly what golden-set regression testing (§4.8) exists to catch before users do.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">A debugging method</div>
+          <ol>
+            <li>Reproduce with the traced request (§4.10) — get the exact prompt, retrieved context, and tool calls involved.</li>
+            <li>Localize the failing stage — inspect retrieval output, then prompt assembly, then the raw model output, in order, rather than assuming it's "the model."</li>
+            <li>Check whether it's isolated or systemic — one weird input, or does it reproduce on a class of inputs in your golden set?</li>
+            <li>Form a hypothesis tied to a specific mechanism (chunking boundary, missing few-shot example, ambiguous tool description) — not "try a different prompt and see."</li>
+            <li>Fix, then run full regression eval before shipping — a fix for one case can regress others.</li>
+          </ol>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Jumping straight to "let's try a bigger/better model" without first checking whether the failure is actually a retrieval, chunking, or prompt problem. Model upgrades are the most expensive and least targeted fix available — they're rarely the right first move.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Given a wrong answer, what's the ordered sequence of pipeline stages you'd inspect to localize the cause?</li>
+            <li>Why is "the model hallucinated" often an incomplete diagnosis rather than a root cause?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="latency">
+        <span class="node-id">§5.2 — OPTIMIZE LATENCY</span>
+        <h2>Optimize Latency</h2>
+        <p class="node-tagline">Attack the specific bottleneck — decode-phase token generation, retrieval, or pipeline structure each need a different fix.</p>
+
+        <div class="panel">
+          <div class="panel-title">Where latency actually comes from</div>
+          <ul>
+            <li><strong>Time to first token (TTFT)</strong> — dominated by prefill (§3.5) plus any retrieval/pre-processing before the model even starts generating.</li>
+            <li><strong>Inter-token latency</strong> — dominated by the sequential decode loop (§3.5), which is memory-bandwidth-bound — this is why KV cache size and GPU memory bandwidth matter more here than raw compute (FLOPs).</li>
+            <li><strong>Retrieval/pipeline latency</strong> — vector search, re-ranking, and any tool calls all add serial time before or after the LLM call — often invisible until you trace it (§4.10).</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Levers, from cheapest to most involved</div>
+          <ul>
+            <li><strong>Streaming responses</strong> — send tokens to the user as generated rather than waiting for the full response; doesn't reduce total latency but dramatically improves perceived latency.</li>
+            <li><strong>Prompt/prefix caching</strong> — reuse KV cache (§3.9) across requests sharing a system prompt or common prefix.</li>
+            <li><strong>Reduce context size</strong> — tighter retrieval (§4.4), better chunking (§4.3), and trimming unnecessary history all shrink prefill cost directly.</li>
+            <li><strong>Parallelize independent steps</strong> — run independent retrieval calls or tool calls concurrently instead of serially in an agent loop.</li>
+            <li><strong>Smaller/quantized/distilled models</strong> — use the smallest model that meets the quality bar for a given task; quantization (§3.6) reduces memory-bandwidth pressure directly, which is the actual bottleneck in decode.</li>
+            <li><strong>Speculative decoding</strong> — a small, fast "draft" model proposes several tokens ahead, which the large model verifies in a single parallel pass, accepting the ones that match — reduces the number of slow, sequential large-model steps needed.</li>
+            <li><strong>Better serving infrastructure</strong> — continuous/dynamic batching, PagedAttention-style memory management (§3.9), and right-sized hardware for the workload's actual bottleneck (memory bandwidth vs. compute).</li>
+            <li><strong>Task decomposition/routing</strong> — route simple requests to a smaller/faster model and reserve the largest model for genuinely hard cases.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Diagnostic habit</div>
+          <p>Before optimizing, break down where time is actually going (§4.10's latency breakdown) — teams commonly spend engineering effort speeding up the LLM call when retrieval or a serial tool-call chain is the real bottleneck.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does streaming improve perceived latency without reducing total generation time?</li>
+            <li>Why is decode-phase latency bound by memory bandwidth rather than raw compute, and what does that imply about which optimizations help most?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="costs">
+        <span class="node-id">§5.3 — REDUCE COSTS</span>
+        <h2>Reduce Costs</h2>
+        <p class="node-tagline">Cost in an LLM system is a function of tokens processed and model choice — nearly every lever traces back to one of those two.</p>
+
+        <div class="panel">
+          <div class="panel-title">Where cost comes from</div>
+          <ul>
+            <li><strong>Input tokens</strong> — prompt + system message + retrieved context + conversation history — often the largest, most controllable cost driver in a RAG or agent system.</li>
+            <li><strong>Output tokens</strong> — typically priced higher per token than input; verbose or overly long responses compound this directly.</li>
+            <li><strong>Model tier</strong> — larger/frontier models cost substantially more per token than smaller ones; the question is whether the task actually needs that capability.</li>
+            <li><strong>Retry/redundant calls</strong> — failed structured-output parses, agent loops that re-call the same tool, or over-eager self-consistency sampling (§4.5) all multiply cost invisibly if unmonitored.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Levers</div>
+          <ul>
+            <li><strong>Model routing / cascading</strong> — send easy requests to a cheap model, escalate to a larger model only when needed (e.g. based on a confidence signal or a cheap classifier).</li>
+            <li><strong>Prompt &amp; context trimming</strong> — tighter retrieval top-k, shorter system prompts, summarizing or truncating long conversation history instead of resending it in full every turn.</li>
+            <li><strong>Prompt/prefix caching</strong> — many providers offer reduced pricing for cached prefix tokens (§3.9/§5.2) — a direct cost win, not just a latency one, when applicable.</li>
+            <li><strong>Quantization &amp; self-hosting</strong> — for high-volume workloads, a quantized open model self-hosted on right-sized hardware can undercut per-token API pricing — worth modeling against actual volume, not assumed.</li>
+            <li><strong>Batching</strong> — for non-real-time workloads, batch APIs (where available) typically offer meaningfully lower per-token pricing in exchange for higher latency.</li>
+            <li><strong>Caching responses</strong> — for repeated or near-duplicate queries, cache the final answer itself (not just KV cache) when semantically appropriate.</li>
+            <li><strong>Output length control</strong> — explicit length constraints or format requirements (§4.5) to avoid unnecessarily verbose generations.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Optimizing cost without evaluation (§4.8) in the loop — swapping to a cheaper model or shrinking context can quietly degrade quality below an acceptable bar. Every cost lever here needs to be checked against your golden set, not shipped on cost savings alone.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why might sending every request to the largest available model be a poor default from a cost standpoint?</li>
+            <li>Why does any cost-reduction change need to be paired with an evaluation check before shipping?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="reliability">
+        <span class="node-id">§5.4 — IMPROVE RELIABILITY</span>
+        <h2>Improve Reliability</h2>
+        <p class="node-tagline">LLM calls fail, time out, hallucinate, and drift — reliability engineering here means designing for those failure modes as first-class, not exceptions.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core practices</div>
+          <ul>
+            <li><strong>Retries with backoff</strong> — for transient API errors/timeouts; combined with idempotency handling so a retried agent action doesn't double-execute a side effect (e.g. don't send an email twice).</li>
+            <li><strong>Timeouts &amp; fallbacks</strong> — a hard timeout on any LLM/tool call with a defined fallback behavior (cached answer, simpler model, graceful degradation message) rather than an indefinitely hanging request.</li>
+            <li><strong>Structured output validation</strong> — validate every model response against an expected schema (§4.9) before it flows further downstream; treat a validation failure as a normal, handled case, not a crash.</li>
+            <li><strong>Consistency checks</strong> — for high-stakes outputs, techniques like self-consistency (§4.5) or a secondary verification pass trade cost for reliability.</li>
+            <li><strong>Circuit breakers</strong> — stop routing traffic to a degraded dependency (a flaky model endpoint, a failing retrieval index) once error rates cross a threshold, instead of continuing to fail every request against it.</li>
+            <li><strong>Graceful degradation</strong> — define what the system should do when a component is down: fall back to a smaller model, skip retrieval and answer from general knowledge with a caveat, or return a clear "can't answer right now" rather than a bad guess presented confidently.</li>
+            <li><strong>Continuous evaluation &amp; drift detection</strong> — quality can silently degrade even with no code changes (data distribution shifts, an underlying model provider updates a model version) — this is exactly why observability (§4.10) needs to run continuously, not just at launch.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Framing that helps</div>
+          <p>Treat the LLM call the way you'd treat any unreliable external dependency (a third-party API) in traditional systems design — because functionally, that's what it is: variable latency, occasional failures, and outputs that need validation before you trust them.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why do retries on agent tool calls need idempotency handling that a simple text-generation retry doesn't?</li>
+            <li>What's a concrete graceful-degradation behavior for a RAG system when the vector database is temporarily unavailable?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="scalability">
+        <span class="node-id">§5.5 — DESIGN SCALABLE SYSTEMS</span>
+        <h2>Design Scalable AI Systems</h2>
+        <p class="node-tagline">Bringing it all together — the architectural decisions that let a system handle real traffic without falling over on cost, latency, or quality.</p>
+
+        <div class="panel">
+          <div class="panel-title">System design considerations</div>
+          <ul>
+            <li><strong>Stateless request handling + externalized state</strong> — keep conversation/session state in a database or cache rather than in-process, so any request can be served by any instance — standard horizontal-scaling practice, still true here.</li>
+            <li><strong>Async / queue-based processing</strong> — for non-interactive or long-running agent tasks, decouple request intake from processing with a queue, so traffic spikes don't directly translate to LLM provider rate-limit failures.</li>
+            <li><strong>Rate limit &amp; quota management</strong> — model provider rate limits are a real capacity constraint; design for graceful queuing/backpressure rather than assuming unlimited throughput.</li>
+            <li><strong>Caching layers</strong> — response caching, prompt/prefix caching (§3.9), and retrieval result caching each address a different repeated-work pattern at scale.</li>
+            <li><strong>Load balancing across models/providers</strong> — routing traffic across multiple model deployments or even providers for both throughput and resilience against a single provider's outage.</li>
+            <li><strong>Horizontal scaling of retrieval infrastructure</strong> — sharding/replicating the vector database (§4.2) as corpus size and query volume grow, independent of how the LLM-serving layer scales.</li>
+            <li><strong>Multi-tenancy considerations</strong> — isolating data, rate limits, and cost attribution per tenant/customer in a shared system, including making sure retrieval respects per-tenant access permissions.</li>
+            <li><strong>Capacity planning</strong> — modeling expected concurrent requests against KV cache memory limits (§3.9) and provider rate limits, not just against raw compute — this is frequently the real ceiling on how many concurrent users a deployment can serve.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">The synthesis</div>
+          <p>A scalable AI system design pulls directly from every earlier stage: KV cache and quantization (Stage 3) bound how many concurrent requests one GPU can serve; retrieval and vector database design (Stage 4) bound how the knowledge layer scales independently; evaluation and observability (Stage 4) are what let you scale <em>safely</em> — catching quality regressions before they reach all your users rather than after.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does capacity planning for an LLM-serving system need to account for KV cache memory, not just raw GPU compute?</li>
+            <li>Why should conversation state live outside the serving process in a horizontally scaled deployment?</li>
+            <li>Design prompt: sketch, at a high level, how you'd scale a RAG-based support assistant from 10 to 10,000 concurrent users — which components scale independently, and where would you expect the first bottleneck to appear?</li>
+          </ol>
+        </details>
+      </section>
+
+    </div>
+
+    <div class="pagenav">
+      <a href="04-ai-engineering.html"><span class="dir">← PREV STAGE</span>04 · AI Engineering</a>
+      <a href="index.html" style="text-align:right"><span class="dir">BACK TO →</span>Roadmap</a>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

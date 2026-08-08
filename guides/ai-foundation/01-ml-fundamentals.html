@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01 · ML Fundamentals — Signal Path</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> SIGNAL&nbsp;PATH</div>
+  <nav>
+    <a href="index.html">Map</a>
+    <a href="01-ml-fundamentals.html" class="current">01 Fundamentals</a>
+    <a href="02-deep-learning.html">02 Deep Learning</a>
+    <a href="03-llms.html">03 LLMs</a>
+    <a href="04-ai-engineering.html">04 AI Engineering</a>
+    <a href="05-production.html">05 Production</a>
+  </nav>
+  <a class="back-link" href="../../index.html">&larr; All Guides</a>
+</div>
+
+<div class="shell">
+
+  <aside class="toc">
+    <div class="toc-label">On this page</div>
+    <ol>
+      <li><a href="#linear-algebra">Linear Algebra</a></li>
+      <li><a href="#probability">Probability &amp; Statistics</a></li>
+      <li><a href="#ml-concepts">Machine Learning Concepts</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow"><span class="rail"></span>STAGE 01</div>
+      <h1>Build strong ML fundamentals</h1>
+      <p class="dek">Every layer above this one — CNNs, attention, quantization, RAG — is built from three things: vectors and matrices moving through transformations, uncertainty expressed as distributions, and a loop that adjusts parameters to reduce error. Get these solid before speeding up.</p>
+      <div class="chain">
+        <span class="active">01 Fundamentals</span><span>02 Deep Learning</span><span>03 LLMs</span><span>04 AI Engineering</span><span>05 Production</span>
+      </div>
+    </div>
+
+    <div class="rail-wrap">
+
+      <section class="node" id="linear-algebra">
+        <span class="node-id">§1.1 — LINEAR ALGEBRA</span>
+        <h2>Linear Algebra</h2>
+        <p class="node-tagline">The language every layer of a neural network speaks. A model's "knowledge" is, mechanically, just numbers arranged in vectors and matrices.</p>
+
+        <p>Every input to a model — a word, a pixel, a user — is encoded as a <strong>vector</strong>: an ordered list of numbers representing a point in some space. A <strong>matrix</strong> is a transformation that maps vectors to other vectors — it's how a layer turns "the input representation" into "the output representation." Deep learning, mechanically, is a long chain of matrix multiplications interleaved with non-linear functions.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core objects &amp; operations</div>
+          <ul>
+            <li><strong>Scalar / vector / matrix / tensor</strong> — rank-0, rank-1, rank-2, and rank-N arrays. A batch of RGB images is a rank-4 tensor: (batch, height, width, channels).</li>
+            <li><strong>Dot product</strong> — measures alignment between two vectors; the core operation inside attention scores and a single neuron's weighted sum.</li>
+            <li><strong>Matrix multiplication</strong> — composes transformations; a linear layer is literally <code>y = Wx + b</code>.</li>
+            <li><strong>Transpose, inverse</strong> — reorienting a matrix and "undoing" a transformation (when it exists).</li>
+            <li><strong>Eigenvalues / eigenvectors</strong> — directions a matrix only stretches, never rotates; the basis of PCA and a way to reason about how gradients propagate through repeated matrix multiplication.</li>
+            <li><strong>Norms (L1, L2)</strong> — measures of vector "size." L2 (Euclidean) norm underlies weight decay, gradient clipping, and cosine similarity.</li>
+            <li><strong>Rank &amp; dimensionality</strong> — the number of independent directions a matrix's outputs can span; the idea behind LoRA's "low-rank" fine-tuning update.</li>
+          </ul>
+        </div>
+
+        <div class="panel formula">
+          <div class="panel-title">Notation you'll see everywhere</div>
+          <div class="f">y = Wx + b <small>— a linear (fully connected) layer</small></div>
+          <div class="f">a · b = Σᵢ aᵢbᵢ = |a||b|cos(θ) <small>— dot product; cosine similarity divides this by the norms</small></div>
+          <div class="f">softmax(QKᵀ / √d) V <small>— yes, this is attention; it's matrix multiplications end to end</small></div>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Embeddings are vectors; similarity search is a dot product; attention is matrix multiplication; quantization is compressing the numbers inside these matrices; LoRA fine-tuning exploits the fact that weight updates are often low-rank. You will not escape this layer.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does cosine similarity ignore vector magnitude while the raw dot product doesn't?</li>
+            <li>If a weight matrix W is m×n, what shape must the input and output vectors be?</li>
+            <li>What does it mean intuitively for a matrix to be "low rank," and why would a fine-tuning update often be low rank?</li>
+            <li>Why is matrix multiplication, not addition, the operation that lets a network combine information across all input dimensions?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="probability">
+        <span class="node-id">§1.2 — PROBABILITY &amp; STATISTICS</span>
+        <h2>Probability &amp; Statistics</h2>
+        <p class="node-tagline">Models don't output facts — they output distributions. Understanding uncertainty is understanding what a model is actually doing.</p>
+
+        <p>An LLM predicting the next token isn't "choosing a word" — it's producing a <strong>probability distribution</strong> over its entire vocabulary, and something downstream (a sampling strategy) picks from it. Statistics is how you reason about data before training, and how you evaluate whether a model's behavior on a test set is real signal or noise.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Random variables &amp; distributions</strong> — discrete (categorical, e.g. next-token choice) vs. continuous (Gaussian, e.g. a weight initialization).</li>
+            <li><strong>Conditional probability &amp; Bayes' theorem</strong> — P(A|B) = P(B|A)P(A) / P(B); the backbone of how a language model is literally defined: P(next token | previous tokens).</li>
+            <li><strong>Expectation, variance, standard deviation</strong> — the average outcome and how spread out outcomes are; loss functions are expectations over a data distribution.</li>
+            <li><strong>Joint / marginal / conditional distributions</strong> — how variables relate; marginalizing is "summing out" a variable you don't care about.</li>
+            <li><strong>Entropy &amp; cross-entropy</strong> — entropy measures a distribution's inherent uncertainty; cross-entropy measures the gap between a predicted distribution and the true one — this <em>is</em> the standard LLM training loss.</li>
+            <li><strong>KL divergence</strong> — asymmetric distance between two distributions; used in RLHF/PPO to keep a fine-tuned policy close to its reference model.</li>
+            <li><strong>Maximum likelihood estimation (MLE)</strong> — choosing parameters that make the observed data most probable; the theoretical justification for minimizing cross-entropy loss.</li>
+            <li><strong>Central limit theorem &amp; sampling</strong> — why averages over enough samples behave predictably; the basis for trusting evaluation metrics computed on a test set.</li>
+          </ul>
+        </div>
+
+        <div class="panel formula">
+          <div class="panel-title">The formulas that recur constantly</div>
+          <div class="f">P(A|B) = P(B|A)·P(A) / P(B) <small>— Bayes' theorem</small></div>
+          <div class="f">H(p) = −Σ p(x) log p(x) <small>— entropy: average "surprise" of a distribution</small></div>
+          <div class="f">CE(p,q) = −Σ p(x) log q(x) <small>— cross-entropy: standard LLM next-token loss, p = true label, q = model's predicted distribution</small></div>
+          <div class="f">D_KL(p‖q) = Σ p(x) log(p(x)/q(x)) <small>— KL divergence: how far q has drifted from p</small></div>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Temperature, top-k, top-p sampling are all ways of reshaping a probability distribution before drawing from it. Perplexity (a core LLM eval metric) is literally exponentiated cross-entropy. Hallucination can partly be understood as a model confidently sampling from a poorly-calibrated distribution.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why is minimizing cross-entropy loss equivalent to maximum likelihood estimation?</li>
+            <li>What does a temperature of 0 do to a softmax output distribution, mechanically?</li>
+            <li>Why is KL divergence not symmetric, and why does that matter when it's used as a regularizer in RLHF?</li>
+            <li>If a model is "well calibrated," what does that mean about its predicted probabilities versus its actual accuracy?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="ml-concepts">
+        <span class="node-id">§1.3 — MACHINE LEARNING CONCEPTS</span>
+        <h2>Machine Learning Concepts</h2>
+        <p class="node-tagline">The learning loop itself: how a model turns data and a loss signal into better parameters, and how to tell if it's actually learning the right thing.</p>
+
+        <div class="panel">
+          <div class="panel-title">The core learning loop</div>
+          <ul>
+            <li><strong>Supervised / unsupervised / self-supervised / reinforcement learning</strong> — labeled targets, no targets, targets derived from the data itself (next-token prediction is self-supervised), and reward-driven learning (RLHF).</li>
+            <li><strong>Loss function</strong> — a single number quantifying how wrong the model's predictions are; the thing gradient descent tries to minimize.</li>
+            <li><strong>Gradient descent &amp; backpropagation</strong> — backprop computes how much each parameter contributed to the error (via the chain rule); gradient descent nudges each parameter in the direction that reduces the loss.</li>
+            <li><strong>Learning rate</strong> — the step size of each update. Too high: training diverges. Too low: training crawls or gets stuck.</li>
+            <li><strong>Optimizers</strong> — SGD, Momentum, Adam/AdamW — refinements on plain gradient descent that adapt the step size per parameter and smooth out noisy updates. AdamW is the default for training transformers.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Generalization &amp; the bias–variance trade-off</div>
+          <ul>
+            <li><strong>Overfitting</strong> — the model memorizes training data and fails on new data (low bias, high variance).</li>
+            <li><strong>Underfitting</strong> — the model is too simple to capture the pattern at all (high bias).</li>
+            <li><strong>Regularization</strong> — L1/L2 weight penalties, dropout, early stopping — techniques that trade a little training accuracy for better generalization.</li>
+            <li><strong>Train / validation / test split</strong> — never tune decisions on the data you'll report final numbers on.</li>
+            <li><strong>Cross-validation</strong> — rotating which slice of data is held out, to get a more reliable performance estimate on small datasets.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Evaluation basics</div>
+          <ul>
+            <li><strong>Accuracy, precision, recall, F1</strong> — precision penalizes false positives, recall penalizes false negatives; F1 balances both. Matters a lot when classes are imbalanced.</li>
+            <li><strong>Confusion matrix</strong> — the full breakdown of predicted vs. actual classes that those metrics are computed from.</li>
+            <li><strong>ROC-AUC</strong> — how well a classifier ranks positives above negatives across all thresholds.</li>
+            <li><strong>Bias–variance trade-off</strong> — the meta-pattern behind all of the above: model capacity trades off between fitting training data well and generalizing to new data.</li>
+          </ul>
+        </div>
+
+        <div class="panel formula">
+          <div class="panel-title">The update rule</div>
+          <div class="f">θ ← θ − η · ∇L(θ) <small>— gradient descent: θ = parameters, η = learning rate, ∇L = gradient of the loss</small></div>
+          <div class="f">Precision = TP/(TP+FP) &nbsp;&nbsp; Recall = TP/(TP+FN) &nbsp;&nbsp; F1 = 2·(P·R)/(P+R)</div>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>A model with 99% accuracy on a dataset where 99% of examples are one class has learned nothing — this is why precision/recall (or a confusion matrix) matter more than accuracy alone once classes are imbalanced, which is the normal case for real-world data like fraud detection or safety classifiers.</p>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Every training run in Stage 3 — pretraining, fine-tuning, LoRA, RLHF — is this same loop (forward pass → loss → backward pass → optimizer step) at increasing scale. Overfitting reframes as "the model memorized its training data" — relevant to both eval integrity and privacy/leakage concerns in production LLMs.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does backpropagation need the chain rule, and what would break without it in a deep network?</li>
+            <li>You add more layers and training loss keeps dropping but validation loss starts rising. What's happening, and what are two ways to address it?</li>
+            <li>Why is AdamW generally preferred over plain SGD for training transformers?</li>
+            <li>Give an example where recall matters far more than precision, and one where the reverse is true.</li>
+          </ol>
+        </details>
+      </section>
+
+    </div>
+
+    <div class="pagenav">
+      <a href="index.html"><span class="dir">← BACK</span>Roadmap</a>
+      <a href="02-deep-learning.html" style="text-align:right"><span class="dir">NEXT STAGE →</span>02 · Deep Learning</a>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

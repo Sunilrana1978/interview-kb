@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03 · LLMs Deep Dive — Signal Path</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> SIGNAL&nbsp;PATH</div>
+  <nav>
+    <a href="index.html">Map</a>
+    <a href="01-ml-fundamentals.html">01 Fundamentals</a>
+    <a href="02-deep-learning.html">02 Deep Learning</a>
+    <a href="03-llms.html" class="current">03 LLMs</a>
+    <a href="04-ai-engineering.html">04 AI Engineering</a>
+    <a href="05-production.html">05 Production</a>
+  </nav>
+  <a class="back-link" href="../../index.html">&larr; All Guides</a>
+</div>
+
+<div class="shell">
+
+  <aside class="toc">
+    <div class="toc-label">On this page</div>
+    <ol>
+      <li><a href="#tokenization">Tokenization</a></li>
+      <li><a href="#embeddings">Embeddings</a></li>
+      <li><a href="#positional-encoding">Positional Encoding</a></li>
+      <li><a href="#training">Training &amp; Fine-tuning</a></li>
+      <li><a href="#inference">Inference</a></li>
+      <li><a href="#quantization">Quantization</a></li>
+      <li><a href="#moe">MoE</a></li>
+      <li><a href="#context-windows">Context Windows</a></li>
+      <li><a href="#kv-cache">KV Cache</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow"><span class="rail"></span>STAGE 03</div>
+      <h1>Understand LLMs deeply</h1>
+      <p class="dek">Follow one request through the whole pipeline: text is cut into tokens → tokens become vectors → position is injected → the transformer is trained on all of it → at inference time it generates one token at a time, cached and (often) quantized and (sometimes) sparsely routed, bounded by a context window.</p>
+      <div class="chain">
+        <span>01 Fundamentals</span><span>02 Deep Learning</span><span class="active">03 LLMs</span><span>04 AI Engineering</span><span>05 Production</span>
+      </div>
+    </div>
+
+    <div class="rail-wrap">
+
+      <section class="node" id="tokenization">
+        <span class="node-id">§3.1 — TOKENIZATION</span>
+        <h2>Tokenization</h2>
+        <p class="node-tagline">The first thing that happens to any text — and a source of more downstream weirdness than people expect.</p>
+        <p>A tokenizer splits raw text into a fixed vocabulary of <strong>tokens</strong> — not quite words, not quite characters. Modern LLMs use <strong>subword tokenization</strong> so that any string can be represented (rare words split into pieces; common words stay whole), keeping the vocabulary a manageable size (commonly 30K–150K+ tokens) while still handling arbitrary text.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Byte-Pair Encoding (BPE)</strong> — iteratively merges the most frequent adjacent symbol pairs, starting from characters/bytes, to build a vocabulary. Used by GPT-family models.</li>
+            <li><strong>WordPiece / SentencePiece / Unigram</strong> — alternative subword algorithms with similar goals, different merge/selection criteria (used by BERT, T5, Llama respectively, roughly).</li>
+            <li><strong>Vocabulary size</strong> — a trade-off: larger vocab → shorter sequences per input but a bigger embedding/output matrix and more parameters spent there.</li>
+            <li><strong>Special tokens</strong> — reserved tokens like <code>&lt;bos&gt;</code>, <code>&lt;eos&gt;</code>, <code>&lt;pad&gt;</code>, and chat-format tokens marking roles (system/user/assistant) in instruction-tuned models.</li>
+            <li><strong>Token ≠ word</strong> — "unbelievable" might split into "un", "believ", "able"; a single emoji or unusual Unicode string can burn several tokens.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Tokenization explains several "dumb" LLM failures: struggling with letter-counting or reversing a string (the model never sees individual characters, only token IDs), inconsistent behavior across languages (tokenizers trained mostly on English text produce far more tokens per non-English sentence, quietly inflating cost and eating into context budget), and odd arithmetic errors (numbers get tokenized inconsistently, e.g. "1234" vs "12" + "34").</p>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Every cost and limit you'll deal with in production is denominated in tokens, not words or characters: API pricing, context window limits, rate limits. Chunking strategy in RAG (Stage 4) has to account for tokenizer behavior, not raw character counts.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why do subword tokenizers handle out-of-vocabulary words better than whole-word tokenizers?</li>
+            <li>Why might the same sentence cost noticeably more tokens in one language than another?</li>
+            <li>Why can LLMs struggle at tasks like reversing a string, given how tokenization works?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="embeddings">
+        <span class="node-id">§3.2 — EMBEDDINGS</span>
+        <h2>Embeddings</h2>
+        <p class="node-tagline">Turning a discrete token ID into a dense vector that captures meaning — the bridge between symbols and the geometry a neural network operates on.</p>
+        <p>An <strong>embedding layer</strong> is a lookup table: each token ID maps to a learned vector (typically hundreds to a few thousand dimensions). Through training, tokens that behave similarly in context end up with similar vectors — meaning becomes geometry, where relationships between concepts become directions and distances in vector space.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Token embeddings</strong> — the learned lookup table mapping each vocabulary entry to a vector; trained jointly with the rest of the model.</li>
+            <li><strong>Contextual vs. static embeddings</strong> — older models (word2vec, GloVe) gave one fixed vector per word regardless of context; transformer-based embeddings are contextual — "bank" gets a different vector in "river bank" vs. "bank account" because attention mixes in surrounding context.</li>
+            <li><strong>Embedding dimension</strong> — a capacity/cost trade-off; larger dimension can encode more nuance but costs more compute and memory throughout the model.</li>
+            <li><strong>Cosine similarity</strong> — the standard way to compare two embeddings' semantic closeness, independent of vector magnitude (§1.1).</li>
+            <li><strong>Sentence/document embeddings</strong> — pooling (often mean-pooling or using a dedicated embedding model) token-level vectors into one vector representing a whole passage — the backbone of semantic search and RAG retrieval (Stage 4).</li>
+            <li><strong>Weight tying</strong> — many models reuse the same matrix for the input token embedding and the final output projection (logits), saving parameters.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Embeddings are the entire foundation of vector databases and retrieval (Stage 4) — a RAG system's quality is bounded by how good its embedding model is at placing semantically related text near each other in vector space.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why are transformer embeddings "contextual" while word2vec embeddings are not?</li>
+            <li>Why is cosine similarity generally preferred over Euclidean distance for comparing text embeddings?</li>
+            <li>What's the practical difference between a token embedding and a sentence/document embedding used for retrieval?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="positional-encoding">
+        <span class="node-id">§3.3 — POSITIONAL ENCODING</span>
+        <h2>Positional Encoding</h2>
+        <p class="node-tagline">Attention has no built-in sense of order — "the dog bit the man" and "the man bit the dog" would look identical without this.</p>
+        <p>Self-attention treats input as a <em>set</em>, not a sequence — it's permutation-invariant by construction. Positional encoding injects information about each token's position so the model can distinguish order.</p>
+
+        <div class="panel">
+          <div class="panel-title">Approaches</div>
+          <ul>
+            <li><strong>Sinusoidal (absolute) encoding</strong> — the original Transformer paper's approach: fixed sine/cosine functions of position added to the token embedding, at different frequencies per dimension. Not learned; generalizes somewhat to unseen sequence lengths.</li>
+            <li><strong>Learned absolute embeddings</strong> — a trainable position embedding table, added to token embeddings (used by early GPT models). Doesn't extrapolate well past the trained max length.</li>
+            <li><strong>Relative positional encoding</strong> — encodes the distance <em>between</em> tokens rather than their absolute position, more naturally generalizing to varying sequence lengths.</li>
+            <li><strong>RoPE (Rotary Position Embedding)</strong> — the dominant modern approach (Llama, Mistral, most current open models): rotates the Query/Key vectors by an angle proportional to position, so the dot product between two tokens naturally encodes their relative distance. Widely used because it extrapolates and extends to longer contexts better than absolute schemes.</li>
+            <li><strong>ALiBi</strong> — adds a distance-proportional penalty directly to attention scores instead of modifying embeddings; another strong approach for length extrapolation.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Positional encoding choice directly determines how well a model extends beyond its trained context length — RoPE scaling tricks (like position interpolation or NTK-aware scaling) are exactly how many "extended context" model variants are produced without full retraining.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why is self-attention permutation-invariant without positional encoding?</li>
+            <li>Why do relative encodings like RoPE generally extrapolate to longer sequences better than learned absolute position embeddings?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="training">
+        <span class="node-id">§3.4 — TRAINING &amp; FINE-TUNING</span>
+        <h2>Training &amp; Fine-tuning</h2>
+        <p class="node-tagline">From a randomly initialized transformer to a model that follows instructions safely — three stages, each with a different objective.</p>
+
+        <div class="panel">
+          <div class="panel-title">The three-stage pipeline</div>
+          <ul>
+            <li><strong>1. Pretraining</strong> — self-supervised next-token prediction over a massive text corpus. No labels needed — the "label" for each position is just the next real token. This is where the bulk of compute and cost goes, and where the model acquires broad language and world knowledge.</li>
+            <li><strong>2. Supervised Fine-Tuning (SFT)</strong> — further training on a smaller, curated set of high-quality instruction–response pairs, teaching the base model to follow instructions and hold a conversation format rather than just continue text.</li>
+            <li><strong>3. Alignment (RLHF / DPO)</strong> — RLHF trains a reward model on human preference comparisons, then uses reinforcement learning (commonly PPO) to optimize the LLM against that reward, with a KL-divergence penalty (§1.2) keeping it from drifting too far from the SFT model. DPO (Direct Preference Optimization) is a newer, simpler alternative that optimizes directly on preference pairs without a separate reward model or RL loop.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Efficient fine-tuning</div>
+          <ul>
+            <li><strong>Full fine-tuning</strong> — updates every parameter; most capable but expensive in compute and memory (needs to store optimizer state for the whole model).</li>
+            <li><strong>LoRA (Low-Rank Adaptation)</strong> — freezes the original weights and injects small trainable low-rank matrices (§1.1) alongside them; drastically cuts trainable parameters and memory while approximating full fine-tuning's effect for many tasks.</li>
+            <li><strong>QLoRA</strong> — LoRA on top of a quantized (§3.6) base model, pushing fine-tuning onto much smaller hardware.</li>
+            <li><strong>Adapters / prefix-tuning</strong> — other parameter-efficient fine-tuning (PEFT) families: small inserted modules or learned prompt-like vectors, base model frozen.</li>
+            <li><strong>Catastrophic forgetting</strong> — fine-tuning too aggressively on a narrow task can degrade the model's general capabilities; a key reason PEFT methods and careful learning rates matter.</li>
+          </ul>
+        </div>
+
+        <div class="panel formula">
+          <div class="panel-title">Scale intuition</div>
+          <div class="f">Loss ≈ scales predictably with model size, data size, and compute <small>— "scaling laws" (Chinchilla, Kaplan et al.) are why frontier labs plan pretraining runs quantitatively rather than by trial and error</small></div>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Whether to prompt-engineer, RAG, or fine-tune is one of the most common real-world engineering decisions (Stage 4/5) — and it hinges on understanding what each training stage actually changes in the model versus what retrieval or prompting can substitute for at inference time, more cheaply.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>What's the practical difference between what pretraining teaches a model and what SFT teaches it?</li>
+            <li>Why does RLHF use a KL penalty against the reference model instead of letting the policy optimize the reward freely?</li>
+            <li>Why does LoRA use low-rank matrices specifically — what assumption about fine-tuning updates does that rely on (tie back to §1.1)?</li>
+            <li>When would you reach for fine-tuning instead of RAG or better prompting?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="inference">
+        <span class="node-id">§3.5 — INFERENCE</span>
+        <h2>Inference</h2>
+        <p class="node-tagline">Generation is autoregressive: one token out, fed back in as input, repeated — which is exactly why it's slow and why so much engineering exists to speed it up.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core mechanics</div>
+          <ul>
+            <li><strong>Autoregressive generation</strong> — the model predicts a probability distribution over the next token, a token is selected, appended to the sequence, and the whole (now longer) sequence is fed back in to predict the next one — repeated until an end token or length limit.</li>
+            <li><strong>Prefill vs. decode</strong> — prefill processes the entire input prompt in one parallel forward pass (fast, compute-bound); decode generates output tokens one at a time (slow, memory-bandwidth-bound) — this split is central to understanding inference latency and cost (Stage 5).</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Sampling strategies</div>
+          <ul>
+            <li><strong>Greedy decoding</strong> — always pick the single highest-probability token; deterministic but repetitive and can get stuck in loops.</li>
+            <li><strong>Temperature</strong> — rescales logits before softmax; lower = more confident/deterministic, higher = flatter distribution, more random/creative.</li>
+            <li><strong>Top-k sampling</strong> — restrict sampling to the k highest-probability tokens.</li>
+            <li><strong>Top-p (nucleus) sampling</strong> — restrict sampling to the smallest set of tokens whose cumulative probability exceeds p; adapts the candidate pool size to how confident the distribution is.</li>
+            <li><strong>Beam search</strong> — tracks several candidate sequences in parallel, keeping the most probable overall sequence; common in translation, less common for open-ended chat generation.</li>
+            <li><strong>Repetition / frequency penalties</strong> — discourage the model from reusing tokens it has already generated.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Latency in a production system is dominated by the sequential, one-token-at-a-time decode phase — this is precisely the problem that KV caching (§3.9), quantization (§3.6), and speculative decoding all attack from different angles (tie-in to Stage 5's latency work).</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why is the prefill phase much faster per-token than the decode phase?</li>
+            <li>What's the practical difference between top-k and top-p sampling?</li>
+            <li>Why would greedy decoding alone tend to produce repetitive output?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="quantization">
+        <span class="node-id">§3.6 — QUANTIZATION</span>
+        <h2>Quantization</h2>
+        <p class="node-tagline">Shrinking the numbers that make up a model's weights, trading a little precision for large gains in memory and speed.</p>
+        <p>Model weights are normally stored as 32- or 16-bit floating point numbers. Quantization maps them to lower-precision formats — 8-bit, 4-bit, even lower — cutting memory footprint roughly in proportion and often speeding up inference, since moving less data is frequently the actual bottleneck (§3.5's decode phase is memory-bandwidth-bound).</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Precision formats</strong> — FP32, FP16, BF16 (full/half precision, used in training), INT8, INT4 (common inference quantization targets).</li>
+            <li><strong>Post-training quantization (PTQ)</strong> — quantize an already-trained model's weights, no retraining required; fast and simple, some accuracy loss.</li>
+            <li><strong>Quantization-aware training (QAT)</strong> — simulate quantization effects during training so the model adapts to lower precision; better final accuracy, more expensive.</li>
+            <li><strong>Per-tensor vs. per-channel quantization</strong> — whether one scale factor covers an entire weight tensor or each channel gets its own, trading simplicity for accuracy.</li>
+            <li><strong>GPTQ / AWQ / GGUF</strong> — popular practical quantization methods/formats in the open-model ecosystem, each with different accuracy/speed trade-offs and tooling support.</li>
+            <li><strong>Calibration</strong> — using a small representative dataset to choose good scale/zero-point values when quantizing, minimizing accuracy loss.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Quantization isn't free — going too aggressive (e.g. naive 4-bit on a poorly calibrated model) can visibly degrade reasoning quality and increase hallucination rate. It needs to be evaluated on your actual task, not assumed safe because a benchmark number looked fine.</p>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Quantization is one of the primary levers for cost and latency reduction in production (Stage 5) — it's often the difference between needing an expensive multi-GPU deployment and fitting a model on a single, cheaper accelerator.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does quantization often speed up inference even though the math itself isn't fundamentally faster at low precision?</li>
+            <li>What's the trade-off between post-training quantization and quantization-aware training?</li>
+            <li>Why might per-channel quantization preserve accuracy better than per-tensor?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="moe">
+        <span class="node-id">§3.7 — MIXTURE OF EXPERTS (MOE)</span>
+        <h2>Mixture of Experts (MoE)</h2>
+        <p class="node-tagline">More total parameters, without paying for all of them on every forward pass.</p>
+        <p>In a standard transformer, every token passes through the same dense FFN. In an MoE model, the FFN is replaced with several parallel "expert" FFNs plus a small learned <strong>router</strong> that selects a small subset of experts (commonly 1–2 of 8 or more) to process each token — so the model has a much larger total parameter count but only "activates" a fraction of it per token.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Experts</strong> — independent FFN sub-networks, each with its own weights; typically only the attention layers remain fully shared/dense.</li>
+            <li><strong>Router / gating network</strong> — a small learned layer that scores experts per token and picks the top-k to activate.</li>
+            <li><strong>Sparse activation</strong> — only the selected experts' weights are used for a given token, so inference compute scales with active parameters, not total parameters.</li>
+            <li><strong>Load balancing</strong> — without an auxiliary loss encouraging even usage, routers tend to collapse onto a few favorite experts, wasting capacity; load-balancing losses counteract this.</li>
+            <li><strong>Total vs. active parameters</strong> — the key spec to look for in MoE model cards (e.g. "47B total, 13B active") — active parameters roughly predict inference cost/speed; total parameters roughly predict capability and memory footprint.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>MoE lets frontier labs scale total model capacity without a proportional increase in inference cost — but it does increase memory requirements (you must hold all experts in memory even if only a few run per token), which matters directly for deployment planning in Stage 5.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why can an MoE model have far more total parameters than a dense model of similar inference cost?</li>
+            <li>What problem does a load-balancing loss solve in MoE training?</li>
+            <li>Why does MoE reduce compute cost but not necessarily memory cost?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="context-windows">
+        <span class="node-id">§3.8 — CONTEXT WINDOWS</span>
+        <h2>Context Windows</h2>
+        <p class="node-tagline">The maximum number of tokens a model can consider at once — a hard ceiling on how much it can "see" of a conversation or document.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Context window / context length</strong> — the total token budget shared by the prompt (input) and the generated response combined, in most API accounting.</li>
+            <li><strong>Why it's bounded</strong> — attention's compute and memory cost grows roughly quadratically with sequence length (§2.4), and positional encoding schemes have to be designed or extended to support the target length (§3.3).</li>
+            <li><strong>"Lost in the middle"</strong> — empirically, models often attend less reliably to information placed in the middle of a very long context than to the beginning or end — a real, measurable limitation, not just a theoretical one.</li>
+            <li><strong>Long-context extension techniques</strong> — RoPE scaling/interpolation, sliding-window attention, and architectural tricks let models trained at one length serve much longer effective contexts, generally with some quality trade-off.</li>
+            <li><strong>Context window vs. effective context</strong> — a model may technically accept 200K tokens while its <em>reliable</em> recall and reasoning quality noticeably degrades well before that limit — the advertised number and the usable number are not the same thing.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Context window size directly shapes RAG design (Stage 4): how many chunks you can retrieve and pass in, how you order retrieved evidence to fight "lost in the middle," and it's a first-order driver of both latency and cost (Stage 5) since cost typically scales with tokens processed.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does attention's cost structure limit how large a context window can practically be?</li>
+            <li>What does "lost in the middle" imply about where you should place the most important retrieved evidence in a RAG prompt?</li>
+            <li>Why might a model's effective usable context be smaller than its advertised maximum?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="kv-cache">
+        <span class="node-id">§3.9 — KV CACHE</span>
+        <h2>KV Cache</h2>
+        <p class="node-tagline">The single biggest practical speedup in autoregressive generation: stop recomputing what you already computed.</p>
+        <p>During decode (§3.5), generating each new token technically requires attention over every previous token. Without caching, that means recomputing the Key and Value projections (§2.4) for the <em>entire</em> sequence so far, at every single generation step — wildly redundant, since those K/V vectors for past tokens never change. The <strong>KV cache</strong> stores them once and reuses them, so each new step only computes K/V for the one new token.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>What's cached</strong> — the Key and Value projections for every token processed so far, per layer, per attention head. Not the Query — a fresh Query is only needed for the current token.</li>
+            <li><strong>Memory cost</strong> — grows linearly with sequence length and batch size, and scales with number of layers, heads, and head dimension; at long context lengths and large batch sizes, KV cache memory — not model weights — often becomes the dominant memory consumer on the serving GPU.</li>
+            <li><strong>Multi-Query Attention (MQA) / Grouped-Query Attention (GQA)</strong> — reduce KV cache size by sharing Key/Value projections across multiple (or all) attention heads instead of giving every head its own — a major lever for serving efficiency, used in most modern production LLMs.</li>
+            <li><strong>PagedAttention</strong> — a memory-management technique (popularized by vLLM) that manages the KV cache in fixed-size non-contiguous blocks (like OS virtual memory paging), dramatically reducing memory fragmentation/waste and enabling much higher serving throughput.</li>
+            <li><strong>Prefix / prompt caching</strong> — when multiple requests share a common prefix (e.g. the same system prompt), the KV cache for that shared prefix can be computed once and reused across requests, cutting both latency and cost.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>People assume GPU memory limits are mostly about the model's weights. In real serving conditions with long contexts and many concurrent users, the KV cache frequently dominates memory usage — which is exactly why GQA/MQA and PagedAttention exist and why "max concurrent requests" is often capped by KV cache capacity, not compute.</p>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>This is one of the most direct through-lines into Stage 5: KV cache size drives GPU memory planning, batch size limits, and thus throughput and cost per request — a core lever production engineers pull when optimizing latency and reducing serving costs.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why doesn't the Query vector need to be cached the way Keys and Values do?</li>
+            <li>How does GQA reduce KV cache memory, and what's the trade-off versus full multi-head attention?</li>
+            <li>Why can prompt/prefix caching meaningfully cut latency for applications with a shared system prompt?</li>
+          </ol>
+        </details>
+      </section>
+
+    </div>
+
+    <div class="pagenav">
+      <a href="02-deep-learning.html"><span class="dir">← PREV STAGE</span>02 · Deep Learning</a>
+      <a href="04-ai-engineering.html" style="text-align:right"><span class="dir">NEXT STAGE →</span>04 · AI Engineering</a>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

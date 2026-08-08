@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04 · AI Engineering — Signal Path</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> SIGNAL&nbsp;PATH</div>
+  <nav>
+    <a href="index.html">Map</a>
+    <a href="01-ml-fundamentals.html">01 Fundamentals</a>
+    <a href="02-deep-learning.html">02 Deep Learning</a>
+    <a href="03-llms.html">03 LLMs</a>
+    <a href="04-ai-engineering.html" class="current">04 AI Engineering</a>
+    <a href="05-production.html">05 Production</a>
+  </nav>
+  <a class="back-link" href="../../index.html">&larr; All Guides</a>
+</div>
+
+<div class="shell">
+
+  <aside class="toc">
+    <div class="toc-label">On this page</div>
+    <ol>
+      <li><a href="#rag">RAG</a></li>
+      <li><a href="#vector-databases">Vector Databases</a></li>
+      <li><a href="#chunking">Chunking</a></li>
+      <li><a href="#retrieval">Retrieval</a></li>
+      <li><a href="#prompt-engineering">Prompt Engineering</a></li>
+      <li><a href="#agents">AI Agents</a></li>
+      <li><a href="#mcp">MCP</a></li>
+      <li><a href="#evaluation">Evaluation</a></li>
+      <li><a href="#guardrails">Guardrails</a></li>
+      <li><a href="#observability">Observability</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow"><span class="rail"></span>STAGE 04</div>
+      <h1>Learn AI Engineering</h1>
+      <p class="dek">Stage 3 was about the model itself. This stage is about everything wrapped around it to make it useful, grounded, and safe in a real system — feeding it your data, letting it act, and continuously checking whether it's actually working.</p>
+      <div class="chain">
+        <span>01 Fundamentals</span><span>02 Deep Learning</span><span>03 LLMs</span><span class="active">04 AI Engineering</span><span>05 Production</span>
+      </div>
+    </div>
+
+    <div class="rail-wrap">
+
+      <section class="node" id="rag">
+        <span class="node-id">§4.1 — RAG</span>
+        <h2>Retrieval-Augmented Generation</h2>
+        <p class="node-tagline">Ground the model in your data at inference time, instead of trying to bake every fact into its weights.</p>
+        <p>RAG retrieves relevant passages from an external knowledge source and inserts them into the prompt before generation, so the model answers using supplied evidence rather than relying solely on what it memorized during training.</p>
+
+        <div class="panel">
+          <div class="panel-title">The core pipeline</div>
+          <ul>
+            <li><strong>Ingest</strong> — source documents are cleaned, chunked (§4.3), and embedded (§3.2).</li>
+            <li><strong>Index</strong> — embeddings are stored in a vector database (§4.2) alongside metadata.</li>
+            <li><strong>Retrieve</strong> — the user's query is embedded and used to find the most relevant chunks (§4.4).</li>
+            <li><strong>Augment</strong> — retrieved chunks are inserted into the prompt, usually with instructions to answer only from the provided context.</li>
+            <li><strong>Generate</strong> — the LLM produces an answer grounded in the retrieved evidence, ideally with citations back to source chunks.</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Why RAG over fine-tuning for knowledge</div>
+          <ul>
+            <li>Knowledge updates instantly (edit the source, re-index) instead of requiring retraining.</li>
+            <li>Answers can cite sources, which fine-tuned "memorized" knowledge cannot.</li>
+            <li>Reduces (but does not eliminate) hallucination by grounding generation in retrieved text.</li>
+            <li>Fine-tuning is better suited to teaching style, format, or task behavior — not injecting fast-changing facts.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>RAG is not automatically accurate — a model can still hallucinate even with correct context in front of it, or ignore the retrieved evidence entirely if the prompt doesn't clearly instruct it to prioritize that context. RAG reduces hallucination risk; it doesn't remove it, which is exactly why Evaluation (§4.8) and Guardrails (§4.9) still matter downstream of a working retrieval pipeline.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does RAG generally beat fine-tuning for keeping a model current on fast-changing facts?</li>
+            <li>What can still go wrong even when retrieval returns the correct passage?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="vector-databases">
+        <span class="node-id">§4.2 — VECTOR DATABASES</span>
+        <h2>Vector Databases</h2>
+        <p class="node-tagline">Storage and search built for "find things that mean something similar," not "find things that match exactly."</p>
+        <p>A vector database stores embeddings (§3.2) and answers <strong>approximate nearest neighbor (ANN)</strong> queries efficiently — given a query vector, return the most similar stored vectors — at a scale where brute-force comparison against every stored vector would be too slow.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Similarity metrics</strong> — cosine similarity, dot product, or Euclidean (L2) distance — the choice should match how the embedding model was trained/normalized.</li>
+            <li><strong>ANN indexing algorithms</strong> — HNSW (hierarchical navigable small world graphs) is the dominant choice for high recall/speed trade-offs; IVF (inverted file index) partitions space into clusters searched selectively; both trade a little accuracy for large speed gains over brute force.</li>
+            <li><strong>Metadata filtering</strong> — combining vector similarity with structured filters (e.g. date range, document type, permission tags) — critical for real applications, not just a nice-to-have.</li>
+            <li><strong>Hybrid search</strong> — combining dense vector similarity with sparse keyword search (e.g. BM25) to catch cases pure semantic search misses, like exact product codes or acronyms.</li>
+            <li><strong>Index rebuild / freshness</strong> — how new or updated documents get into the index, and the latency between a source update and it being retrievable.</li>
+          </ul>
+        </div>
+
+        <table class="cmp">
+          <tr><th>Type</th><th>Examples</th><th>Notes</th></tr>
+          <tr><td>Dedicated vector DB</td><td class="mono">Pinecone, Weaviate, Milvus, Qdrant</td><td>Purpose-built for vector search at scale, rich filtering/hybrid features</td></tr>
+          <tr><td>Vector extension on existing DB</td><td class="mono">pgvector (Postgres), Elasticsearch/OpenSearch</td><td>Good when you already run that database and don't need extreme scale</td></tr>
+          <tr><td>Cloud-managed</td><td class="mono">Vertex AI Vector Search, Azure AI Search, AWS OpenSearch/Kendra</td><td>Managed ops, integrates with the rest of that cloud's AI stack</td></tr>
+        </table>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Index choice and metadata filtering design directly affect both retrieval quality (§4.4) and production latency/cost (Stage 5) — an over-large index with no filtering searched on every query is a classic avoidable latency and cost problem.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why do ANN algorithms trade a small amount of accuracy for large speed gains, and why is that usually the right trade-off?</li>
+            <li>When would you reach for hybrid search instead of pure vector similarity?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="chunking">
+        <span class="node-id">§4.3 — CHUNKING</span>
+        <h2>Chunking</h2>
+        <p class="node-tagline">How you split documents before embedding them — an unglamorous decision that quietly determines most of a RAG system's real-world quality.</p>
+
+        <div class="panel">
+          <div class="panel-title">Strategies</div>
+          <ul>
+            <li><strong>Fixed-size chunking</strong> — split every N tokens (§3.1), often with overlap between chunks so context isn't lost at a boundary. Simple, but can cut sentences or ideas in half.</li>
+            <li><strong>Recursive / structure-aware chunking</strong> — split along natural boundaries first (sections, paragraphs, sentences), falling back to smaller units only when a piece is still too large.</li>
+            <li><strong>Semantic chunking</strong> — use embedding similarity between adjacent sentences to detect topic shifts and split there, rather than at an arbitrary size.</li>
+            <li><strong>Document-aware chunking</strong> — respect structural elements specifically — Markdown headers, table boundaries, code blocks — so a chunk doesn't split a table row from its header.</li>
+            <li><strong>Chunk overlap</strong> — repeating some tokens between consecutive chunks so information spanning a boundary is still retrievable from at least one chunk.</li>
+            <li><strong>Chunk size trade-off</strong> — smaller chunks → more precise retrieval but less surrounding context per chunk; larger chunks → more context but noisier matches and fewer chunks fit in the context window (§3.8).</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Using one fixed chunk size and overlap for every document type in a corpus is a frequent source of silently poor retrieval — a legal contract, a chat log, and an API reference doc have very different natural structure and need different chunking strategies to retrieve well.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does chunk size trade off retrieval precision against available context?</li>
+            <li>Why might semantic chunking outperform fixed-size chunking on a long, topic-shifting document?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="retrieval">
+        <span class="node-id">§4.4 — RETRIEVAL</span>
+        <h2>Retrieval</h2>
+        <p class="node-tagline">Finding and ranking the right evidence — the step that most directly determines whether the model has a chance of answering correctly.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core techniques</div>
+          <ul>
+            <li><strong>Dense retrieval</strong> — embedding-based semantic similarity search (§4.2), good at capturing meaning/paraphrase.</li>
+            <li><strong>Sparse retrieval (BM25/keyword)</strong> — classic term-frequency-based search, strong on exact terms, codes, names, rare tokens dense retrieval can miss.</li>
+            <li><strong>Hybrid retrieval</strong> — combine both, typically merged via reciprocal rank fusion or a weighted score.</li>
+            <li><strong>Re-ranking</strong> — a second, more expensive but more accurate model (often a cross-encoder) re-scores an initial candidate set (from a fast first-pass retriever) to improve final ranking quality before the top few go into the prompt.</li>
+            <li><strong>Query transformation</strong> — rewriting the user's query before retrieval, e.g. HyDE (generating a hypothetical answer and embedding that instead of the raw question), query expansion, or decomposing a complex question into sub-queries.</li>
+            <li><strong>Multi-hop retrieval</strong> — when an answer requires combining evidence from multiple documents, retrieving iteratively based on partial reasoning rather than in a single pass.</li>
+            <li><strong>Top-k selection</strong> — how many chunks to actually pass into the prompt, balancing coverage against context window budget (§3.8) and the "lost in the middle" effect.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Retrieval quality is usually the single highest-leverage place to improve a RAG system's accuracy — teams often over-invest in prompt tweaking when the real problem is that the right chunk was never retrieved in the first place. This is exactly what retrieval-focused evaluation metrics (§4.8) are built to catch.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does a two-stage "retrieve broadly, then re-rank" pipeline often outperform retrieving top-k directly from the vector index?</li>
+            <li>When would sparse (keyword) retrieval catch something dense retrieval misses?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="prompt-engineering">
+        <span class="node-id">§4.5 — PROMPT ENGINEERING</span>
+        <h2>Prompt Engineering</h2>
+        <p class="node-tagline">The cheapest, fastest lever for changing model behavior — try this before reaching for RAG or fine-tuning.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core techniques</div>
+          <ul>
+            <li><strong>Zero-shot / few-shot prompting</strong> — asking directly, versus providing a handful of worked examples in the prompt to demonstrate the desired format or reasoning pattern.</li>
+            <li><strong>Chain-of-thought (CoT)</strong> — instructing (or demonstrating via examples) the model to reason step by step before giving a final answer, which measurably improves performance on multi-step reasoning tasks.</li>
+            <li><strong>System vs. user vs. assistant roles</strong> — the system message sets persistent behavior/constraints; separating instructions from user-provided content also helps reduce prompt injection risk (§4.9).</li>
+            <li><strong>Structured output prompting</strong> — instructing (and often constraining via the API) the model to return JSON or another fixed schema, essential for programmatic downstream use.</li>
+            <li><strong>Instruction clarity &amp; specificity</strong> — explicit format, length, tone, and constraints outperform vague asks; positive instructions ("do X") are generally more reliable than only negative ones ("don't do Y").</li>
+            <li><strong>Self-consistency</strong> — sampling multiple reasoning paths and taking the majority answer, trading extra inference cost for higher accuracy on hard reasoning tasks.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Prompt engineering is often treated as a substitute for fixing a genuinely missing capability or missing information. If the model doesn't have the facts (use RAG) or the underlying skill (consider fine-tuning), no amount of prompt wording will reliably fix it — prompting shapes behavior on top of existing knowledge and capability, it doesn't add either.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does chain-of-thought prompting tend to help on multi-step reasoning tasks specifically?</li>
+            <li>Why separate system instructions from user content, beyond just organization?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="agents">
+        <span class="node-id">§4.6 — AI AGENTS</span>
+        <h2>AI Agents</h2>
+        <p class="node-tagline">Moving from "generate one answer" to "take actions, observe results, and decide what to do next."</p>
+        <p>An agent wraps an LLM in a loop: the model decides which <strong>tool</strong> to call (if any), the tool executes, the result is fed back in, and the model decides the next step — repeated until the task is complete or a stopping condition is hit.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Tool / function calling</strong> — the model is given a set of available tool definitions (name, description, parameter schema) and outputs a structured call when it decides one is needed; the calling application executes it and returns the result.</li>
+            <li><strong>ReAct pattern (Reason + Act)</strong> — the model interleaves explicit reasoning ("thought") with actions ("tool call") and observations, in a loop — one of the most common agent-loop formulations.</li>
+            <li><strong>Planning</strong> — decomposing a complex goal into an ordered sequence of steps, either upfront or dynamically as new information arrives.</li>
+            <li><strong>Memory</strong> — short-term (conversation/scratchpad within a session) versus long-term (persisted across sessions, often backed by a vector store or database) state the agent can draw on.</li>
+            <li><strong>Multi-agent systems</strong> — multiple specialized agents (e.g. a planner, a researcher, a coder) coordinating on a task, communicating through defined interfaces or a shared orchestrator.</li>
+            <li><strong>Termination / stopping conditions</strong> — max iterations, a explicit "done" signal from the model, or a validation check — necessary because an agent loop can otherwise run indefinitely or loop unproductively.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Agent loops fail silently in production far more than single-turn LLM calls: a tool call with a subtly wrong argument, a misinterpreted tool result, or a planning loop that never converges. This is why Observability (§4.10) and hard iteration/cost limits matter especially for agentic systems.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>What's the core loop that turns a single LLM call into an "agent"?</li>
+            <li>Why do agent systems need explicit stopping conditions that a single-turn prompt doesn't?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="mcp">
+        <span class="node-id">§4.7 — MCP</span>
+        <h2>Model Context Protocol (MCP)</h2>
+        <p class="node-tagline">A standard interface between models/agents and the tools, data sources, and apps they need to act on — instead of a custom integration per model per tool.</p>
+        <p>Before a shared standard, connecting an agent to N tools across M different model providers meant roughly N×M bespoke integrations. MCP defines a common protocol so a tool (or data source) implements one MCP server once, and any MCP-compatible client (agent framework, chat app) can discover and use it — the same "write once, connect anywhere" motivation behind protocols like LSP in developer tooling.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>MCP server</strong> — exposes a specific tool's or data source's capabilities (e.g. "search Jira issues," "query this database") in the standard protocol format.</li>
+            <li><strong>MCP client</strong> — the agent/host application that connects to one or more MCP servers and makes their capabilities available to the model.</li>
+            <li><strong>Resources</strong> — read-only data an MCP server exposes (e.g. a file, a database record) that a model can pull into context.</li>
+            <li><strong>Tools</strong> — actions an MCP server exposes that the model can invoke, analogous to function calling (§4.6) but standardized across providers and hosts.</li>
+            <li><strong>Prompts</strong> — reusable, server-defined prompt templates a client can surface to users or inject into a conversation.</li>
+            <li><strong>Transport</strong> — the underlying connection (e.g. stdio for local processes, HTTP/SSE for remote servers) MCP messages travel over.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>MCP is what turns "AI agent" from a bespoke, per-project integration effort into something composable — an organization can build one internal MCP server for its knowledge base or ticketing system, and every agent/tool that speaks MCP gets access, without a new custom integration each time.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>What integration problem does a standard protocol like MCP solve that ad hoc function calling per provider doesn't?</li>
+            <li>What's the difference between an MCP "resource" and an MCP "tool"?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="evaluation">
+        <span class="node-id">§4.8 — EVALUATION</span>
+        <h2>Evaluation</h2>
+        <p class="node-tagline">Without systematic evaluation, "we improved the prompt/retrieval/model" is just a guess.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core approaches</div>
+          <ul>
+            <li><strong>Golden datasets</strong> — a curated set of representative inputs with known-good expected outputs (or grading criteria), used consistently across changes so results are comparable over time.</li>
+            <li><strong>Reference-based metrics</strong> — BLEU/ROUGE (n-gram overlap, mostly legacy for LLM eval), exact match, semantic similarity to a reference answer — useful when there's a clear "correct" answer.</li>
+            <li><strong>LLM-as-judge</strong> — using a strong LLM to score or compare outputs against a rubric, useful for open-ended quality where no single reference answer exists; needs its own validation against human judgment to trust.</li>
+            <li><strong>Human evaluation</strong> — the ground truth for subjective quality, but slow and expensive; often used to spot-check and calibrate automated methods rather than run continuously.</li>
+            <li><strong>RAG-specific metrics</strong> — retrieval precision/recall (did we retrieve the right chunks), faithfulness/groundedness (is the answer actually supported by the retrieved context), answer relevance (does it address the question).</li>
+            <li><strong>Task-specific metrics</strong> — exact-match accuracy for classification-like tasks, pass@k for code generation, and so on — the right metric follows from the task, not a one-size-fits-all number.</li>
+            <li><strong>Regression testing</strong> — re-running the golden set on every meaningful prompt, model, or retrieval change to catch quality regressions before they reach users.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Evaluation is the feedback loop for everything else in this stage — without it you can't tell whether a chunking change, a re-ranker, or a new prompt actually helped, and you can't detect silent quality regressions in production (Stage 5).</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why is "faithfulness" a distinct metric from "answer relevance" in RAG evaluation — what failure mode does each catch on its own?</li>
+            <li>Why does LLM-as-judge need its own validation against human judgment before you trust it?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="guardrails">
+        <span class="node-id">§4.9 — GUARDRAILS</span>
+        <h2>Guardrails</h2>
+        <p class="node-tagline">Constraints and checks around a model's inputs and outputs — because prompting alone doesn't reliably guarantee safe or on-scope behavior.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Input validation / filtering</strong> — checking user input before it reaches the model — scope checks, PII detection, blocking known attack patterns.</li>
+            <li><strong>Prompt injection defense</strong> — protecting against instructions hidden in retrieved documents, tool outputs, or user input that try to override the system's intended behavior; mitigations include strict role separation, treating retrieved/tool content as data rather than instructions, and output-side validation.</li>
+            <li><strong>Output validation</strong> — checking the model's response before it's shown to the user or used downstream — schema validation for structured output, toxicity/safety classifiers, fact-checking against retrieved sources.</li>
+            <li><strong>Topic/scope restriction</strong> — keeping a domain-specific assistant from answering (or acting) far outside its intended purpose.</li>
+            <li><strong>PII &amp; sensitive data handling</strong> — detecting and redacting or blocking personal or confidential information in both directions (input and output).</li>
+            <li><strong>Rate limiting &amp; abuse prevention</strong> — protecting against automated misuse of an agent's tool-calling capability in particular, where a single successful jailbreak could trigger a real-world action, not just a bad text response.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Treating "the system prompt says not to do X" as sufficient protection. System prompt instructions are a strong nudge, not an enforcement mechanism — a determined adversarial input (especially injected through retrieved content or tool output the model treats as trustworthy) can override them. Real guardrails validate independently of what the model was merely told to do.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why is a system-prompt instruction alone not sufficient as a security guardrail?</li>
+            <li>Why does an agent with tool access need stricter guardrails than a plain chat model?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="observability">
+        <span class="node-id">§4.10 — OBSERVABILITY</span>
+        <h2>Observability</h2>
+        <p class="node-tagline">You can't fix — or even find — what you can't see. LLM systems fail in ways traditional monitoring wasn't built to catch.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Tracing</strong> — capturing the full path of a request through a multi-step pipeline (retrieval → re-rank → prompt assembly → LLM call → tool calls → final output), essential for debugging agentic and RAG systems where the LLM call is just one step among many.</li>
+            <li><strong>Logging prompts &amp; completions</strong> — retaining the actual inputs and outputs (with appropriate privacy handling) needed to reproduce and diagnose a specific failure after the fact.</li>
+            <li><strong>Token &amp; cost tracking</strong> — per-request and aggregate visibility into token usage and spend, broken down by model, feature, or customer — directly feeds Stage 5 cost work.</li>
+            <li><strong>Latency breakdown</strong> — measuring time spent in each pipeline stage (retrieval, prefill, decode, tool calls) separately, since "the LLM call is slow" and "retrieval is slow" call for completely different fixes.</li>
+            <li><strong>Quality/drift monitoring</strong> — tracking evaluation metrics (§4.8) or proxy signals (user feedback, thumbs up/down, escalation rate) continuously in production, not just at release time, since data distribution and user behavior shift over time.</li>
+            <li><strong>Alerting</strong> — thresholds on error rate, latency, cost, or quality signals that page a human before a slow degradation becomes a major incident.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Observability is the connective tissue for all of Stage 5 — you cannot debug failures, optimize latency, reduce costs, or improve reliability in a system you can't see inside of at the level of individual pipeline steps.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does a multi-step RAG/agent pipeline need tracing in a way a single LLM API call doesn't as urgently?</li>
+            <li>Why is quality monitoring something you need continuously in production, not just at initial release?</li>
+          </ol>
+        </details>
+      </section>
+
+    </div>
+
+    <div class="pagenav">
+      <a href="03-llms.html"><span class="dir">← PREV STAGE</span>03 · LLMs</a>
+      <a href="05-production.html" style="text-align:right"><span class="dir">NEXT STAGE →</span>05 · Production</a>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PLM Production Support Agent — PRD</title>
+
+<style>
+  :root {
+    --ink: #1a1d23;
+    --muted: #5b6270;
+    --accent: #c8102e;
+    --line: #e4e6eb;
+    --bg-code: #f4f5f7;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 56px 24px 100px;
+    color: var(--ink);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  h1 {
+    font-size: 2.1em;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 14px;
+    margin-bottom: 6px;
+  }
+  h2 {
+    font-size: 1.4em;
+    margin-top: 2.4em;
+    padding-top: 0.6em;
+    border-top: 1px solid var(--line);
+    color: #111;
+  }
+  h3 {
+    font-size: 1.12em;
+    margin-top: 1.8em;
+    color: #222;
+  }
+  p, li { color: #2b2f38; }
+  strong { color: #111; }
+  code {
+    background: var(--bg-code);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--bg-code);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  pre code { background: none; padding: 0; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.2em 0;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th { background: var(--bg-code); }
+  hr {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 2.5em 0;
+  }
+  .mermaid {
+    background: #fff;
+    padding: 20px 0;
+  }
+  .doc-meta {
+    color: var(--muted);
+    font-size: 0.95em;
+    margin-bottom: 2em;
+  }
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<h1 id="product-requirement-document-plm-production-support-agent">Product Requirement Document: PLM Production Support Agent</h1>
+<h2 id="1-overview">1. Overview</h2>
+<p><strong>Product Name:</strong> PLM Production Support Agent (working title)</p>
+<p><strong>Purpose:</strong> A production-grade, embedded conversational AI agent within the PLM (Product Lifecycle Management) application that helps end users resolve functional and process questions in real time. When the agent cannot confidently resolve an issue, it creates a ServiceNow ticket automatically, routes it to the correct assignment group based on the identified intent/domain, and gives the user the ticket number. Users can later return and ask the agent for status updates, request updates, or cancel tickets — all conversationally.</p>
+<p><strong>Primary Goal:</strong> Reduce time-to-resolution for PLM users, deflect low-complexity support tickets through grounded self-service knowledge, eliminate hallucinated answers by falling back to a governed ServiceNow ticketing workflow with correct team routing, and operate as a reliable, secure, observable production system — not a proof of concept.</p>
+<hr />
+<h2 id="2-background-and-problem-statement">2. Background and Problem Statement</h2>
+<p>The PLM application supports the end-to-end product creation lifecycle — from concept and inception through phases such as season/style alignment, costing, BOM (Bill of Materials) management, line planning, and library/master data management. Each phase involves different personas, workflows, and specialized modules.</p>
+<p>Today, when users hit a process question ("where is my style in the workflow") or a functional question ("how do I add a BOM line item"), they either:
+- Search Confluence documentation (not optimized for natural-language search),
+- Ask peers or team leads (not scalable),
+- Manually log into ServiceNow and create a ticket themselves — choosing subject, detail, and assignment group on their own, which frequently causes misrouting and delay.</p>
+<p>There is no single, intelligent entry point that understands PLM domain context, module-specific terminology, and can act on behalf of the user when a real issue needs to be escalated.</p>
+<hr />
+<h2 id="3-goals-and-success-metrics">3. Goals and Success Metrics</h2>
+<p><strong>Goals:</strong>
+1. Provide accurate, grounded answers to "how do I" and functional questions using the Confluence-based knowledge base — never hallucinate.
+2. Answer process and status questions using the existing season-style status API.
+3. When the agent cannot resolve the issue, automatically create a ServiceNow ticket with the correct assignment group based on detected intent, without the user ever touching the ServiceNow UI.
+4. Support full ticket lifecycle management conversationally: create, read/status-check, update, cancel, and list/search.
+5. Operate as a secure, observable, resilient production system.</p>
+<p><strong>Success Metrics (illustrative — to refine with stakeholders):</strong>
+- Self-service deflection rate (percentage of queries resolved without a ticket).
+- Ticket routing accuracy (percentage correctly assigned to the right group on first pass).
+- Average time to ticket creation compared to manual submission.
+- User satisfaction / thumbs-up-thumbs-down feedback rate on agent answers.
+- Reduction in "wrong queue" reassignments in ServiceNow.
+- System uptime and graceful-degradation incident count.</p>
+<hr />
+<h2 id="4-users-and-personas">4. Users and Personas</h2>
+<ul>
+<li><strong>PLM End Users:</strong> Designers, developers, planners, and merchandisers using functional modules like costing, BOM, line planning, and library management.</li>
+<li><strong>Support and Operations Teams:</strong> Domain-specific ServiceNow assignment groups such as Costing Support, BOM Support, Line Planning Support, Library/Master Data Support, and general PLM Platform Support.</li>
+<li><strong>PLM Product and Engineering Team:</strong> Own the knowledge base content and agent behavior, and monitor ticket deflection and routing accuracy.</li>
+</ul>
+<hr />
+<h2 id="5-scope">5. Scope</h2>
+<p><strong>In Scope for Version One:</strong>
+- Conversational interface embedded inside the PLM application.
+- Retrieval-augmented answering grounded in the Confluence-based knowledge base (manuals, FAQs, module-wise and domain-specific documentation), ingested and synced into a dedicated vector store/search index rather than queried live.
+- Intent/domain classification mapped to ServiceNow assignment groups via a configurable lookup table (costing, BOM, line planning, library/master data, general navigation, platform/technical).
+- Process/status lookups via the existing season-style status API, which returns current program cycle stage (e.g., initial phase, season partner alignment, confirmation) and pending items — no direct database access required.
+- Full ServiceNow ticket lifecycle management: create, read/status-check, update, cancel — via ServiceNow's official MCP server (preferred, GA in 2026) or REST Table API (fallback) — fully invisible to the user.
+- Ticket list/search: view recent tickets by time range (e.g., last 30 days) or look up a specific ticket by number.
+- Ticket content sent as a clean, technical-only summary generated by the agent — never raw conversation text — to satisfy SOX compliance.
+- Fallback-to-ticket logic when confidence is low, instead of guessing.</p>
+<p><strong>Version Two Candidate Features (documented now, planned for later implementation):</strong>
+- <strong>Jira Integration:</strong> Surface linked Jira tickets against a ServiceNow incident/request, giving users visibility from initial report through engineering-level resolution.
+- <strong>Proactive Status Notifications:</strong> Notify users when their ticket status changes, without requiring them to ask.
+- <strong>Feedback Loop:</strong> Thumbs up/down (or similar) rating on agent answers to continuously improve knowledge base quality and identify content gaps.</p>
+<p><strong>Out of Scope for Version One:</strong>
+- Fully autonomous ticket resolution or closing without human action from the support team.
+- Voice interface within the PLM application.
+- Multi-language support.</p>
+<hr />
+<h2 id="6-core-use-cases">6. Core Use Cases</h2>
+<ol>
+<li><strong>Functional How-To Question</strong> — User asks how to perform an action (e.g., add a BOM line, submit a costing sheet for approval). Agent answers using the Confluence-sourced knowledge base with a source reference where possible.</li>
+<li><strong>Process/Status Question</strong> — User asks where their product/style currently sits in the workflow. Agent queries the season-style status API and reports phase, owner, or pending approvals.</li>
+<li><strong>Unresolved Issue → Ticket Creation</strong> — Agent recognizes it lacks a grounded answer, informs the user it will raise a ticket rather than guessing, classifies the intent to the correct domain, creates the ServiceNow ticket with a clean technical summary, assigns it to the correct group, and returns the ticket number.</li>
+<li><strong>Ticket Status Follow-Up</strong> — User provides a ticket number or asks about open tickets; agent queries ServiceNow and reports status (new, in progress, pending approval, resolved, etc.) in plain language.</li>
+<li><strong>Ticket Update/Cancel</strong> — User provides new information on an existing ticket, or requests cancellation; agent updates ServiceNow accordingly.</li>
+<li><strong>Ticket List/Search</strong> — User asks "what tickets have I opened this month" or looks up a specific ticket number.</li>
+<li><strong>Ambiguous/Multi-Intent Question</strong> — Agent asks a clarifying question before proceeding, rather than guessing the wrong assignment group.</li>
+<li><strong>Escalation Context Handoff</strong> — Ticket includes a clean technical summary so the assigned support team doesn't need the user to repeat themselves.</li>
+<li><strong>Human Escalation</strong> — If the user is stuck or dissatisfied, the agent offers a clean handoff path to a live support person.</li>
+</ol>
+<hr />
+<h2 id="7-functional-requirements">7. Functional Requirements</h2>
+<p><strong>Knowledge and Answering:</strong>
+- RAG grounded strictly in the ingested Confluence knowledge base (module-wise, domain-specific documentation).
+- Periodic or webhook-based sync to keep the index current with Confluence edits.
+- Confidence thresholding — agent must not fabricate answers; low-confidence cases trigger a clarifying question or ticket fallback.
+- Source citations included in answers where feasible.</p>
+<p><strong>Intent and Domain Classification:</strong>
+- Classify each user query into a PLM domain (costing, BOM, line planning, library/master data, general navigation, platform/technical).
+- Map each domain to a ServiceNow assignment group via a configurable lookup, not hardcoded logic, so new domains/teams can be added without code changes.</p>
+<p><strong>Process and Status Lookup:</strong>
+- Integration with the existing season-style status API; respects the requesting user's permissions.
+- Returns current phase, status, and pending approvals for a specific product/style.</p>
+<p><strong>ServiceNow Integration:</strong>
+- Create, read, update, cancel, and list/search tickets via ServiceNow MCP server (preferred) or REST Table API (fallback) — no user login to ServiceNow required.
+- Auto-populate short description, clean technical summary, category, and assignment group.
+- Return the generated ticket number to the user immediately.
+- Support listing a user's tickets by time range, and lookup by specific ticket number.
+- Attach only a clean, technical, non-sensitive summary — never raw conversation transcripts — per SOX compliance.</p>
+<p><strong>Fallback and Escalation Logic:</strong>
+- Proactively offer ticket creation when confidence is low after reasonable attempts/clarification — never present an ungrounded answer as fact.
+- Clear handoff path to human support when needed.</p>
+<p><strong>Conversation and Session Handling:</strong>
+- Maintain context within a session (no repeated information from the user).
+- Support returning users referencing a previous ticket number in a new session.</p>
+<hr />
+<h2 id="8-non-functional-requirements-production-grade">8. Non-Functional Requirements (Production-Grade)</h2>
+<p><strong>Security and Access Control:</strong>
+- SSO integration via Okta; all data queries and ticket actions scoped to the requesting user's actual permissions.
+- Least-privilege scoped service account credentials for the ServiceNow integration.</p>
+<p><strong>Compliance:</strong>
+- SOX-aware handling: tickets carry cleaned technical summaries only, never raw sensitive conversational content (e.g., budget, personnel, or other business-sensitive remarks).</p>
+<p><strong>Reliability and Resilience:</strong>
+- Graceful degradation if the PLM status API or ServiceNow is unavailable — clear user messaging instead of silent failure or hallucination.
+- Retry/backoff logic for downstream API calls.</p>
+<p><strong>Observability and Audit:</strong>
+- Full logging of every ticket creation/update/cancellation, traceable back to the originating conversation.
+- Admin/support dashboard: ticket volume, deflection rate, routing accuracy, common unresolved topics.</p>
+<p><strong>Performance:</strong>
+- Conversational responses within a few seconds for knowledge questions; status/ticket operations bounded by downstream API latency.</p>
+<p><strong>Abuse Protection:</strong>
+- Rate limiting per user/session to prevent runaway ticket creation or API abuse.</p>
+<p><strong>Extensibility:</strong>
+- Assignment-group mappings and knowledge base content maintainable by support/content teams without engineering involvement.</p>
+<hr />
+<h2 id="9-high-level-solution-approach">9. High-Level Solution Approach</h2>
+<p>Consistent with existing internal agent architecture patterns (Google ADK-based), an intent classification layer routes between RAG-based knowledge answering and structured API calls (status lookups), backed by a dedicated ServiceNow integration layer (MCP-first) handling the full ticket lifecycle. Confluence content is ingested into a vector store rather than queried live. The technical design document will define the specific orchestration framework, confidence-scoring mechanism, MCP vs. REST decision criteria, and the observability/dashboard stack.</p>
+<hr />
+<h2 id="10-production-readiness-gaps-and-recommendations">10. Production Readiness Gaps and Recommendations</h2>
+<p>The following areas are not yet covered above but are typically required to run this kind of agent as a real production service rather than a proof of concept.</p>
+<p><strong>Evaluation and Quality Framework</strong>
+- <em>Gap:</em> No defined method to measure answer accuracy, groundedness, or routing correctness before or after launch.
+- <em>Recommendation:</em> Stand up an evaluation harness (RAGAS-style, or equivalent) with a curated test set of representative questions per domain (costing, BOM, line planning, library). Track groundedness, answer relevancy, and routing accuracy as regression gates before any knowledge base or prompt change ships. Re-run the eval suite on a schedule (e.g., weekly) against production traffic samples to catch drift.</p>
+<p><strong>Deployment and Environment Strategy</strong>
+- <em>Gap:</em> No defined dev/staging/production promotion path, CI/CD pipeline, or rollback plan for agent logic or knowledge base updates.
+- <em>Recommendation:</em> Use a trunk-based development flow with image promotion across dev → staging → prod (consistent with patterns already used on other GCP projects). Version the knowledge base index alongside code so a bad ingestion or prompt change can be rolled back independently of application code. Require staging validation against the eval suite before promoting to production.</p>
+<p><strong>Data Retention Policy</strong>
+- <em>Gap:</em> No defined retention or purge policy for conversation logs, audit trails, or ticket-linked context.
+- <em>Recommendation:</em> Define a retention window (e.g., 90 days for raw conversation logs, longer for audit-only metadata like ticket IDs and timestamps) in partnership with Nike's data governance and compliance teams, given the SOX considerations already identified. Ensure logs are purged or archived automatically rather than accumulating indefinitely.</p>
+<p><strong>Prompt Injection and Adversarial Input Protection</strong>
+- <em>Gap:</em> No explicit guardrails against users attempting to manipulate the agent into fabricating answers, bypassing the confidence threshold, or misusing its ServiceNow tool access (e.g., trying to get it to create, cancel, or modify tickets it shouldn't).
+- <em>Recommendation:</em> Add input sanitization and instruction-hierarchy enforcement so user messages can't override system-level rules. Constrain tool-calling permissions tightly (e.g., a user can only update/cancel their own tickets, never arbitrary ticket numbers). Log and alert on suspicious patterns, such as repeated attempts to extract system prompts or force ungrounded answers.</p>
+<p><strong>Service Level Agreement (SLA)</strong>
+- <em>Gap:</em> "Operate reliably" is stated as a goal without a concrete target.
+- <em>Recommendation:</em> Define explicit targets, for example 99.5% uptime, sub-3-second response time for knowledge questions, and a defined maximum for status/ticket operations bounded by ServiceNow/API latency. Track these in the observability dashboard alongside deflection rate and routing accuracy.</p>
+<p><strong>Knowledge Base Ownership and Governance</strong>
+- <em>Gap:</em> No owner assigned for keeping Confluence content accurate, current, and well-structured for retrieval.
+- <em>Recommendation:</em> Assign a content owner or rotating responsibility within the PLM support/product team to review and update source Confluence pages on a regular cadence (e.g., monthly), and to review the eval suite results for recurring "unanswerable" topics that signal a documentation gap.</p>
+<p><strong>Cost and Model Usage Monitoring</strong>
+- <em>Gap:</em> No mention of token usage, API cost tracking, or budget guardrails at production scale.
+- <em>Recommendation:</em> Instrument token/API usage per conversation and per ServiceNow/status API call, with dashboards and alerting on cost anomalies. Consider model-tiering (a smaller/cheaper model for intent classification, a stronger model only for final answer generation) to control cost at scale.</p>
+<hr />
+<h2 id="11-remaining-open-items-for-technical-design-phase">11. Remaining Open Items for Technical Design Phase</h2>
+<ul>
+<li>Exact confidence threshold definition for the fallback-to-ticket trigger.</li>
+<li>Whether any human-in-the-loop review is needed before ticket auto-assignment.</li>
+<li>Confluence sync frequency and mechanism (webhook vs. scheduled).</li>
+<li>ServiceNow instance version check to confirm MCP server availability, or REST API fallback plan.</li>
+<li>Dashboard tooling choice for observability/admin reporting.</li>
+</ul>
+
+</body>
+</html>

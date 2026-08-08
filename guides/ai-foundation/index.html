@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Path — LLM &amp; AI Engineering Study Guide</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero{
+    max-width:1180px; margin:0 auto; padding:70px 28px 20px;
+  }
+  .hero .eyebrow{margin-bottom:20px;}
+  .hero h1{font-size:clamp(34px,5.2vw,58px); max-width:16ch;}
+  .hero p{color:var(--text-dim); font-size:18px; max-width:60ch; margin-top:16px;}
+  .stages{
+    max-width:1180px; margin:60px auto 0; padding:0 28px 120px;
+    display:flex; flex-direction:column; gap:0;
+    position:relative;
+  }
+  .stages::before{
+    content:""; position:absolute; left:47px; top:14px; bottom:60px; width:1px;
+    background:linear-gradient(var(--border), var(--accent-dim) 15%, var(--accent-dim) 85%, var(--border));
+  }
+  .stage{
+    display:grid; grid-template-columns:96px 1fr; gap:0; padding:26px 0;
+    position:relative;
+  }
+  .stage .num{
+    font-family:var(--font-mono); font-size:13px; color:var(--bg);
+    width:36px; height:36px; border-radius:50%; background:var(--accent);
+    display:flex; align-items:center; justify-content:center; font-weight:600;
+    position:relative; z-index:2; margin-left:30px;
+  }
+  .stage-card{
+    background:var(--panel); border:1px solid var(--border); border-radius:12px;
+    padding:26px 28px;
+  }
+  .stage-card h2{font-size:22px; margin-bottom:6px;}
+  .stage-card .stage-goal{color:var(--text-dim); font-size:14.5px; margin-bottom:18px;}
+  .topics{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
+  .topics span{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--text-dim);
+    border:1px solid var(--border); border-radius:20px; padding:5px 12px;
+  }
+  .stage-card a.go{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--font-mono); font-size:13px; color:var(--accent);
+    border:1px solid var(--accent-dim); border-radius:8px; padding:9px 16px;
+  }
+  .stage-card a.go:hover{background:var(--accent); color:#171308; text-decoration:none;}
+  .s1 .num{background:var(--cyan);}
+  .s5 .num{background:var(--violet);}
+  footer{max-width:1180px; margin:0 auto; padding:0 28px 60px; color:var(--text-faint); font-family:var(--font-mono); font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> SIGNAL&nbsp;PATH — LLM STUDY GUIDE</div>
+  <nav>
+    <a href="index.html" class="current">Map</a>
+    <a href="01-ml-fundamentals.html">01 Fundamentals</a>
+    <a href="02-deep-learning.html">02 Deep Learning</a>
+    <a href="03-llms.html">03 LLMs</a>
+    <a href="04-ai-engineering.html">04 AI Engineering</a>
+    <a href="05-production.html">05 Production</a>
+  </nav>
+  <a class="back-link" href="../../index.html">&larr; All Guides</a>
+</div>
+
+<div class="hero">
+  <div class="eyebrow"><span class="rail"></span>FIVE-STAGE CURRICULUM</div>
+  <h1>From matrices to production LLM systems.</h1>
+  <p>A self-contained study guide, wired as one dependency chain: each stage assumes the one before it. Work top to bottom the first pass; after that, jump to whichever node is failing you. Every section carries the core intuition, the load-bearing math, a "why it matters downstream" note, and self-check questions to test recall.</p>
+</div>
+
+<div class="stages">
+
+  <div class="stage s1">
+    <div class="num">1</div>
+    <div class="stage-card">
+      <h2>Build strong ML fundamentals</h2>
+      <div class="stage-goal">The vocabulary everything else is written in — vectors, distributions, and the core learning loop.</div>
+      <div class="topics"><span>Linear Algebra</span><span>Probability &amp; Statistics</span><span>Machine Learning Concepts</span></div>
+      <a class="go" href="01-ml-fundamentals.html">Open stage 01 →</a>
+    </div>
+  </div>
+
+  <div class="stage s2">
+    <div class="num">2</div>
+    <div class="stage-card">
+      <h2>Master Deep Learning</h2>
+      <div class="stage-goal">How a network learns representations — from a single neuron to the transformer block that powers every modern LLM.</div>
+      <div class="topics"><span>Neural Networks</span><span>CNNs</span><span>RNNs</span><span>Attention Mechanism</span><span>Transformers</span></div>
+      <a class="go" href="02-deep-learning.html">Open stage 02 →</a>
+    </div>
+  </div>
+
+  <div class="stage s3">
+    <div class="num">3</div>
+    <div class="stage-card">
+      <h2>Understand LLMs deeply</h2>
+      <div class="stage-goal">What actually happens inside a large language model, from raw text to a generated token, and how it's made cheaper and faster to run.</div>
+      <div class="topics"><span>Tokenization</span><span>Embeddings</span><span>Positional Encoding</span><span>Training &amp; Fine-tuning</span><span>Inference</span><span>Quantization</span><span>MoE</span><span>Context Windows</span><span>KV Cache</span></div>
+      <a class="go" href="03-llms.html">Open stage 03 →</a>
+    </div>
+  </div>
+
+  <div class="stage s4">
+    <div class="num">4</div>
+    <div class="stage-card">
+      <h2>Learn AI Engineering</h2>
+      <div class="stage-goal">Building real systems on top of LLMs — grounding them in your data, giving them tools, and keeping them honest.</div>
+      <div class="topics"><span>RAG</span><span>Vector Databases</span><span>Chunking</span><span>Retrieval</span><span>Prompt Engineering</span><span>AI Agents</span><span>MCP</span><span>Evaluation</span><span>Guardrails</span><span>Observability</span></div>
+      <a class="go" href="04-ai-engineering.html">Open stage 04 →</a>
+    </div>
+  </div>
+
+  <div class="stage s5">
+    <div class="num">5</div>
+    <div class="stage-card">
+      <h2>Think like a Production Engineer</h2>
+      <div class="stage-goal">Running AI systems at scale for real users — where they break, what they cost, and how to design for reliability.</div>
+      <div class="topics"><span>Debug Failures</span><span>Optimize Latency</span><span>Reduce Costs</span><span>Improve Reliability</span><span>Design Scalable Systems</span></div>
+      <a class="go" href="05-production.html">Open stage 05 →</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>Keep all six files in the same folder — the stylesheet and cross-page links are relative.</footer>
+
+</body>
+</html>

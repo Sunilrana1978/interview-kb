@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 · Deep Learning — Signal Path</title>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> SIGNAL&nbsp;PATH</div>
+  <nav>
+    <a href="index.html">Map</a>
+    <a href="01-ml-fundamentals.html">01 Fundamentals</a>
+    <a href="02-deep-learning.html" class="current">02 Deep Learning</a>
+    <a href="03-llms.html">03 LLMs</a>
+    <a href="04-ai-engineering.html">04 AI Engineering</a>
+    <a href="05-production.html">05 Production</a>
+  </nav>
+  <a class="back-link" href="../../index.html">&larr; All Guides</a>
+</div>
+
+<div class="shell">
+
+  <aside class="toc">
+    <div class="toc-label">On this page</div>
+    <ol>
+      <li><a href="#neural-networks">Neural Networks</a></li>
+      <li><a href="#cnns">CNNs</a></li>
+      <li><a href="#rnns">RNNs</a></li>
+      <li><a href="#attention">Attention Mechanism</a></li>
+      <li><a href="#transformers">Transformers</a></li>
+    </ol>
+  </aside>
+
+  <main>
+    <div class="page-head">
+      <div class="eyebrow"><span class="rail"></span>STAGE 02</div>
+      <h1>Master Deep Learning</h1>
+      <p class="dek">This stage is one continuous story: a plain neural network can't handle sequences well → RNNs add memory but can't parallelize or see far back → attention lets any position look directly at any other position → the transformer builds an entire architecture around attention. Every LLM you'll study in Stage 3 is a transformer.</p>
+      <div class="chain">
+        <span>01 Fundamentals</span><span class="active">02 Deep Learning</span><span>03 LLMs</span><span>04 AI Engineering</span><span>05 Production</span>
+      </div>
+    </div>
+
+    <div class="rail-wrap">
+
+      <section class="node" id="neural-networks">
+        <span class="node-id">§2.1 — NEURAL NETWORKS</span>
+        <h2>Neural Networks</h2>
+        <p class="node-tagline">Stacked linear layers plus non-linearities, trained end to end by gradient descent. Every architecture in this stage is a variation on this base.</p>
+
+        <p>A neuron computes a weighted sum of its inputs, adds a bias, and passes the result through a non-linear <strong>activation function</strong>. Stack many neurons into a layer, stack many layers into a network, and you get a <strong>multi-layer perceptron (MLP)</strong> — a universal function approximator, given enough width and depth.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core components</div>
+          <ul>
+            <li><strong>Activation functions</strong> — ReLU (fast, sparse, default for most hidden layers), GELU (smoother, used in transformers), sigmoid/tanh (mostly legacy, saturate and cause vanishing gradients), softmax (turns logits into a probability distribution at the output).</li>
+            <li><strong>Forward pass</strong> — input flows through the layers to produce a prediction.</li>
+            <li><strong>Backward pass (backpropagation)</strong> — the chain rule propagates the loss gradient back through every layer to compute how much each weight should change.</li>
+            <li><strong>Weight initialization</strong> — random, but carefully scaled (e.g. Xavier/He init) so signal neither explodes nor vanishes across many layers.</li>
+            <li><strong>Batch normalization / layer normalization</strong> — rescale activations mid-network to stabilize training; transformers use <em>layer</em> norm specifically because it works independent of batch size and sequence position.</li>
+            <li><strong>Dropout</strong> — randomly zeroes activations during training to prevent co-adapted, overfit features.</li>
+            <li><strong>Vanishing / exploding gradients</strong> — in deep networks, gradients can shrink toward zero or blow up as they propagate backward through many layers, stalling learning. Residual connections and normalization exist largely to fight this.</li>
+            <li><strong>Residual (skip) connections</strong> — add a layer's input directly to its output (<code>x + F(x)</code>), giving gradients a direct path backward. What makes networks with 96+ layers (like GPT-scale transformers) trainable at all.</li>
+          </ul>
+        </div>
+
+        <div class="panel formula">
+          <div class="panel-title">The neuron, generalized</div>
+          <div class="f">a = f(Wx + b) <small>— f is the activation function; without it, stacked layers would collapse to one linear layer</small></div>
+          <div class="f">ReLU(x) = max(0, x) &nbsp;&nbsp; GELU(x) ≈ x·Φ(x) <small>Φ = standard normal CDF</small></div>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Common trap</div>
+          <p>Without a non-linear activation, no depth of stacked linear layers can do more than a single linear layer — matrix multiplications compose into just another matrix multiplication. Non-linearity is what gives depth its power.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does removing all activation functions collapse a deep network to something equivalent in expressive power to one layer?</li>
+            <li>What specific problem do residual connections solve in very deep networks?</li>
+            <li>Why do transformers use layer normalization rather than batch normalization?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="cnns">
+        <span class="node-id">§2.2 — CNNS</span>
+        <h2>Convolutional Neural Networks</h2>
+        <p class="node-tagline">The architecture built for spatial, local structure — images, and by extension anything with a grid-like layout.</p>
+
+        <p>Instead of connecting every input to every neuron (as an MLP does), a CNN slides a small <strong>filter (kernel)</strong> across the input, learning local patterns — edges, textures, shapes — that compose into higher-level features as you stack layers deeper.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core components</div>
+          <ul>
+            <li><strong>Convolution</strong> — a small learned filter slides over the input, computing a dot product at each position; produces a feature map.</li>
+            <li><strong>Stride &amp; padding</strong> — stride controls how far the filter moves each step (downsampling); padding controls whether the output shrinks at the edges.</li>
+            <li><strong>Pooling (max/average)</strong> — downsamples feature maps, adding translation invariance and reducing compute.</li>
+            <li><strong>Parameter sharing</strong> — the same filter is reused across the entire image, which is why CNNs need far fewer parameters than a fully-connected network for the same input size.</li>
+            <li><strong>Receptive field</strong> — how much of the original input a given neuron "sees"; grows with depth and stride.</li>
+            <li><strong>Feature hierarchy</strong> — early layers learn edges/colors, middle layers learn textures/parts, late layers learn whole objects.</li>
+          </ul>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>CNNs matter less for text LLMs directly, but the underlying idea — local structure, parameter sharing, hierarchical features — reappears in multimodal models (vision encoders feeding into LLMs, e.g. GPT-4V-style architectures) and in some efficient-attention variants inspired by convolution's locality.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why does parameter sharing make CNNs far more parameter-efficient than a fully-connected network on images?</li>
+            <li>What does "receptive field" mean, and how do stride and depth affect it?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="rnns">
+        <span class="node-id">§2.3 — RNNS</span>
+        <h2>Recurrent Neural Networks</h2>
+        <p class="node-tagline">The first serious attempt at handling sequences — and the architecture the transformer was invented to replace.</p>
+
+        <p>An RNN processes a sequence one element at a time, carrying a <strong>hidden state</strong> forward as memory of everything seen so far. That sequential dependency is exactly what made RNNs hard to parallelize and prone to forgetting long-range context.</p>
+
+        <div class="panel">
+          <div class="panel-title">Core concepts</div>
+          <ul>
+            <li><strong>Hidden state</strong> — a running summary vector updated at every timestep, carrying information forward.</li>
+            <li><strong>Sequential processing</strong> — step t depends on step t−1, which is why RNNs can't be parallelized across the sequence dimension the way transformers can.</li>
+            <li><strong>Vanishing gradients over time</strong> — the same instability problem from §2.1, but along the time axis: gradients from far-future losses shrink to near-zero by the time they reach early timesteps, so vanilla RNNs struggle to learn long-range dependencies.</li>
+            <li><strong>LSTM / GRU</strong> — gated variants (forget/input/output gates) designed specifically to preserve gradient flow over longer sequences.</li>
+            <li><strong>Bidirectional RNNs</strong> — process the sequence both forward and backward to use future context, at the cost of no longer being usable for pure left-to-right generation.</li>
+            <li><strong>Sequence-to-sequence (encoder–decoder)</strong> — an encoder RNN compresses the input into a fixed context vector; a decoder RNN generates the output from it. The bottleneck of a single fixed vector is exactly the problem attention was invented to solve.</li>
+          </ul>
+        </div>
+
+        <div class="panel gotcha">
+          <div class="panel-title">Why RNNs lost to transformers</div>
+          <p>Two structural limits: (1) sequential computation means no parallelism across timesteps during training — painfully slow at scale; (2) the fixed-size hidden state is an information bottleneck, so long-range dependencies degrade no matter how good the gating is. Attention fixes both.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why can't RNN training be parallelized across the sequence dimension the way transformer training can?</li>
+            <li>What specific problem do LSTM gates solve that a vanilla RNN cell doesn't?</li>
+            <li>What is the encoder–decoder "bottleneck," and how does it motivate attention?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="attention">
+        <span class="node-id">§2.4 — ATTENTION MECHANISM</span>
+        <h2>Attention Mechanism</h2>
+        <p class="node-tagline">Instead of compressing a whole sequence into one vector, let every output position look directly at every input position and decide what's relevant.</p>
+
+        <p>Attention computes, for each token, a weighted combination of every other token's representation — where the weights are learned and depend on the content itself. This is the single mechanism that made both long-range dependency modeling <em>and</em> full parallelization possible at the same time.</p>
+
+        <div class="panel">
+          <div class="panel-title">Query, Key, Value — the core abstraction</div>
+          <ul>
+            <li><strong>Query (Q)</strong> — "what am I looking for?" — a projection of the current token.</li>
+            <li><strong>Key (K)</strong> — "what do I contain?" — a projection of every token being attended to.</li>
+            <li><strong>Value (V)</strong> — "what do I actually pass along?" — the content that gets mixed together once attention weights are computed.</li>
+            <li><strong>Attention score</strong> — the dot product of a Query with each Key, measuring relevance; scaled down and passed through softmax to become weights that sum to 1.</li>
+            <li><strong>Self-attention</strong> — Q, K, and V all come from the same sequence (tokens attending to other tokens in the same input).</li>
+            <li><strong>Cross-attention</strong> — Q comes from one sequence, K/V from another (e.g. a decoder attending to an encoder's output).</li>
+            <li><strong>Multi-head attention</strong> — run several attention operations in parallel with different learned projections, so different heads can specialize (one head might track syntax, another coreference, another position).</li>
+            <li><strong>Causal (masked) attention</strong> — for autoregressive generation, mask out future positions so a token can only attend to itself and what came before — this is what makes GPT-style left-to-right generation valid.</li>
+          </ul>
+        </div>
+
+        <div class="panel formula">
+          <div class="panel-title">Scaled dot-product attention</div>
+          <div class="f">Attention(Q,K,V) = softmax(QKᵀ / √d_k) · V</div>
+          <div class="f">— <small>QKᵀ scores relevance between every pair of tokens; √d_k prevents scores from growing too large as dimension increases (which would push softmax into tiny gradients); softmax turns scores into weights; multiplying by V blends the values accordingly.</small></div>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Attention's O(n²) cost in sequence length n is <em>the</em> reason context-window scaling is hard (Stage 3), and the reason the KV cache exists (Stage 3) — caching the K and V projections so they aren't recomputed for every new generated token.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>What's the intuitive difference between what Query, Key, and Value each represent?</li>
+            <li>Why divide by √d_k before the softmax?</li>
+            <li>Why does causal masking matter for a model that generates text left-to-right, and what would break without it?</li>
+            <li>Why is multi-head attention more expressive than a single attention operation with a larger dimension?</li>
+          </ol>
+        </details>
+      </section>
+
+      <section class="node" id="transformers">
+        <span class="node-id">§2.5 — TRANSFORMERS</span>
+        <h2>Transformers</h2>
+        <p class="node-tagline">The architecture that assembles attention, feed-forward layers, residuals, and normalization into the backbone of every modern LLM.</p>
+
+        <div class="panel">
+          <div class="panel-title">Anatomy of a transformer block</div>
+          <ul>
+            <li><strong>Multi-head self-attention</strong> — lets tokens exchange information (§2.4).</li>
+            <li><strong>Feed-forward network (FFN/MLP)</strong> — applied identically to each position, expanding then projecting back down (typically 4× the hidden size); where much of the model's factual "storage" is believed to live.</li>
+            <li><strong>Residual connections + layer norm</strong> — around both the attention and FFN sub-layers, stabilizing training at depth (§2.1).</li>
+            <li><strong>Positional information</strong> — attention alone has no notion of order, so position must be injected explicitly (full treatment in Stage 3).</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Encoder, decoder, and encoder–decoder variants</div>
+          <table class="cmp">
+            <tr><th>Type</th><th>Attention pattern</th><th>Used for</th><th>Examples</th></tr>
+            <tr><td>Encoder-only</td><td>Bidirectional (sees full input)</td><td>Understanding/classification tasks, embeddings</td><td class="mono">BERT</td></tr>
+            <tr><td>Decoder-only</td><td>Causal / masked (left-to-right)</td><td>Text generation</td><td class="mono">GPT family, Llama, Claude</td></tr>
+            <tr><td>Encoder–decoder</td><td>Bidirectional encoder + causal decoder + cross-attention</td><td>Translation, summarization</td><td class="mono">T5, original Transformer</td></tr>
+          </table>
+          <p style="margin:10px 0 0; color:var(--text-dim); font-size:14.5px;">Almost every LLM you'll interact with day to day is decoder-only — the architecture that dominates because it's simplest to scale and naturally suited to open-ended generation.</p>
+        </div>
+
+        <div class="panel formula">
+          <div class="panel-title">One block, end to end</div>
+          <div class="f">x' = x + MultiHeadAttention(LayerNorm(x))</div>
+          <div class="f">out = x' + FFN(LayerNorm(x'))</div>
+          <div class="f"><small>Stack N of these blocks (N in the dozens to low hundreds for frontier models) and you have a transformer.</small></div>
+        </div>
+
+        <div class="panel why">
+          <div class="panel-title">Why it matters downstream</div>
+          <p>Everything in Stage 3 — tokenization feeds this, embeddings and positional encoding become its input, training adjusts every weight in it, inference runs it forward one token at a time, quantization compresses its weights, and MoE swaps its FFN layers for sparse expert routing.</p>
+        </div>
+
+        <details class="check">
+          <summary>Self-check questions</summary>
+          <ol>
+            <li>Why do almost all modern LLMs use a decoder-only architecture rather than encoder–decoder?</li>
+            <li>What is the FFN sub-layer doing that self-attention isn't?</li>
+            <li>Where exactly do residual connections sit relative to attention and the FFN in a standard block ("pre-norm" transformers)?</li>
+          </ol>
+        </details>
+      </section>
+
+    </div>
+
+    <div class="pagenav">
+      <a href="01-ml-fundamentals.html"><span class="dir">← PREV STAGE</span>01 · ML Fundamentals</a>
+      <a href="03-llms.html" style="text-align:right"><span class="dir">NEXT STAGE →</span>03 · LLMs</a>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

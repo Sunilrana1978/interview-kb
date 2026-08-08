@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Frameworks Study Guide — LangChain · LangGraph · CrewAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0F1419;
+    --surface: #161C24;
+    --surface-2: #1D242E;
+    --border: #2A323D;
+    --text: #E6EAF0;
+    --text-dim: #8B96A5;
+    --text-faint: #5B6572;
+
+    --lc: #4A9EFF;   /* LangChain - chain blue */
+    --lc-bg: rgba(74,158,255,0.10);
+    --lg: #B97FFF;   /* LangGraph - graph violet */
+    --lg-bg: rgba(185,127,255,0.10);
+    --cw: #FF9F5A;   /* CrewAI - crew amber */
+    --cw-bg: rgba(255,159,90,0.10);
+
+    --code-bg: #0B0F14;
+    --green: #7EE787;
+    --pink: #FF7B9C;
+    --yellow: #E3C078;
+
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    line-height: 1.6;
+    font-size: 15.5px;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  code, pre, .mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  a { color: inherit; }
+
+  /* ---------- Layout ---------- */
+  .shell {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; }
+    nav.toc { display: none; }
+  }
+
+  nav.toc {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 32px 20px 32px 28px;
+    border-right: 1px solid var(--border);
+  }
+
+  nav.toc .brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  nav.toc .brand-sub {
+    font-size: 11.5px;
+    color: var(--text-faint);
+    margin-bottom: 28px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  nav.toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 22px 0;
+  }
+
+  nav.toc .group-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin: 0 0 8px 2px;
+  }
+
+  nav.toc li { margin-bottom: 2px; }
+
+  nav.toc a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 13.5px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  nav.toc a:hover { background: var(--surface); color: var(--text); }
+
+  nav.toc a .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-faint); flex-shrink: 0;
+  }
+  nav.toc a.lc .dot { background: var(--lc); }
+  nav.toc a.lg .dot { background: var(--lg); }
+  nav.toc a.cw .dot { background: var(--cw); }
+
+  main { padding: 40px 48px 100px; min-width: 0; }
+  @media (max-width: 700px) { main { padding: 28px 20px 80px; } }
+
+  /* ---------- Hero ---------- */
+  .hero { margin-bottom: 56px; }
+
+  .eyebrow {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-faint);
+    margin-bottom: 14px;
+  }
+
+  .hero h1 {
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  .hero p.lede {
+    color: var(--text-dim);
+    max-width: 640px;
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+
+  .signature {
+    width: 100%;
+    max-width: 720px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 24px 18px;
+  }
+
+  .signature .cap {
+    font-size: 11.5px;
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 14px;
+  }
+
+  /* ---------- Sections ---------- */
+  section.fw {
+    margin-bottom: 64px;
+    padding-top: 8px;
+  }
+
+  .fw-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 6px;
+    border-left: 3px solid var(--accent);
+    padding-left: 16px;
+  }
+
+  .fw-header h2 {
+    font-size: 26px;
+    color: var(--text);
+  }
+
+  .fw-tag {
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    background: var(--accent-bg);
+    padding: 3px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .fw-sub {
+    padding-left: 19px;
+    color: var(--text-dim);
+    max-width: 680px;
+    margin-bottom: 24px;
+    font-size: 14.5px;
+  }
+
+  .lc { --accent: var(--lc); --accent-bg: var(--lc-bg); }
+  .lg { --accent: var(--lg); --accent-bg: var(--lg-bg); }
+  .cw { --accent: var(--cw); --accent-bg: var(--cw-bg); }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 0 0 26px 19px;
+  }
+
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+
+  .concept-card h4 {
+    font-size: 13.5px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .concept-card p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+
+  .block-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin: 0 0 8px 19px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  pre {
+    margin: 0 0 26px 19px;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  pre code { color: #C9D1D9; }
+
+  .tok-kw { color: var(--pink); }
+  .tok-str { color: var(--green); }
+  .tok-com { color: var(--text-faint); font-style: italic; }
+  .tok-fn { color: var(--yellow); }
+  .tok-cls { color: var(--accent); }
+
+  .install {
+    margin: 0 0 20px 19px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--text-dim);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .install .prompt { color: var(--accent); }
+
+  .when-box {
+    margin: 0 0 8px 19px;
+    padding: 14px 18px;
+    border-radius: var(--radius);
+    background: var(--accent-bg);
+    border: 1px solid var(--border);
+    font-size: 13.5px;
+    color: var(--text);
+    max-width: 680px;
+  }
+  .when-box strong { color: var(--accent); font-family: 'Space Grotesk', sans-serif; }
+
+  /* ---------- Comparison table ---------- */
+  .compare table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .compare th, .compare td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .compare th {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-faint);
+    background: var(--surface-2);
+  }
+  .compare tr:last-child td { border-bottom: none; }
+  .compare td:first-child { color: var(--text-dim); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; white-space: nowrap; }
+  .compare .lc-cell { color: var(--lc); }
+  .compare .lg-cell { color: var(--lg); }
+  .compare .cw-cell { color: var(--cw); }
+
+  /* ---------- Q&A / interview prep ---------- */
+  .qa-group { margin-bottom: 34px; }
+  .qa-group h3 {
+    font-size: 15px;
+    margin: 0 0 12px 19px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .qa-group h3 .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  details.qa {
+    margin: 0 0 8px 19px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0;
+    max-width: 780px;
+  }
+  details.qa summary {
+    cursor: pointer;
+    padding: 13px 18px;
+    font-size: 13.8px;
+    font-weight: 500;
+    color: var(--text);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  details.qa summary::-webkit-details-marker { display: none; }
+  details.qa summary::before {
+    content: "+";
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-q, var(--text-faint));
+    font-size: 15px;
+    width: 14px;
+    flex-shrink: 0;
+  }
+  details.qa[open] summary::before { content: "–"; }
+  details.qa .qa-body {
+    padding: 0 18px 16px 42px;
+    color: var(--text-dim);
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  details.qa .qa-body code { color: var(--text); background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  details.qa .qa-body ul { margin: 8px 0; padding-left: 18px; }
+  details.qa .qa-body li { margin-bottom: 4px; }
+
+  .qa-lc { --accent-q: var(--lc); }
+  .qa-lg { --accent-q: var(--lg); }
+  .qa-cw { --accent-q: var(--cw); }
+
+  /* ---------- pitfalls ---------- */
+  .pitfall-list { margin: 0 0 26px 19px; max-width: 780px; }
+  .pitfall {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pitfall:last-child { border-bottom: none; }
+  .pitfall .mark { color: var(--pink); font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+  .pitfall .body strong { color: var(--text); font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 13.8px; }
+  .pitfall .body p { margin: 4px 0 0; color: var(--text-dim); font-size: 13.5px; }
+
+  /* ---------- production checklist ---------- */
+  .prod-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin: 0 0 10px 19px;
+  }
+  .prod-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .prod-card h4 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+  .prod-card ul { margin: 0; padding-left: 18px; color: var(--text-dim); font-size: 13.2px; line-height: 1.7; }
+  .prod-card li strong { color: var(--text); font-weight: 500; }
+
+  /* ---------- footer ---------- */
+  footer {
+    padding-left: 19px;
+    color: var(--text-faint);
+    font-size: 12.5px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 60px;
+  }
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<div class="shell">
+
+  <nav class="toc">
+    <div class="brand">Agent Frameworks</div>
+    <div class="brand-sub">Study Guide</div>
+
+    <div class="group-label">Overview</div>
+    <ul>
+      <li><a href="#hero"><span class="dot"></span>Why three frameworks</a></li>
+    </ul>
+
+    <div class="group-label">Frameworks</div>
+    <ul>
+      <li><a href="#langchain" class="lc"><span class="dot"></span>LangChain</a></li>
+      <li><a href="#langgraph" class="lg"><span class="dot"></span>LangGraph</a></li>
+      <li><a href="#crewai" class="cw"><span class="dot"></span>CrewAI</a></li>
+    </ul>
+
+    <div class="group-label">Reference</div>
+    <ul>
+      <li><a href="#compare"><span class="dot"></span>Comparison table</a></li>
+      <li><a href="#pick"><span class="dot"></span>Which one to reach for</a></li>
+    </ul>
+
+    <div class="group-label">Interview Prep</div>
+    <ul>
+      <li><a href="#qa"><span class="dot"></span>Common Q&amp;A</a></li>
+      <li><a href="#pitfalls"><span class="dot"></span>Gotchas &amp; tradeoffs</a></li>
+      <li><a href="#production"><span class="dot"></span>Production readiness</a></li>
+      <li><a href="#system-design"><span class="dot"></span>System design prompt</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <section id="hero" class="hero">
+      <div class="eyebrow">Study Guide · LLM Orchestration</div>
+      <h1>LangChain, LangGraph &amp; CrewAI</h1>
+      <p class="lede">
+        Three frameworks that solve overlapping problems at different levels of structure:
+        chaining LLM calls, orchestrating stateful multi-step graphs, and coordinating
+        teams of role-based agents. This guide covers core concepts, a runnable example,
+        and when to reach for each.
+      </p>
+
+      <div class="signature">
+        <svg viewBox="0 0 660 150" width="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chain, graph, and crew structural diagram">
+          <!-- LangChain: linear chain -->
+          <g transform="translate(20,20)">
+            <circle cx="10" cy="35" r="9" fill="none" stroke="#4A9EFF" stroke-width="2"/>
+            <line x1="19" y1="35" x2="55" y2="35" stroke="#4A9EFF" stroke-width="2"/>
+            <circle cx="64" cy="35" r="9" fill="none" stroke="#4A9EFF" stroke-width="2"/>
+            <line x1="73" y1="35" x2="109" y2="35" stroke="#4A9EFF" stroke-width="2"/>
+            <circle cx="118" cy="35" r="9" fill="none" stroke="#4A9EFF" stroke-width="2"/>
+            <line x1="127" y1="35" x2="163" y2="35" stroke="#4A9EFF" stroke-width="2"/>
+            <circle cx="172" cy="35" r="9" fill="#4A9EFF"/>
+            <text x="0" y="68" fill="#8B96A5" font-family="JetBrains Mono, monospace" font-size="11">LangChain — linear pipeline</text>
+          </g>
+          <!-- LangGraph: cyclic graph -->
+          <g transform="translate(240,10)">
+            <circle cx="70" cy="10" r="8" fill="none" stroke="#B97FFF" stroke-width="2"/>
+            <circle cx="20" cy="55" r="8" fill="none" stroke="#B97FFF" stroke-width="2"/>
+            <circle cx="120" cy="55" r="8" fill="none" stroke="#B97FFF" stroke-width="2"/>
+            <circle cx="70" cy="95" r="8" fill="#B97FFF"/>
+            <line x1="64" y1="16" x2="27" y2="49" stroke="#B97FFF" stroke-width="2"/>
+            <line x1="76" y1="16" x2="113" y2="49" stroke="#B97FFF" stroke-width="2"/>
+            <line x1="24" y1="62" x2="63" y2="90" stroke="#B97FFF" stroke-width="2"/>
+            <line x1="116" y1="62" x2="77" y2="90" stroke="#B97FFF" stroke-width="2"/>
+            <path d="M 30 62 Q 5 78 22 95 Q 40 108 55 95" fill="none" stroke="#B97FFF" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="0" y="128" fill="#8B96A5" font-family="JetBrains Mono, monospace" font-size="11">LangGraph — stateful graph + loops</text>
+          </g>
+          <!-- CrewAI: role network -->
+          <g transform="translate(460,10)">
+            <rect x="45" y="0" width="66" height="24" rx="12" fill="none" stroke="#FF9F5A" stroke-width="2"/>
+            <text x="78" y="16" fill="#FF9F5A" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">manager</text>
+            <rect x="0" y="55" width="60" height="24" rx="12" fill="none" stroke="#FF9F5A" stroke-width="2"/>
+            <text x="30" y="71" fill="#FF9F5A" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">agent A</text>
+            <rect x="95" y="55" width="60" height="24" rx="12" fill="none" stroke="#FF9F5A" stroke-width="2"/>
+            <text x="125" y="71" fill="#FF9F5A" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">agent B</text>
+            <line x1="65" y1="24" x2="35" y2="55" stroke="#FF9F5A" stroke-width="2"/>
+            <line x1="90" y1="24" x2="120" y2="55" stroke="#FF9F5A" stroke-width="2"/>
+            <text x="0" y="105" fill="#8B96A5" font-family="JetBrains Mono, monospace" font-size="11">CrewAI — role-based agent crew</text>
+          </g>
+        </svg>
+        <div class="cap">The shape of each diagram is the mental model: a chain runs once through, a graph can branch and loop back, a crew delegates by role.</div>
+      </div>
+    </section>
+
+    <!-- ================= LANGCHAIN ================= -->
+    <section id="langchain" class="fw lc">
+      <div class="fw-header">
+        <h2>LangChain</h2>
+        <span class="fw-tag">composable chains</span>
+      </div>
+      <p class="fw-sub">A library of building blocks — prompts, models, retrievers, parsers — wired together with LCEL (LangChain Expression Language) using the <code>|</code> pipe operator. Best for linear-to-moderately-branching pipelines: RAG, summarization, extraction, tool-calling chains.</p>
+
+      <div class="card-grid">
+        <div class="concept-card">
+          <h4>Runnable</h4>
+          <p>The core interface. Every component — prompt, model, retriever, parser — implements <code>invoke</code> / <code>batch</code> / <code>stream</code>, so they compose uniformly.</p>
+        </div>
+        <div class="concept-card">
+          <h4>LCEL pipe (<code>|</code>)</h4>
+          <p>Chains Runnables left to right: output of one becomes input of the next. <code>prompt | model | parser</code> is a complete pipeline.</p>
+        </div>
+        <div class="concept-card">
+          <h4>RunnableParallel</h4>
+          <p>Runs multiple Runnables concurrently on the same input and merges results into a dict — the fan-out primitive.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Retriever / VectorStore</h4>
+          <p>Standard interface for embedding-backed document retrieval, the backbone of RAG chains.</p>
+        </div>
+      </div>
+
+      <div class="install"><span class="prompt">$</span> pip install langchain langchain-openai</div>
+
+      <div class="block-label">Example — a RAG-style chain with LCEL</div>
+      <pre><code><span class="tok-kw">from</span> langchain_openai <span class="tok-kw">import</span> ChatOpenAI, OpenAIEmbeddings
+<span class="tok-kw">from</span> langchain_core.prompts <span class="tok-kw">import</span> ChatPromptTemplate
+<span class="tok-kw">from</span> langchain_core.output_parsers <span class="tok-kw">import</span> StrOutputParser
+<span class="tok-kw">from</span> langchain_core.runnables <span class="tok-kw">import</span> RunnablePassthrough
+<span class="tok-kw">from</span> langchain_community.vectorstores <span class="tok-kw">import</span> FAISS
+
+<span class="tok-com"># 1. Build a retriever over your docs</span>
+embeddings = OpenAIEmbeddings()
+vectorstore = FAISS.from_texts(
+    [<span class="tok-str">"PLM tickets are triaged by the CP&I platform team."</span>,
+     <span class="tok-str">"Escalations over 48h auto-route to the on-call architect."</span>],
+    embedding=embeddings,
+)
+retriever = vectorstore.as_retriever(search_kwargs={<span class="tok-str">"k"</span>: <span class="tok-fn">2</span>})
+
+<span class="tok-com"># 2. Prompt + model + parser</span>
+prompt = ChatPromptTemplate.from_template(
+    <span class="tok-str">"""Answer using only the context below.
+
+Context: {context}
+Question: {question}"""</span>
+)
+model = ChatOpenAI(model=<span class="tok-str">"gpt-4o-mini"</span>, temperature=<span class="tok-fn">0</span>)
+parser = StrOutputParser()
+
+<span class="tok-com"># 3. Compose with LCEL — this IS the whole chain</span>
+chain = (
+    {<span class="tok-str">"context"</span>: retriever, <span class="tok-str">"question"</span>: RunnablePassthrough()}
+    | prompt
+    | model
+    | parser
+)
+
+result = chain.invoke(<span class="tok-str">"How are escalations routed?"</span>)
+<span class="tok-fn">print</span>(result)</code></pre>
+
+      <div class="when-box"><strong>Reach for LangChain when</strong> you need a well-trodden, mostly linear pipeline — RAG lookup, document QA, extraction — and want the huge library of prebuilt integrations (vector stores, loaders, tool wrappers) more than fine-grained control flow.</div>
+
+      <div class="block-label" style="margin-top:28px;">Example — tool-calling agent (ReAct-style)</div>
+      <pre><code><span class="tok-kw">from</span> langchain_core.tools <span class="tok-kw">import</span> tool
+<span class="tok-kw">from</span> langgraph.prebuilt <span class="tok-kw">import</span> create_react_agent
+<span class="tok-kw">from</span> langchain_openai <span class="tok-kw">import</span> ChatOpenAI
+
+<span class="tok-kw">@tool</span>
+<span class="tok-kw">def</span> <span class="tok-fn">lookup_ticket_status</span>(ticket_id: <span class="tok-fn">str</span>) -&gt; <span class="tok-fn">str</span>:
+    <span class="tok-str">"""Look up the status of a PLM support ticket by ID."""</span>
+    <span class="tok-com"># call an internal API / DB here</span>
+    <span class="tok-kw">return</span> <span class="tok-str">f"Ticket {ticket_id} is In Progress, assigned to platform-team."</span>
+
+model = ChatOpenAI(model=<span class="tok-str">"gpt-4o-mini"</span>)
+agent = create_react_agent(model, tools=[lookup_ticket_status])
+
+<span class="tok-com"># The model decides, at each step, whether to call a tool or answer directly —</span>
+<span class="tok-com"># this decide -> act -> observe loop is the "ReAct" pattern LangChain popularized.</span>
+result = agent.invoke({<span class="tok-str">"messages"</span>: [(<span class="tok-str">"user"</span>, <span class="tok-str">"What's the status of ticket PLM-4021?"</span>)]})
+<span class="tok-fn">print</span>(result[<span class="tok-str">"messages"</span>][-<span class="tok-fn">1</span>].content)</code></pre>
+      <p style="padding-left:19px; color: var(--text-dim); font-size: 13px; max-width:680px; margin-top:-14px;">
+        Note: as of recent LangChain versions, agent execution itself has effectively moved onto LangGraph under the hood (<code>create_react_agent</code> ships from <code>langgraph.prebuilt</code>) — LangChain still owns the tool/prompt/model abstractions, LangGraph owns the loop that drives them. This is a favorite interview distinction — see the Q&amp;A section below.
+      </p>
+    </section>
+
+    <!-- ================= LANGGRAPH ================= -->
+    <section id="langgraph" class="fw lg">
+      <div class="fw-header">
+        <h2>LangGraph</h2>
+        <span class="fw-tag">stateful graphs</span>
+      </div>
+      <p class="fw-sub">Built by the LangChain team for cases a linear chain can't express: branching, loops, retries, human-in-the-loop pauses, and explicit shared state. You define a graph of nodes (functions) and edges (including conditional ones) over a typed state object.</p>
+
+      <div class="card-grid">
+        <div class="concept-card">
+          <h4>StateGraph</h4>
+          <p>The graph builder. Defined over a schema (usually a <code>TypedDict</code>) that every node reads from and writes back to.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Nodes</h4>
+          <p>Plain Python functions: <code>state -&gt; partial state update</code>. Can call an LLM, a tool, or just transform data.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Conditional edges</h4>
+          <p>A router function inspects state and returns the name of the next node — this is how branching and loops are expressed.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Checkpointer</h4>
+          <p>Persists state between steps, enabling pause/resume, human approval gates, and time-travel debugging.</p>
+        </div>
+      </div>
+
+      <div class="install"><span class="prompt">$</span> pip install langgraph langchain-openai</div>
+
+      <div class="block-label">Example — a loop with a conditional retry edge</div>
+      <pre><code><span class="tok-kw">from</span> typing <span class="tok-kw">import</span> TypedDict
+<span class="tok-kw">from</span> langgraph.graph <span class="tok-kw">import</span> StateGraph, END
+<span class="tok-kw">from</span> langchain_openai <span class="tok-kw">import</span> ChatOpenAI
+
+<span class="tok-kw">class</span> <span class="tok-cls">AgentState</span>(TypedDict):
+    query: <span class="tok-fn">str</span>
+    draft: <span class="tok-fn">str</span>
+    attempts: <span class="tok-fn">int</span>
+    approved: <span class="tok-fn">bool</span>
+
+model = ChatOpenAI(model=<span class="tok-str">"gpt-4o-mini"</span>)
+
+<span class="tok-kw">def</span> <span class="tok-fn">draft_answer</span>(state: AgentState) -&gt; <span class="tok-fn">dict</span>:
+    resp = model.invoke(<span class="tok-str">f"Answer concisely: {state['query']}"</span>)
+    <span class="tok-kw">return</span> {<span class="tok-str">"draft"</span>: resp.content, <span class="tok-str">"attempts"</span>: state[<span class="tok-str">"attempts"</span>] + <span class="tok-fn">1</span>}
+
+<span class="tok-kw">def</span> <span class="tok-fn">critique</span>(state: AgentState) -&gt; <span class="tok-fn">dict</span>:
+    ok = <span class="tok-fn">len</span>(state[<span class="tok-str">"draft"</span>]) &gt; <span class="tok-fn">40</span>  <span class="tok-com"># stand-in quality check</span>
+    <span class="tok-kw">return</span> {<span class="tok-str">"approved"</span>: ok}
+
+<span class="tok-kw">def</span> <span class="tok-fn">route_after_critique</span>(state: AgentState) -&gt; <span class="tok-fn">str</span>:
+    <span class="tok-kw">if</span> state[<span class="tok-str">"approved"</span>] <span class="tok-kw">or</span> state[<span class="tok-str">"attempts"</span>] &gt;= <span class="tok-fn">3</span>:
+        <span class="tok-kw">return</span> <span class="tok-str">"end"</span>
+    <span class="tok-kw">return</span> <span class="tok-str">"retry"</span>
+
+graph = StateGraph(AgentState)
+graph.add_node(<span class="tok-str">"draft"</span>, draft_answer)
+graph.add_node(<span class="tok-str">"critique"</span>, critique)
+graph.set_entry_point(<span class="tok-str">"draft"</span>)
+graph.add_edge(<span class="tok-str">"draft"</span>, <span class="tok-str">"critique"</span>)
+graph.add_conditional_edges(
+    <span class="tok-str">"critique"</span>, route_after_critique, {<span class="tok-str">"retry"</span>: <span class="tok-str">"draft"</span>, <span class="tok-str">"end"</span>: END}
+)
+
+app = graph.compile()
+final_state = app.invoke({<span class="tok-str">"query"</span>: <span class="tok-str">"Summarize CDC vs snapshot ETL"</span>, <span class="tok-str">"attempts"</span>: <span class="tok-fn">0</span>, <span class="tok-str">"draft"</span>: <span class="tok-str">""</span>, <span class="tok-str">"approved"</span>: <span class="tok-fn">False</span>})
+<span class="tok-fn">print</span>(final_state[<span class="tok-str">"draft"</span>])</code></pre>
+
+      <div class="when-box"><strong>Reach for LangGraph when</strong> the workflow genuinely branches or loops — retries until a quality bar is met, human-approval checkpoints, multi-turn agent reasoning with tool calls — and you need explicit, inspectable control over state and control flow.</div>
+
+      <div class="block-label" style="margin-top:28px;">Example — checkpointing for persistence &amp; human-in-the-loop</div>
+      <pre><code><span class="tok-kw">from</span> langgraph.checkpoint.memory <span class="tok-kw">import</span> MemorySaver
+
+checkpointer = MemorySaver()
+app = graph.compile(checkpointer=checkpointer, interrupt_before=[<span class="tok-str">"critique"</span>])
+
+config = {<span class="tok-str">"configurable"</span>: {<span class="tok-str">"thread_id"</span>: <span class="tok-str">"session-42"</span>}}
+
+<span class="tok-com"># Run stops right before "critique" — e.g. to let a human review the draft</span>
+app.invoke({<span class="tok-str">"query"</span>: <span class="tok-str">"..."</span>, <span class="tok-str">"attempts"</span>: <span class="tok-fn">0</span>, <span class="tok-str">"draft"</span>: <span class="tok-str">""</span>, <span class="tok-str">"approved"</span>: <span class="tok-fn">False</span>}, config)
+
+<span class="tok-com"># Later — possibly a different process entirely — resume the same thread:</span>
+app.invoke(<span class="tok-fn">None</span>, config)  <span class="tok-com"># continues from the checkpointed state</span></code></pre>
+      <p style="padding-left:19px; color: var(--text-dim); font-size: 13px; max-width:680px; margin-top:-14px;">
+        The <code>thread_id</code> is what lets a graph pause for days (waiting on a human, an external event, a Slack approval) and resume exactly where it left off — this is the mechanism behind LangGraph's human-in-the-loop story, and a common whiteboard question.
+      </p>
+    </section>
+
+    <!-- ================= CREWAI ================= -->
+    <section id="crewai" class="fw cw">
+      <div class="fw-header">
+        <h2>CrewAI</h2>
+        <span class="fw-tag">role-based agent teams</span>
+      </div>
+      <p class="fw-sub">A higher-level, opinionated framework built around a team metaphor: each agent has a role, a goal, and a backstory; tasks are assigned to agents; a crew coordinates execution sequentially or hierarchically (with a manager agent delegating).</p>
+
+      <div class="card-grid">
+        <div class="concept-card">
+          <h4>Agent</h4>
+          <p>Defined by <code>role</code>, <code>goal</code>, <code>backstory</code>, and optional <code>tools</code> — the persona and capability of a worker.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Task</h4>
+          <p>A unit of work with a description and <code>expected_output</code>, assigned to one agent; can depend on prior tasks' outputs via context.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Crew</h4>
+          <p>The container that runs agents against tasks, in <code>Process.sequential</code> or <code>Process.hierarchical</code> mode.</p>
+        </div>
+        <div class="concept-card">
+          <h4>Process.hierarchical</h4>
+          <p>Adds an implicit manager agent that plans, delegates tasks to workers, and reviews their output.</p>
+        </div>
+      </div>
+
+      <div class="install"><span class="prompt">$</span> pip install crewai crewai-tools</div>
+
+      <div class="block-label">Example — a two-agent research &amp; writing crew</div>
+      <pre><code><span class="tok-kw">from</span> crewai <span class="tok-kw">import</span> Agent, Task, Crew, Process
+
+researcher = Agent(
+    role=<span class="tok-str">"Senior Researcher"</span>,
+    goal=<span class="tok-str">"Find accurate, current facts on the given topic"</span>,
+    backstory=<span class="tok-str">"A meticulous analyst who never states a claim without a source."</span>,
+    verbose=<span class="tok-fn">True</span>,
+)
+
+writer = Agent(
+    role=<span class="tok-str">"Technical Writer"</span>,
+    goal=<span class="tok-str">"Turn research notes into a clear, concise brief"</span>,
+    backstory=<span class="tok-str">"A writer who values plain language over jargon."</span>,
+    verbose=<span class="tok-fn">True</span>,
+)
+
+research_task = Task(
+    description=<span class="tok-str">"Research the tradeoffs of CDC vs snapshot-based ETL."</span>,
+    expected_output=<span class="tok-str">"5 bullet points with key tradeoffs."</span>,
+    agent=researcher,
+)
+
+write_task = Task(
+    description=<span class="tok-str">"Write a 150-word brief for a platform team using the research."</span>,
+    expected_output=<span class="tok-str">"A short, plain-language brief."</span>,
+    agent=writer,
+    context=[research_task],  <span class="tok-com"># chains this task's input to research_task's output</span>
+)
+
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, write_task],
+    process=Process.sequential,
+)
+
+result = crew.kickoff()
+<span class="tok-fn">print</span>(result)</code></pre>
+
+      <div class="when-box"><strong>Reach for CrewAI when</strong> the problem naturally decomposes into specialist roles collaborating — researcher + writer, planner + coder + reviewer — and you want role/goal/backstory framing plus delegation out of the box, without hand-building the orchestration graph yourself.</div>
+
+      <div class="block-label" style="margin-top:28px;">Example — hierarchical process with a manager agent</div>
+      <pre><code>crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, write_task],
+    process=Process.hierarchical,      <span class="tok-com"># adds an implicit manager</span>
+    manager_llm=<span class="tok-str">"gpt-4o"</span>,             <span class="tok-com"># the manager agent's own model</span>
+    memory=<span class="tok-fn">True</span>,                       <span class="tok-com"># shared short-term memory across the crew</span>
+)
+
+result = crew.kickoff()</code></pre>
+      <p style="padding-left:19px; color: var(--text-dim); font-size: 13px; max-width:680px; margin-top:-14px;">
+        In hierarchical mode you don't assign tasks to agents directly — the manager agent decides delegation at runtime based on each worker's role/goal. That's the key structural difference from <code>Process.sequential</code>, and it's the CrewAI analog of LangGraph's supervisor pattern.
+      </p>
+    </section>
+
+    <!-- ================= COMPARISON ================= -->
+    <section id="compare" class="fw compare">
+      <div class="fw-header" style="border-left-color: var(--border);">
+        <h2>Comparison table</h2>
+      </div>
+      <div style="padding-left: 19px;">
+        <table>
+          <tr>
+            <th></th>
+            <th class="lc-cell">LangChain</th>
+            <th class="lg-cell">LangGraph</th>
+            <th class="cw-cell">CrewAI</th>
+          </tr>
+          <tr>
+            <td>Mental model</td>
+            <td>Pipe (<code>|</code>) of Runnables</td>
+            <td>Graph of nodes + edges over shared state</td>
+            <td>Team of role-based agents + tasks</td>
+          </tr>
+          <tr>
+            <td>Control flow</td>
+            <td>Mostly linear, some branching</td>
+            <td>Arbitrary — branches, loops, cycles</td>
+            <td>Sequential or hierarchical (delegated)</td>
+          </tr>
+          <tr>
+            <td>State</td>
+            <td>Implicit, passed through the pipe</td>
+            <td>Explicit typed state object</td>
+            <td>Implicit, passed via task context</td>
+          </tr>
+          <tr>
+            <td>Best fit</td>
+            <td>RAG, extraction, tool-calling chains</td>
+            <td>Multi-step agents, retries, human-in-loop</td>
+            <td>Multi-persona collaborative workflows</td>
+          </tr>
+          <tr>
+            <td>Learning curve</td>
+            <td>Low–medium</td>
+            <td>Medium–high</td>
+            <td>Low</td>
+          </tr>
+          <tr>
+            <td>Relationship</td>
+            <td>Foundation library</td>
+            <td>Built by the LangChain team, often used with it</td>
+            <td>Independent, can wrap LangChain tools</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+
+    <section id="pick" class="fw">
+      <div class="fw-header" style="border-left-color: var(--border);">
+        <h2>Which one to reach for</h2>
+      </div>
+      <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="concept-card" style="border-color: var(--lc);">
+          <h4 style="color: var(--lc);">Start with LangChain</h4>
+          <p>if the task is "retrieve → prompt → parse" and you want the ecosystem of integrations.</p>
+        </div>
+        <div class="concept-card" style="border-color: var(--lg);">
+          <h4 style="color: var(--lg);">Move to LangGraph</h4>
+          <p>the moment you need a loop, a conditional branch, a retry, or a pause for human approval.</p>
+        </div>
+        <div class="concept-card" style="border-color: var(--cw);">
+          <h4 style="color: var(--cw);">Choose CrewAI</h4>
+          <p>when the problem is naturally a team of specialists and you want that framing without building the graph by hand.</p>
+        </div>
+      </div>
+      <p style="padding-left: 19px; color: var(--text-dim); max-width: 680px; font-size: 13.5px;">
+        In practice these compose: a CrewAI agent can use LangChain tools internally, and a LangGraph node can call a LangChain chain — they are not mutually exclusive choices.
+      </p>
+    </section>
+
+    <!-- ================= INTERVIEW Q&A ================= -->
+    <section id="qa" class="fw">
+      <div class="fw-header" style="border-left-color: var(--border);">
+        <h2>Common interview Q&amp;A</h2>
+      </div>
+      <p class="fw-sub">Grouped by framework. Click to expand — answers are written the way you'd say them out loud, not textbook definitions.</p>
+
+      <div class="qa-group">
+        <h3><span class="dot" style="background:var(--lc);"></span>LangChain</h3>
+
+        <details class="qa qa-lc">
+          <summary>What's the difference between the old LangChain <code>Chain</code> classes and LCEL?</summary>
+          <div class="qa-body">Legacy classes like <code>LLMChain</code> and <code>SequentialChain</code> hard-coded their composition logic in Python subclasses. LCEL replaces that with the <code>Runnable</code> interface and the <code>|</code> operator, so any two components compose the same way. LCEL chains also get streaming, async, and batch support for free, plus automatic parallelization via <code>RunnableParallel</code> — none of which the legacy classes gave you uniformly.</div>
+        </details>
+
+        <details class="qa qa-lc">
+          <summary>How does LangChain handle conversation memory?</summary>
+          <div class="qa-body">The old <code>ConversationBufferMemory</code>-style classes are considered legacy now. The current pattern is to manage message history explicitly — store a list of messages per session (often in Redis or a DB) and pass it in as part of the input, or use <code>RunnableWithMessageHistory</code> to wrap a chain and inject history automatically keyed by a session id. Worth saying in an interview: memory is "just state you pass in," not framework magic.</div>
+        </details>
+
+        <details class="qa qa-lc">
+          <summary>How do you handle a tool call that fails or returns malformed output?</summary>
+          <div class="qa-body">
+            <ul>
+              <li>Wrap tool execution and catch exceptions, returning a structured error string back to the model so it can retry or choose another tool rather than crashing the run.</li>
+              <li>Use <code>with_structured_output</code> or a Pydantic-backed output parser so malformed JSON raises early and can trigger a retry via <code>RunnableRetry</code> / <code>.with_retry()</code>.</li>
+              <li>Set a max retry / max iteration cap — an agent that keeps calling a broken tool in a loop is the single most common production incident with agentic chains.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="qa qa-lc">
+          <summary>How would you reduce latency in a LangChain RAG pipeline?</summary>
+          <div class="qa-body">
+            <ul>
+              <li>Stream tokens (<code>.stream()</code>) so perceived latency drops even if total time doesn't.</li>
+              <li>Run independent steps concurrently with <code>RunnableParallel</code> (e.g. retrieval + query rewriting).</li>
+              <li>Cache embeddings and, where safe, cache full responses for repeated queries.</li>
+              <li>Trim context — retrieve fewer, higher-precision chunks rather than a large <code>k</code> and let the model sort it out.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+
+      <div class="qa-group">
+        <h3><span class="dot" style="background:var(--lg);"></span>LangGraph</h3>
+
+        <details class="qa qa-lg">
+          <summary>Why would you choose LangGraph over just writing a Python state machine by hand?</summary>
+          <div class="qa-body">You'd get most of the control flow for free either way — the value LangGraph adds is the surrounding infrastructure: built-in checkpointing/persistence, first-class streaming of intermediate node outputs, human-in-the-loop interrupts, time-travel debugging (replay from any checkpoint), and a visualizable graph structure. For a one-off script, hand-rolled is fine. For anything that needs to pause, resume, or be inspected in production, LangGraph earns its keep.</div>
+        </details>
+
+        <details class="qa qa-lg">
+          <summary>Explain the "supervisor" multi-agent pattern in LangGraph.</summary>
+          <div class="qa-body">A supervisor node is an LLM call whose only job is to look at the current state and decide which specialist node/agent should run next, returning that as a routing decision consumed by a conditional edge. Each specialist runs, control returns to the supervisor, and the loop continues until the supervisor decides to end. It's functionally the graph-native equivalent of CrewAI's hierarchical process — same idea, more explicit wiring.</div>
+        </details>
+
+        <details class="qa qa-lg">
+          <summary>How does LangGraph prevent infinite loops?</summary>
+          <div class="qa-body">There's a <code>recursion_limit</code> (default 25 super-steps) passed via config that raises a <code>GraphRecursionError</code> once exceeded. Beyond that hard stop, well-designed graphs carry their own loop counter in state (as in the retry example above) and route to <code>END</code> once a max-attempts threshold is hit — relying only on the framework's default limit is a common design smell to call out.</div>
+        </details>
+
+        <details class="qa qa-lg">
+          <summary>What's the difference between a checkpointer and long-term memory in LangGraph?</summary>
+          <div class="qa-body">A checkpointer persists the full graph state for one <code>thread_id</code> — it's how a single conversation/run survives pauses and restarts. Long-term memory (the <code>Store</code> interface) is cross-thread: facts that should be retrievable in a different conversation entirely, like user preferences. Interviewers like this distinction because it maps directly to "session state" vs "user profile" in traditional app architecture.</div>
+        </details>
+      </div>
+
+      <div class="qa-group">
+        <h3><span class="dot" style="background:var(--cw);"></span>CrewAI</h3>
+
+        <details class="qa qa-cw">
+          <summary>How does CrewAI decide which agent handles which task?</summary>
+          <div class="qa-body">In <code>Process.sequential</code>, the assignment is explicit — you set <code>agent=</code> on each <code>Task</code>. In <code>Process.hierarchical</code>, there's no explicit assignment: an auto-created manager agent reads each agent's role/goal and the task list, then delegates at runtime, similar to how a human project manager would assign work based on who's best suited.</div>
+        </details>
+
+        <details class="qa qa-cw">
+          <summary>How do agents share information between tasks in CrewAI?</summary>
+          <div class="qa-body">Via the <code>context</code> parameter on a <code>Task</code> — passing a list of upstream <code>Task</code> objects makes their outputs available as input to the current task. There's also crew-level <code>memory=True</code> for shared short-term memory across the run, and CrewAI supports long-term memory backed by a vector store for recall across separate <code>kickoff()</code> calls.</div>
+        </details>
+
+        <details class="qa qa-cw">
+          <summary>When would CrewAI be the wrong choice?</summary>
+          <div class="qa-body">When you need fine-grained control over exactly when and how control passes between steps — CrewAI's delegation logic in hierarchical mode is somewhat opaque compared to an explicit LangGraph edge. If a bug requires you to reason precisely about "why did step 3 run before step 2," a graph you wired yourself is easier to debug than an emergent delegation decision.</div>
+        </details>
+      </div>
+
+      <div class="qa-group">
+        <h3><span class="dot" style="background:var(--text-faint);"></span>Cross-framework</h3>
+
+        <details class="qa">
+          <summary>Can these three be combined in one system?</summary>
+          <div class="qa-body">Yes, and it's a good answer to "how would you architect this" questions. A common pattern: LangChain provides the model/tool/retriever abstractions, LangGraph wraps them into a controlled, stateful orchestration loop, and a CrewAI crew (or a single specialist agent) can be invoked as a tool/node from within that graph for a sub-task that benefits from role-based framing. They solve different layers of the same problem, not competing ones.</div>
+        </details>
+
+        <details class="qa">
+          <summary>How do you evaluate and monitor an agent in production?</summary>
+          <div class="qa-body">
+            <ul>
+              <li><strong>Tracing</strong> — LangSmith (native to LangChain/LangGraph) or an OpenTelemetry-based tracer captures every LLM call, tool call, and state transition for a run.</li>
+              <li><strong>Evals</strong> — a fixed set of test inputs with expected behaviors, run on every change; for agentic loops this includes checking the tool-call sequence, not just the final answer.</li>
+              <li><strong>Guardrails</strong> — max iteration/recursion caps, timeouts, and cost ceilings per run so a stuck loop can't run away.</li>
+              <li><strong>Human review sampling</strong> — spot-check a percentage of production traces, especially ones that hit a retry or fallback path.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="qa">
+          <summary>How do you control cost in an agentic pipeline?</summary>
+          <div class="qa-body">Route by task difficulty — cheap/fast model for routing and simple extraction, stronger model only for the step that needs it. Cap max tool calls and max loop iterations. Cache aggressively (embeddings, retrieval results, repeated prompts). Truncate conversation history/context rather than letting it grow unbounded across turns.</div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= GOTCHAS ================= -->
+    <section id="pitfalls" class="fw">
+      <div class="fw-header" style="border-left-color: var(--border);">
+        <h2>Gotchas &amp; tradeoffs</h2>
+      </div>
+      <p class="fw-sub">The kind of nuance that separates "used a tutorial" from "shipped it" — good material for follow-up questions.</p>
+
+      <div class="pitfall-list">
+        <div class="pitfall">
+          <span class="mark">!</span>
+          <div class="body"><strong>Agents can loop forever on a flaky tool.</strong><p>Without an explicit attempt counter in state (LangGraph) or a max-iteration setting, a model that keeps getting an error from a tool will often just keep calling it. Always cap iterations and treat "give up gracefully" as a designed path, not an afterthought.</p></div>
+        </div>
+        <div class="pitfall">
+          <span class="mark">!</span>
+          <div class="body"><strong>LCEL's implicit state passing gets messy past 4–5 steps.</strong><p>Because data flows through the pipe rather than a named state object, a long LCEL chain becomes hard to debug — you can't easily inspect "what was the value of X after step 3." This is precisely the pressure that pushes teams from LangChain chains to LangGraph as complexity grows.</p></div>
+        </div>
+        <div class="pitfall">
+          <span class="mark">!</span>
+          <div class="body"><strong>CrewAI's hierarchical delegation is non-deterministic.</strong><p>The manager agent's delegation decision is itself an LLM call, so the same crew can execute tasks in a different order or delegate differently across runs. Fine for many workflows, but a real constraint if you need reproducible execution order for audit or debugging.</p></div>
+        </div>
+        <div class="pitfall">
+          <span class="mark">!</span>
+          <div class="body"><strong>Vector store retrieval quality, not the chain logic, is usually the actual bottleneck.</strong><p>Teams often spend time tuning prompts and chain structure when the real problem is chunking strategy, embedding model choice, or missing metadata filters. Worth mentioning if asked to debug a "the RAG answers are wrong" scenario.</p></div>
+        </div>
+        <div class="pitfall">
+          <span class="mark">!</span>
+          <div class="body"><strong>Checkpointer choice matters at scale.</strong><p><code>MemorySaver</code> is in-process only — fine for a demo, gone on restart. Production LangGraph deployments need a durable checkpointer (Postgres, Redis) so paused threads survive a pod restart or deploy.</p></div>
+        </div>
+        <div class="pitfall">
+          <span class="mark">!</span>
+          <div class="body"><strong>Framework version churn.</strong><p>All three frameworks moved fast through 2024–2025 — agent execution moved from LangChain into LangGraph, memory APIs were reworked, CrewAI's flows feature was added alongside crews. Naming a specific version or saying "verify against current docs" reads as more credible than assuming an API surface is stable.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PRODUCTION READINESS ================= -->
+    <section id="production" class="fw">
+      <div class="fw-header" style="border-left-color: var(--border);">
+        <h2>Production readiness checklist</h2>
+      </div>
+      <p class="fw-sub">Useful framing for "how would you take this to production" questions — organize your answer around these four buckets.</p>
+
+      <div class="prod-grid">
+        <div class="prod-card">
+          <h4 style="color:var(--lc);">Reliability</h4>
+          <ul>
+            <li>Timeouts on every LLM and tool call</li>
+            <li>Retry with backoff on transient failures only</li>
+            <li>Max iteration / recursion caps</li>
+            <li>Fallback model or canned response path</li>
+          </ul>
+        </div>
+        <div class="prod-card">
+          <h4 style="color:var(--lg);">Observability</h4>
+          <ul>
+            <li>Full tracing (LangSmith / OpenTelemetry)</li>
+            <li><strong>Per-run cost &amp; token tracking</strong></li>
+            <li>Structured logs keyed by <code>thread_id</code>/session</li>
+            <li>Alerting on loop/iteration-cap hits</li>
+          </ul>
+        </div>
+        <div class="prod-card">
+          <h4 style="color:var(--cw);">Quality</h4>
+          <ul>
+            <li>Regression eval suite run pre-deploy</li>
+            <li>Tool-call sequence checks, not just final output</li>
+            <li>Human-in-the-loop gate for high-stakes actions</li>
+            <li>Sampled human review of production traces</li>
+          </ul>
+        </div>
+        <div class="prod-card">
+          <h4>Cost &amp; latency</h4>
+          <ul>
+            <li>Model routing by task difficulty</li>
+            <li>Caching (embeddings, retrieval, repeat prompts)</li>
+            <li>Streaming for perceived latency</li>
+            <li>Context/history trimming per turn</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SYSTEM DESIGN PROMPT ================= -->
+    <section id="system-design" class="fw">
+      <div class="fw-header" style="border-left-color: var(--border);">
+        <h2>Practice system design prompt</h2>
+      </div>
+      <div class="concept-card" style="max-width:780px; margin-left:19px;">
+        <h4 style="color:var(--text);">"Design an internal agent that answers employee questions against a knowledge base, can escalate to a human, and can trigger a ticket creation tool."</h4>
+        <p style="margin-bottom:10px;">A strong answer walks through, in order:</p>
+        <ul style="margin:0; padding-left:18px; color: var(--text-dim); font-size:13.5px; line-height:1.75;">
+          <li><strong style="color:var(--lc);">Retrieval layer</strong> — LangChain vector store + retriever over the knowledge base, with metadata filters (team, doc freshness).</li>
+          <li><strong style="color:var(--lg);">Orchestration layer</strong> — a LangGraph graph: a router node classifies intent (answerable / needs escalation / needs a ticket), branches accordingly, and loops back to retrieval if the first answer is low-confidence.</li>
+          <li><strong>Tools</strong> — ticket-creation and escalation-to-human as LangChain tools the graph's nodes can call, with a <code>interrupt_before</code> human-approval gate before any ticket is actually filed.</li>
+          <li><strong>Persistence</strong> — a durable checkpointer so a mid-conversation escalation can wait on a human without holding a process open.</li>
+          <li><strong>Where CrewAI could fit</strong> — if "answer the question" itself decomposes into research + drafting sub-steps, that inner piece could be a small crew invoked as one LangGraph node, rather than modeling that whole sub-flow as more graph edges.</li>
+          <li><strong>Guardrails</strong> — iteration caps, cost tracking per session, and eval coverage on the router's classification accuracy specifically, since misrouting is the highest-impact failure mode.</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      Study guide — core concepts, runnable examples, and interview prep for LangChain, LangGraph, and CrewAI. APIs evolve quickly; verify against current docs before shipping to production.
+    </footer>
+
+  </main>
+</div>
+</body>
+</html>
