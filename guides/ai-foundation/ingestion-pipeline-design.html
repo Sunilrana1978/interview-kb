@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ingestion Pipeline — Detailed Design</title>
+<style>
+  :root{
+    --bg: #0d1117;
+    --bg-panel: #11161d;
+    --bg-code: #0a0e13;
+    --border: #232b36;
+    --border-soft: #1a212b;
+    --text: #d9e0e8;
+    --text-dim: #8b96a3;
+    --text-faint: #5c6774;
+    --accent: #3ba7a0;
+    --accent-soft: rgba(59,167,160,0.12);
+    --amber: #d99a3b;
+    --amber-soft: rgba(217,154,59,0.12);
+    --blue: #5b96da;
+    --blue-soft: rgba(91,150,218,0.12);
+    --violet: #a695e6;
+    --violet-soft: rgba(166,149,230,0.12);
+    --mono: "SF Mono", "Berkeley Mono", ui-monospace, Menlo, Consolas, monospace;
+    --sans: -apple-system, "Inter", "Segoe UI", sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:15px;
+    line-height:1.65;
+    display:flex;
+    min-height:100vh;
+  }
+  ::selection{ background: var(--accent-soft); color:#fff; }
+
+  /* ---------- Sidebar ---------- */
+  nav.toc{
+    width:280px;
+    flex-shrink:0;
+    background:var(--bg-panel);
+    border-right:1px solid var(--border);
+    padding:32px 0 32px 0;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+  }
+  .toc-brand{
+    padding:0 28px 20px 28px;
+    border-bottom:1px solid var(--border-soft);
+    margin-bottom:16px;
+  }
+  .toc-brand .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.08em;
+    color:var(--accent);
+    text-transform:uppercase;
+  }
+  .toc-brand h1{
+    font-size:16px;
+    font-weight:600;
+    margin-top:6px;
+    color:#fff;
+    letter-spacing:-0.01em;
+  }
+  .toc-list{ list-style:none; padding:0 12px; }
+  .toc-list a{
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    color:var(--text-dim);
+    text-decoration:none;
+    font-size:13.5px;
+    padding:7px 16px;
+    border-radius:6px;
+    transition:background 0.12s, color 0.12s;
+  }
+  .toc-list a:hover{ background:var(--border-soft); color:var(--text); }
+  .toc-list a.active{ background:var(--accent-soft); color:var(--accent); }
+  .toc-num{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-faint);
+    flex-shrink:0;
+    width:22px;
+  }
+  .toc-list a.active .toc-num{ color:var(--accent); }
+  .toc-tag{
+    margin-left:auto;
+    font-family:var(--mono);
+    font-size:9px;
+    letter-spacing:0.04em;
+    padding:1px 6px;
+    border-radius:4px;
+    text-transform:uppercase;
+    flex-shrink:0;
+  }
+  .toc-tag.cond{ background:var(--amber-soft); color:var(--amber); }
+
+  /* ---------- Main ---------- */
+  main{
+    flex:1;
+    max-width:900px;
+    padding:56px 64px 120px 64px;
+  }
+  .doc-header{ margin-bottom:48px; }
+  .doc-header .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:var(--accent);
+    text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .doc-header h1{
+    font-size:34px;
+    font-weight:600;
+    color:#fff;
+    letter-spacing:-0.02em;
+    margin-bottom:16px;
+  }
+  .doc-header p{
+    color:var(--text-dim);
+    font-size:15.5px;
+    max-width:640px;
+  }
+  .meta-row{
+    display:flex;
+    gap:24px;
+    margin-top:24px;
+    padding-top:20px;
+    border-top:1px solid var(--border-soft);
+  }
+  .meta-item{ font-family:var(--mono); font-size:12px; color:var(--text-faint); }
+  .meta-item b{ color:var(--text-dim); font-weight:500; }
+
+  /* pipeline strip */
+  .strip{
+    display:flex;
+    align-items:center;
+    gap:0;
+    margin:40px 0 56px 0;
+    overflow-x:auto;
+    padding-bottom:6px;
+  }
+  .strip-node{
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    padding:0 4px;
+    cursor:pointer;
+    text-decoration:none;
+  }
+  .strip-dot{
+    width:34px; height:34px;
+    border-radius:50%;
+    border:1.5px solid var(--border);
+    background:var(--bg-panel);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    transition:border-color 0.15s, color 0.15s;
+  }
+  .strip-node:hover .strip-dot{ border-color:var(--accent); color:var(--accent); }
+  .strip-node.cond .strip-dot{ border-style:dashed; border-color:var(--amber); color:var(--amber); }
+  .strip-node.done .strip-dot{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+  .strip-label{
+    font-size:10.5px;
+    color:var(--text-faint);
+    text-align:center;
+    max-width:64px;
+    line-height:1.3;
+  }
+  .strip-line{
+    height:1.5px;
+    background:var(--border);
+    flex:1;
+    min-width:16px;
+  }
+
+  section.stage{
+    padding-top:56px;
+    margin-top:0;
+    border-top:1px solid var(--border-soft);
+    scroll-margin-top:24px;
+  }
+  section.stage:first-of-type{ border-top:none; padding-top:0; }
+
+  .stage-head{
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    margin-bottom:6px;
+  }
+  .stage-badge{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--accent);
+    background:var(--accent-soft);
+    padding:3px 9px;
+    border-radius:6px;
+    flex-shrink:0;
+  }
+  .stage-badge.cond{ color:var(--amber); background:var(--amber-soft); }
+  h2{
+    font-size:22px;
+    font-weight:600;
+    color:#fff;
+    letter-spacing:-0.01em;
+  }
+  .cond-flag{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--amber);
+    border:1px solid rgba(217,154,59,0.35);
+    padding:2px 8px;
+    border-radius:5px;
+    margin-left:auto;
+  }
+
+  p{ color:var(--text-dim); margin:14px 0; max-width:760px; }
+  p strong{ color:var(--text); font-weight:600; }
+  code{
+    font-family:var(--mono);
+    font-size:0.86em;
+    background:var(--bg-code);
+    color:#e0b675;
+    padding:1.5px 6px;
+    border-radius:4px;
+    border:1px solid var(--border-soft);
+  }
+
+  ol, ul{ margin:16px 0 16px 0; padding-left:0; list-style:none; }
+  ol li, ul li{
+    position:relative;
+    padding-left:28px;
+    margin-bottom:10px;
+    color:var(--text-dim);
+    max-width:740px;
+  }
+  ol{ counter-reset:step; }
+  ol li{ counter-increment:step; }
+  ol li::before{
+    content:counter(step);
+    position:absolute;
+    left:0; top:1px;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--accent);
+    background:var(--accent-soft);
+    width:18px; height:18px;
+    border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  ul li::before{
+    content:"";
+    position:absolute;
+    left:6px; top:9px;
+    width:5px; height:5px;
+    border-radius:50%;
+    background:var(--text-faint);
+  }
+
+  .callout{
+    background:var(--bg-panel);
+    border:1px solid var(--border);
+    border-left:3px solid var(--accent);
+    border-radius:8px;
+    padding:16px 20px;
+    margin:20px 0;
+    max-width:760px;
+  }
+  .callout p{ margin:0; color:var(--text-dim); }
+  .callout .callout-label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--accent);
+    display:block;
+    margin-bottom:8px;
+  }
+  .callout.warn{ border-left-color:var(--amber); }
+  .callout.warn .callout-label{ color:var(--amber); }
+
+  pre{
+    background:var(--bg-code);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:18px 20px;
+    overflow-x:auto;
+    margin:18px 0;
+    max-width:760px;
+  }
+  pre code{
+    background:none;
+    border:none;
+    padding:0;
+    color:#c7d0da;
+    font-size:12.8px;
+    line-height:1.65;
+  }
+  .code-file{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-faint);
+    margin-bottom:-8px;
+    display:block;
+  }
+  .kw{ color:#c586c0; }
+  .fn{ color:#6fb3e0; }
+  .str{ color:#9fca7f; }
+  .cm{ color:#5c6774; font-style:italic; }
+  .num{ color:#d99a3b; }
+
+  .flow-diagram{
+    background:var(--bg-code);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:20px;
+    overflow-x:auto;
+    margin:20px 0;
+  }
+  .flow-diagram pre{ border:none; padding:0; margin:0; background:none; }
+  .flow-diagram code{ color:var(--text-dim); font-size:12px; line-height:1.5; }
+
+  table{
+    width:100%;
+    max-width:760px;
+    border-collapse:collapse;
+    margin:18px 0;
+    font-size:13.5px;
+  }
+  th{
+    text-align:left;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    padding:8px 14px;
+    border-bottom:1px solid var(--border);
+  }
+  td{
+    padding:10px 14px;
+    border-bottom:1px solid var(--border-soft);
+    color:var(--text-dim);
+  }
+  td:first-child, td code{ color:var(--text); }
+
+  .footer-note{
+    margin-top:64px;
+    padding-top:24px;
+    border-top:1px solid var(--border-soft);
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--text-faint);
+  }
+
+  /* pipeline diagram (5.1) */
+  .pdiag rect{ stroke-width:1; rx:8; }
+  .pdiag .pd-blue rect{ fill:var(--blue-soft); stroke:var(--blue); }
+  .pdiag .pd-violet rect{ fill:var(--violet-soft); stroke:var(--violet); }
+  .pdiag .pd-amber rect{ fill:var(--amber-soft); stroke:var(--amber); stroke-dasharray:4 3; }
+  .pdiag .pd-teal rect{ fill:var(--accent-soft); stroke:var(--accent); }
+  .pdiag .pd-blue .pd-title{ fill:var(--blue); }
+  .pdiag .pd-violet .pd-title{ fill:var(--violet); }
+  .pdiag .pd-amber .pd-title{ fill:var(--amber); }
+  .pdiag .pd-teal .pd-title{ fill:var(--accent); }
+  .pdiag .pd-sub{ fill:var(--text-dim); }
+  .pdiag .pd-title{ font-family:var(--sans); font-size:14px; font-weight:600; }
+  .pdiag .pd-sub{ font-family:var(--sans); font-size:11.5px; }
+  .pdiag .pd-legend{ font-family:var(--mono); font-size:11px; fill:var(--text-faint); }
+  .pdiag .pd-line{ stroke:var(--border); stroke-width:1.5; fill:none; }
+  .pdiag .pd-line-soft{ stroke:var(--text-faint); stroke-width:1.3; opacity:0.55; fill:none; }
+  .pdiag g:hover rect{ stroke-width:1.5; }
+
+  @media (max-width: 860px){
+    nav.toc{ display:none; }
+    main{ padding:32px 24px 80px 24px; }
+  }
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+
+<nav class="toc" id="toc">
+  <div class="toc-brand">
+    <div class="eyebrow">Technical design — section 5</div>
+    <h1>Ingestion pipeline</h1>
+  </div>
+  <ul class="toc-list" id="toc-list">
+    <li><a href="#s1"><span class="toc-num">5.1</span> Pipeline overview</a></li>
+    <li><a href="#s2"><span class="toc-num">5.2</span> Intake</a></li>
+    <li><a href="#s3"><span class="toc-num">5.3</span> Validation &amp; dedup</a></li>
+    <li><a href="#s4"><span class="toc-num">5.4</span> Complexity classification</a></li>
+    <li><a href="#s5"><span class="toc-num">5.5</span> Text &amp; table extraction</a></li>
+    <li><a href="#s6"><span class="toc-num">5.6</span> Image extraction <span class="toc-tag cond">Conditional</span></a></li>
+    <li><a href="#s7"><span class="toc-num">5.7</span> Metadata assembly</a></li>
+    <li><a href="#s8"><span class="toc-num">5.8</span> Consolidation</a></li>
+    <li><a href="#s9"><span class="toc-num">5.9</span> Import to search</a></li>
+    <li><a href="#s10"><span class="toc-num">5.10</span> Post-import verification</a></li>
+    <li><a href="#s11"><span class="toc-num">5.11</span> Status &amp; retry</a></li>
+    <li><a href="#s12"><span class="toc-num">5.12</span> Throughput &amp; cost</a></li>
+  </ul>
+</nav>
+
+<main>
+  <div class="doc-header">
+    <div class="eyebrow">Enterprise RAG platform · TDD Section 5</div>
+    <h1>Ingestion pipeline — detailed design</h1>
+    <p>How PDF source files physically arrive, how text, tables, and images get extracted, and how the corpus reaches the point of being indexed and queryable. Written at the level a developer builds against.</p>
+    <div class="meta-row">
+      <div class="meta-item"><b>Status</b> · Planning-ready</div>
+      <div class="meta-item"><b>Source</b> · Enterprise RAG Platform TDD v3</div>
+      <div class="meta-item"><b>Scope</b> · PDF corpus (thousands of docs)</div>
+    </div>
+  </div>
+
+  <div class="strip">
+    <a class="strip-node done" href="#s2"><div class="strip-dot">1</div><div class="strip-label">Intake</div></a>
+    <div class="strip-line"></div>
+    <a class="strip-node done" href="#s3"><div class="strip-dot">2</div><div class="strip-label">Validate &amp; dedup</div></a>
+    <div class="strip-line"></div>
+    <a class="strip-node done" href="#s4"><div class="strip-dot">3</div><div class="strip-label">Classify</div></a>
+    <div class="strip-line"></div>
+    <a class="strip-node done" href="#s5"><div class="strip-dot">4</div><div class="strip-label">Extract text &amp; tables</div></a>
+    <div class="strip-line"></div>
+    <a class="strip-node cond" href="#s6"><div class="strip-dot">5</div><div class="strip-label">Extract images</div></a>
+    <div class="strip-line"></div>
+    <a class="strip-node done" href="#s7"><div class="strip-dot">6</div><div class="strip-label">Assemble metadata</div></a>
+    <div class="strip-line"></div>
+    <a class="strip-node done" href="#s9"><div class="strip-dot">7</div><div class="strip-label">Import &amp; verify</div></a>
+  </div>
+
+  <!-- 5.1 -->
+  <section class="stage" id="s1">
+    <div class="stage-head"><span class="stage-badge">5.1</span><h2>Pipeline overview</h2></div>
+    <div class="flow-diagram">
+<svg class="pdiag" width="100%" viewBox="0 0 680 800" role="img" style="display:block;">
+<title>PDF ingestion pipeline overview</title>
+<desc>Intake, validate and dedup, classify complexity which branches into a standard OCR path and a complex Layout Parser path, both merging into image extraction (conditional), then assemble and consolidate, then import and verify.</desc>
+<defs>
+<marker id="pd-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+  <path d="M2 1L8 5L2 9" fill="none" stroke="var(--text-faint)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+
+<!-- connectors -->
+<line class="pd-line" x1="340" y1="96" x2="340" y2="136" marker-end="url(#pd-arrow)"/>
+<line class="pd-line" x1="340" y1="192" x2="340" y2="232" marker-end="url(#pd-arrow)"/>
+<path class="pd-line-soft" d="M340 288 L200 344" marker-end="url(#pd-arrow)"/>
+<path class="pd-line-soft" d="M340 288 L480 344" marker-end="url(#pd-arrow)"/>
+<path class="pd-line-soft" d="M200 400 L340 456" marker-end="url(#pd-arrow)"/>
+<path class="pd-line-soft" d="M480 400 L340 456" marker-end="url(#pd-arrow)"/>
+<line class="pd-line" x1="340" y1="512" x2="340" y2="552" marker-end="url(#pd-arrow)"/>
+<line class="pd-line" x1="340" y1="608" x2="340" y2="648" marker-end="url(#pd-arrow)"/>
+
+<!-- 5.2 Intake -->
+<g class="pd-blue">
+  <rect x="200" y="40" width="280" height="56" rx="8"/>
+  <text class="pd-title" x="340" y="59" text-anchor="middle">Intake</text>
+  <text class="pd-sub" x="340" y="77" text-anchor="middle">Bulk migration (STS) + new uploads</text>
+</g>
+
+<!-- 5.3 Validate -->
+<g class="pd-blue">
+  <rect x="200" y="136" width="280" height="56" rx="8"/>
+  <text class="pd-title" x="340" y="155" text-anchor="middle">Validate &amp; dedup</text>
+  <text class="pd-sub" x="340" y="173" text-anchor="middle">Hash check, metadata required</text>
+</g>
+
+<!-- 5.4 Classify -->
+<g class="pd-blue">
+  <rect x="200" y="232" width="280" height="56" rx="8"/>
+  <text class="pd-title" x="340" y="251" text-anchor="middle">Classify complexity</text>
+  <text class="pd-sub" x="340" y="269" text-anchor="middle">Routes to one of two paths</text>
+</g>
+
+<!-- 5.5 branch -->
+<g class="pd-violet">
+  <rect x="70" y="344" width="260" height="56" rx="8"/>
+  <text class="pd-title" x="200" y="363" text-anchor="middle">Standard path</text>
+  <text class="pd-sub" x="200" y="381" text-anchor="middle">Document AI OCR parser</text>
+</g>
+<g class="pd-violet">
+  <rect x="350" y="344" width="260" height="56" rx="8"/>
+  <text class="pd-title" x="480" y="363" text-anchor="middle">Complex path</text>
+  <text class="pd-sub" x="480" y="381" text-anchor="middle">Document AI Layout Parser</text>
+</g>
+
+<!-- 5.6 images (conditional) -->
+<g class="pd-amber">
+  <rect x="200" y="456" width="280" height="56" rx="8"/>
+  <text class="pd-title" x="340" y="475" text-anchor="middle">Extract images</text>
+  <text class="pd-sub" x="340" y="493" text-anchor="middle">Conditional — Gemini vision</text>
+</g>
+
+<!-- 5.7/5.8 assemble -->
+<g class="pd-blue">
+  <rect x="200" y="552" width="280" height="56" rx="8"/>
+  <text class="pd-title" x="340" y="571" text-anchor="middle">Assemble &amp; consolidate</text>
+  <text class="pd-sub" x="340" y="589" text-anchor="middle">Content file write-back</text>
+</g>
+
+<!-- 5.9/5.10 import -->
+<g class="pd-teal">
+  <rect x="200" y="648" width="280" height="56" rx="8"/>
+  <text class="pd-title" x="340" y="667" text-anchor="middle">Manifest, import &amp; verify</text>
+  <text class="pd-sub" x="340" y="685" text-anchor="middle">JSONL manifest, smoke test</text>
+</g>
+
+<text class="pd-legend" x="340" y="732" text-anchor="middle">Violet = classification branch (both feed the same next stage)</text>
+<text class="pd-legend" x="340" y="750" text-anchor="middle">Amber dashed = conditional stage · Teal = indexed and queryable</text>
+<text class="pd-legend" x="340" y="768" text-anchor="middle">Every stage's status is tracked in Firestore for retry (5.11)</text>
+</svg>
+    </div>
+  </section>
+
+  <!-- 5.2 -->
+  <section class="stage" id="s2">
+    <div class="stage-head"><span class="stage-badge">5.2</span><h2>Intake — how files actually arrive</h2></div>
+    <p>Two distinct flows; they have different failure modes and different tooling.</p>
+
+    <p><strong>Flow A — one-time bulk migration (thousands of existing PDFs), via Storage Transfer Service.</strong></p>
+    <p><code>gsutil rsync</code> is the wrong tool at this volume — it has no built-in retry orchestration, no metadata preservation, and turns every failure into a manual investigation. <strong>Storage Transfer Service (STS)</strong> is Google's purpose-built migration tool for exactly this case (on-prem file share → Cloud Storage, thousands to millions of files) and should be used instead:</p>
+    <ol>
+      <li>Confirm the source of truth from Open Decision #9 (file share, SharePoint library, local drives, existing DMS)</li>
+      <li><strong>For a file share/NAS:</strong> provision a Linux host (agents aren't supported directly on Windows — mount via a Linux VM if the share is Windows-hosted) with the source directory mounted; restrict the mount to only the directory tree being migrated, never the whole filesystem</li>
+      <li>Grant the agent account <code>roles/storagetransfer.user</code>; run <code>gcloud transfer authorize</code> to inspect and grant exactly the required permissions rather than guessing</li>
+      <li>Create an <strong>agent pool</strong> (<code>gcloud transfer agent-pools create</code>) and run the agent container (<code>docker run ... gcr.io/cloud-ingest/tsop-agent</code>) on the host</li>
+      <li>Create a <strong>transfer job</strong>: source = the POSIX path on the mounted share, destination = <code>gs://{project}-rag-pdf-raw/incoming/</code>, with source metadata preservation enabled, scheduled to run outside business hours to avoid network congestion</li>
+      <li>STS handles retry, partial-failure tracking, and incremental re-runs natively — a failed transfer operation is visible in Cloud Logging and re-runnable without a custom manifest/retry system</li>
+      <li><strong>For SharePoint:</strong> STS does not speak the SharePoint API. Use the Graph API to extract into a staging area, then STS or direct upload from there into <code>incoming/</code></li>
+    </ol>
+
+    <div class="callout warn">
+      <span class="callout-label">Gap STS doesn't close</span>
+      <p>Filesystem metadata (timestamps, path) isn't the same as the citation fields required (<code>owner</code>, <code>classification</code> — Section 6.1.1). This needs a separate <strong>migration manifest</strong> — a path→owner→classification mapping sourced from Open Decision #8's system of record — applied as a post-transfer step that sets GCS custom object metadata before validation (5.3) runs. Scope this as real, explicit work; it does not fall out of the transfer automatically.</p>
+    </div>
+
+    <p><strong>Flow B — ongoing intake (new documents after go-live).</strong></p>
+    <ul>
+      <li>A designated upload path (either a lightweight internal upload UI, or the same STS job re-run on a recurring incremental schedule against the source system) writes new PDFs to the same <code>incoming/</code> prefix</li>
+      <li>Same metadata requirement applies — no PDF enters the pipeline without owner/classification set at upload</li>
+    </ul>
+    <p>Both flows land in the same bucket/prefix so the rest of the pipeline doesn't need to know which flow a file came from.</p>
+  </section>
+
+  <!-- 5.3 -->
+  <section class="stage" id="s3">
+    <div class="stage-head"><span class="stage-badge">5.3</span><h2>Validation &amp; deduplication</h2></div>
+    <p>Triggered by Eventarc on <code>google.cloud.storage.object.v1.finalized</code> for the <code>incoming/</code> prefix.</p>
+    <span class="code-file">ingestion/intake_validator.py</span>
+    <pre><code><span class="kw">import</span> hashlib
+<span class="kw">from</span> google.cloud <span class="kw">import</span> storage, firestore
+
+<span class="kw">def</span> <span class="fn">validate_and_dedup</span>(bucket_name: str, object_name: str) -> dict:
+    client = storage.Client()
+    blob = client.bucket(bucket_name).blob(object_name)
+    blob.reload()
+
+    <span class="cm"># 1. File type / size checks</span>
+    <span class="kw">if</span> blob.content_type != <span class="str">"application/pdf"</span>:
+        <span class="kw">return</span> _reject(object_name, <span class="str">"not_pdf"</span>)
+    <span class="kw">if</span> blob.size == <span class="num">0</span> <span class="kw">or</span> blob.size > <span class="num">200</span> * <span class="num">1024</span> * <span class="num">1024</span>:  <span class="cm"># 200MB ceiling</span>
+        <span class="kw">return</span> _reject(object_name, f<span class="str">"invalid_size:{blob.size}"</span>)
+
+    <span class="cm"># 2. Content hash for dedup (not filename — filenames lie)</span>
+    content_hash = hashlib.sha256(blob.download_as_bytes()).hexdigest()
+
+    db = firestore.Client()
+    existing = db.collection(<span class="str">"ingested_documents"</span>).document(content_hash).get()
+    <span class="kw">if</span> existing.exists:
+        <span class="kw">return</span> _reject(object_name, f<span class="str">"duplicate_of:{existing.get('object_name')}"</span>)
+
+    <span class="cm"># 3. Required metadata present?</span>
+    metadata = blob.metadata <span class="kw">or</span> {}
+    required = {<span class="str">"owner"</span>, <span class="str">"classification"</span>}
+    missing = required - metadata.keys()
+    <span class="kw">if</span> missing:
+        <span class="kw">return</span> _reject(object_name, f<span class="str">"missing_metadata:{missing}"</span>)
+
+    <span class="cm"># 4. Record and move to staging</span>
+    db.collection(<span class="str">"ingested_documents"</span>).document(content_hash).set({
+        <span class="str">"object_name"</span>: object_name,
+        <span class="str">"status"</span>: <span class="str">"validated"</span>,
+        <span class="str">"metadata"</span>: metadata,
+    })
+    _move_to_staging(bucket_name, object_name)
+    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"validated"</span>, <span class="str">"hash"</span>: content_hash}
+
+<span class="kw">def</span> <span class="fn">_reject</span>(object_name: str, reason: str) -> dict:
+    <span class="cm"># Moves object to failed/ prefix and logs reason to Firestore + Cloud Logging</span>
+    ...</code></pre>
+    <div class="callout">
+      <span class="callout-label">Why content-hash, not filename</span>
+      <p>Thousands of files migrated from a shared drive commonly include <code>report.pdf</code>, <code>report_v2.pdf</code>, and <code>report_final.pdf</code> as three copies of the same content — filename dedup misses this, hash dedup catches it.</p>
+    </div>
+  </section>
+
+  <!-- 5.4 -->
+  <section class="stage" id="s4">
+    <div class="stage-head"><span class="stage-badge">5.4</span><h2>Complexity classification</h2></div>
+    <p>Not every PDF needs the expensive path. A cheap pre-check avoids paying for heavy processing on simple text documents.</p>
+    <pre><code><span class="kw">def</span> <span class="fn">classify_complexity</span>(pdf_bytes: bytes) -> str:
+    <span class="kw">import</span> fitz
+    doc = fitz.open(stream=pdf_bytes, filetype=<span class="str">"pdf"</span>)
+    has_tables_heuristic = <span class="kw">False</span>
+    image_count = <span class="num">0</span>
+    <span class="kw">for</span> page <span class="kw">in</span> doc:
+        image_count += len(page.get_images(full=<span class="kw">True</span>))
+        <span class="cm"># crude table signal: multiple aligned horizontal lines (drawings)</span>
+        <span class="kw">if</span> len(page.get_drawings()) > <span class="num">15</span>:
+            has_tables_heuristic = <span class="kw">True</span>
+    <span class="kw">if</span> has_tables_heuristic <span class="kw">or</span> image_count > <span class="num">3</span> <span class="kw">or</span> doc.page_count > <span class="num">50</span>:
+        <span class="kw">return</span> <span class="str">"complex"</span>
+    <span class="kw">return</span> <span class="str">"standard"</span></code></pre>
+    <p><code>standard</code> → Document AI's default OCR processor (cheaper, faster). <code>complex</code> → Layout Parser (better table/structure fidelity, higher cost per page). This routing decision should be <strong>validated against real cost/quality data in Phase 1</strong>, not treated as final.</p>
+  </section>
+
+  <!-- 5.5 -->
+  <section class="stage" id="s5">
+    <div class="stage-head"><span class="stage-badge">5.5</span><h2>Text &amp; table extraction</h2></div>
+    <p><strong>Bulk migration uses the Document AI <em>batch</em> API, not the synchronous one</strong> — thousands of documents through the sync API will hit rate limits and is the wrong tool for volume. Batch processing is async, handles large sets, and writes results back to GCS.</p>
+    <span class="code-file">ingestion/extraction/batch_layout_parse.py</span>
+    <pre><code><span class="kw">from</span> google.cloud <span class="kw">import</span> documentai_v1 <span class="kw">as</span> documentai
+
+<span class="kw">def</span> <span class="fn">submit_batch_extraction</span>(
+    input_prefix: str, output_prefix: str,
+    project_id: str, location: str, processor_id: str,
+) -> str:
+    client = documentai.DocumentProcessorServiceClient()
+    processor_name = client.processor_path(project_id, location, processor_id)
+
+    input_config = documentai.BatchDocumentsInputConfig(
+        gcs_prefix=documentai.GcsPrefix(gcs_uri_prefix=input_prefix)
+    )
+    output_config = documentai.DocumentOutputConfig(
+        gcs_output_config=documentai.DocumentOutputConfig.GcsOutputConfig(
+            gcs_uri=output_prefix
+        )
+    )
+    request = documentai.BatchProcessRequest(
+        name=processor_name,
+        input_documents=input_config,
+        document_output_config=output_config,
+        process_options=documentai.ProcessOptions(
+            layout_config=documentai.ProcessOptions.LayoutConfig(
+                chunking_config=documentai.ProcessOptions.LayoutConfig.ChunkingConfig(
+                    chunk_size=<span class="num">800</span>, include_ancestor_headings=<span class="kw">True</span>
+                )
+            )
+        ),
+    )
+    operation = client.batch_process_documents(request=request)
+    <span class="kw">return</span> operation.operation.name  <span class="cm"># long-running op — poll or use Cloud Function callback</span></code></pre>
+
+    <div class="callout warn">
+      <span class="callout-label">Batch sizing constraint</span>
+      <p>Document AI batch requests cap at 50 documents (or 500 pages, whichever is smaller) per call in most processor quotas — <strong>confirm current limits for your processor/project before Phase 1</strong>, since these are quota-managed and change. For thousands of PDFs, the submission job must chunk the corpus into batches of that size and track each batch's long-running operation ID in Firestore, not submit all documents in one call.</p>
+    </div>
+
+    <p><strong>Table output:</strong> Layout Parser returns tables as structured elements (rows/cells), not flattened text. Convert to markdown table syntax before writing to the sidecar — this is what preserves row/column meaning through to the embedding step, versus a flattened table reading as word soup.</p>
+    <pre><code><span class="kw">def</span> <span class="fn">table_to_markdown</span>(table_element) -> str:
+    rows = table_element.body_rows + table_element.header_rows
+    lines = []
+    <span class="kw">for</span> i, row <span class="kw">in</span> enumerate(rows):
+        cells = [cell.text.strip().replace(<span class="str">"\n"</span>, <span class="str">" "</span>) <span class="kw">for</span> cell <span class="kw">in</span> row.cells]
+        lines.append(<span class="str">"| "</span> + <span class="str">" | "</span>.join(cells) + <span class="str">" |"</span>)
+        <span class="kw">if</span> i == len(table_element.header_rows) - <span class="num">1</span>:
+            lines.append(<span class="str">"|"</span> + <span class="str">"---|"</span> * len(cells))
+    <span class="kw">return</span> <span class="str">"\n"</span>.join(lines)</code></pre>
+  </section>
+
+  <!-- 5.6 -->
+  <section class="stage" id="s6">
+    <div class="stage-head"><span class="stage-badge cond">5.6</span><h2>Image extraction &amp; description</h2><span class="cond-flag">Conditional</span></div>
+    <p>Only runs on documents flagged with <code>image_count > 0</code> from Section 5.4, and only proceeds to production build if Phase 1 evidence justifies it.</p>
+    <span class="code-file">ingestion/extraction/image_pipeline.py</span>
+    <pre><code><span class="kw">import</span> fitz
+<span class="kw">import</span> vertexai
+<span class="kw">from</span> vertexai.generative_models <span class="kw">import</span> GenerativeModel, Part
+<span class="kw">from</span> tenacity <span class="kw">import</span> retry, stop_after_attempt, wait_exponential
+
+vertexai.init(project=<span class="str">"PROJECT_ID"</span>, location=<span class="str">"us-central1"</span>)
+model = GenerativeModel(<span class="str">"gemini-2.5-flash"</span>)
+
+MIN_IMAGE_DIM = <span class="num">100</span>  <span class="cm"># px — filters logos/icons/decorative dividers</span>
+
+<span class="kw">def</span> <span class="fn">extract_images</span>(pdf_bytes: bytes) -> list[dict]:
+    doc = fitz.open(stream=pdf_bytes, filetype=<span class="str">"pdf"</span>)
+    results = []
+    <span class="kw">for</span> page_num, page <span class="kw">in</span> enumerate(doc):
+        page_text = page.get_text()[:<span class="num">500</span>]
+        <span class="kw">for</span> img <span class="kw">in</span> page.get_images(full=<span class="kw">True</span>):
+            base = doc.extract_image(img[<span class="num">0</span>])
+            <span class="kw">if</span> base[<span class="str">"width"</span>] < MIN_IMAGE_DIM <span class="kw">or</span> base[<span class="str">"height"</span>] < MIN_IMAGE_DIM:
+                <span class="kw">continue</span>  <span class="cm"># skip decorative noise — real content only</span>
+            results.append({
+                <span class="str">"page"</span>: page_num + <span class="num">1</span>,
+                <span class="str">"image_bytes"</span>: base[<span class="str">"image"</span>],
+                <span class="str">"mime"</span>: f<span class="str">"image/{base['ext']}"</span>,
+                <span class="str">"context"</span>: page_text,
+            })
+    <span class="kw">return</span> results
+
+<span class="kw">@retry</span>(stop=stop_after_attempt(<span class="num">3</span>), wait=wait_exponential(multiplier=<span class="num">2</span>))
+<span class="kw">def</span> <span class="fn">describe_image</span>(image_bytes: bytes, mime: str, context: str) -> str:
+    resp = model.generate_content([
+        Part.from_data(image_bytes, mime_type=mime),
+        <span class="str">"Describe this image factually for a knowledge base entry. If it is a "</span>
+        <span class="str">"chart, diagram, or screenshot, describe the data/structure/content shown "</span>
+        <span class="str">"concretely enough that someone could answer a question about it without "</span>
+        f<span class="str">"seeing the image. Surrounding page text: {context}"</span>,
+    ])
+    <span class="kw">return</span> resp.text</code></pre>
+    <div class="callout">
+      <span class="callout-label">Cost control</span>
+      <p>At thousands of PDFs, unfiltered image extraction (including every logo and divider graphic) multiplies Gemini calls unnecessarily. The size filter above is a first pass; Phase 1 should sample actual extracted images to see what proportion are noise and tighten the filter accordingly.</p>
+    </div>
+  </section>
+
+  <!-- 5.7 -->
+  <section class="stage" id="s7">
+    <div class="stage-head"><span class="stage-badge">5.7</span><h2>Metadata assembly</h2></div>
+    <p>Consolidates extraction output with the citation-required fields (Section 6.1.1):</p>
+    <pre><code><span class="kw">def</span> <span class="fn">assemble_metadata</span>(object_name: str, gcs_metadata: dict, doc_ai_result) -> dict:
+    <span class="kw">return</span> {
+        <span class="str">"document_name"</span>: object_name.split(<span class="str">"/"</span>)[-<span class="num">1</span>],
+        <span class="str">"source"</span>: <span class="str">"pdf_corpus"</span>,
+        <span class="str">"owner"</span>: gcs_metadata[<span class="str">"owner"</span>],
+        <span class="str">"classification"</span>: gcs_metadata[<span class="str">"classification"</span>],
+        <span class="str">"last_updated"</span>: gcs_metadata.get(<span class="str">"last_updated"</span>) <span class="kw">or</span> _file_modified_time(object_name),
+        <span class="str">"page_count"</span>: doc_ai_result.pages_count,
+    }</code></pre>
+  </section>
+
+  <!-- 5.8 -->
+  <section class="stage" id="s8">
+    <div class="stage-head"><span class="stage-badge">5.8</span><h2>Consolidation &amp; write-back</h2></div>
+    <p>Text, table markdown, and image descriptions are merged into a single indexable content artifact per document — plain text with table blocks inline and an appended "Figures" section for image descriptions — written to <code>gs://{bucket}/processed/{doc_id}.txt</code>. This content file is referenced by URI from the manifest built in Section 5.9, not read directly by a bucket-wide glob.</p>
+    <pre><code><span class="kw">def</span> <span class="fn">write_consolidated_content</span>(doc_id: str, text: str, tables_md: list[str], image_descriptions: list[str], bucket_name: str) -> str:
+    parts = [text]
+    <span class="kw">if</span> tables_md:
+        parts.append(<span class="str">"\n\n## Tables\n\n"</span> + <span class="str">"\n\n"</span>.join(tables_md))
+    <span class="kw">if</span> image_descriptions:
+        parts.append(<span class="str">"\n\n## Figures\n\n"</span> + <span class="str">"\n\n"</span>.join(image_descriptions))
+
+    <span class="kw">from</span> google.cloud <span class="kw">import</span> storage
+    blob = storage.Client().bucket(bucket_name).blob(f<span class="str">"processed/{doc_id}.txt"</span>)
+    blob.upload_from_string(<span class="str">"\n"</span>.join(parts), content_type=<span class="str">"text/plain"</span>)
+    <span class="kw">return</span> f<span class="str">"gs://{bucket_name}/processed/{doc_id}.txt"</span></code></pre>
+  </section>
+
+  <!-- 5.9 -->
+  <section class="stage" id="s9">
+    <div class="stage-head"><span class="stage-badge">5.9</span><h2>Import to Vertex AI Search</h2></div>
+    <div class="callout warn">
+      <span class="callout-label">Corrected from an earlier draft</span>
+      <p><code>data_schema="document"</code> with a raw <code>*.json</code> glob does not work for this pipeline — that schema expects a specific structured <code>Document</code> proto per line, not a metadata sidecar. The correct schema for "content file + our own citation metadata" is <code>custom</code>, which pairs each content file with a JSONL manifest entry carrying <code>structData</code> and a <code>content.uri</code> pointer. Metadata is batched into manifest lines, not scattered as one small file per document.</p>
+    </div>
+    <p><strong>Step 1 — build the manifest</strong> (one line per document, batched per import run):</p>
+    <span class="code-file">ingestion/import/build_manifest.py</span>
+    <pre><code><span class="kw">import</span> json
+<span class="kw">from</span> google.cloud <span class="kw">import</span> storage
+
+<span class="kw">def</span> <span class="fn">build_manifest</span>(documents: list[dict], bucket_name: str, manifest_name: str) -> str:
+    <span class="str">"""documents: list of {doc_id, content_uri, structData} dicts from 5.7/5.8"""</span>
+    lines = []
+    <span class="kw">for</span> doc <span class="kw">in</span> documents:
+        lines.append(json.dumps({
+            <span class="str">"id"</span>: doc[<span class="str">"doc_id"</span>],
+            <span class="str">"structData"</span>: doc[<span class="str">"structData"</span>],   <span class="cm"># document_name, source, owner,</span>
+                                                <span class="cm"># classification, last_updated, page_count</span>
+            <span class="str">"content"</span>: {
+                <span class="str">"mimeType"</span>: <span class="str">"text/plain"</span>,
+                <span class="str">"uri"</span>: doc[<span class="str">"content_uri"</span>],       <span class="cm"># gs://.../processed/{doc_id}.txt</span>
+            },
+        }))
+    manifest_path = f<span class="str">"manifests/{manifest_name}.jsonl"</span>
+    storage.Client().bucket(bucket_name).blob(manifest_path).upload_from_string(
+        <span class="str">"\n"</span>.join(lines), content_type=<span class="str">"application/jsonl"</span>
+    )
+    <span class="kw">return</span> f<span class="str">"gs://{bucket_name}/{manifest_path}"</span></code></pre>
+
+    <p><strong>Step 2 — import against the manifest:</strong></p>
+    <pre><code><span class="kw">from</span> google.cloud <span class="kw">import</span> discoveryengine_v1 <span class="kw">as</span> discoveryengine
+
+<span class="kw">def</span> <span class="fn">trigger_import</span>(project_id: str, location: str, data_store_id: str, manifest_uri: str):
+    client = discoveryengine.DocumentServiceClient()
+    parent = client.branch_path(
+        project_id, location, data_store_id, <span class="str">"default_branch"</span>
+    )
+    request = discoveryengine.ImportDocumentsRequest(
+        parent=parent,
+        gcs_source=discoveryengine.GcsSource(
+            input_uris=[manifest_uri],   <span class="cm"># the .jsonl manifest, not a *.json glob on content files</span>
+            data_schema=<span class="str">"custom"</span>,
+        ),
+        reconciliation_mode=discoveryengine.ImportDocumentsRequest.ReconciliationMode.INCREMENTAL,
+    )
+    operation = client.import_documents(request=request)
+    <span class="kw">return</span> operation.operation.name</code></pre>
+    <p><code>INCREMENTAL</code> mode adds/updates without wiping the existing index — this matters once the initial bulk load is done and the pipeline is running ongoing intake (Flow B). Bulk migration's first run can use <code>FULL</code> reconciliation once, deliberately, with sign-off — not by default.</p>
+  </section>
+
+  <!-- 5.10 -->
+  <section class="stage" id="s10">
+    <div class="stage-head"><span class="stage-badge">5.10</span><h2>Post-import verification</h2></div>
+    <ul>
+      <li>Poll the import operation until complete; log per-document success/failure from the operation response (partial failures are normal at volume — a handful of malformed documents shouldn't block the batch)</li>
+      <li>Run 3–5 known queries from the golden dataset (Section 9.2) against the data store immediately after each batch import completes, as a smoke test — catches a systemic problem (e.g. a schema mismatch) before it silently affects thousands of documents</li>
+      <li>Update Firestore status to <code>indexed</code> only after this check passes</li>
+    </ul>
+  </section>
+
+  <!-- 5.11 -->
+  <section class="stage" id="s11">
+    <div class="stage-head"><span class="stage-badge">5.11</span><h2>Status tracking &amp; retry</h2></div>
+    <p>Every document's lifecycle lives in one Firestore document, keyed by content hash, so any stage can resume from where it failed rather than restarting the whole pipeline:</p>
+    <pre><code>{content_hash}: {
+  object_name, status: intake|validated|extracted|described|assembled|
+                        importing|indexed|failed,
+  failed_stage, failure_reason, retry_count,
+  timestamps per stage
+}</code></pre>
+    <p>A Cloud Scheduler job runs hourly, queries for <code>status=failed AND retry_count&lt;3</code>, and re-enqueues those documents at their failed stage. Documents exceeding 3 retries alert to the team (Cloud Monitoring alert on the Firestore query result) rather than retrying indefinitely.</p>
+  </section>
+
+  <!-- 5.12 -->
+  <section class="stage" id="s12">
+    <div class="stage-head"><span class="stage-badge">5.12</span><h2>Throughput &amp; cost note for bulk migration</h2></div>
+    <p>For "thousands" of documents: Document AI batch pricing is per-page, and the batch API has per-project quota on concurrent batch operations. <strong>Before Phase 1 execution, get current per-page pricing and concurrent-batch quota for the target project</strong> and use it to size how many days the bulk migration realistically takes — this is a scheduling input, not just a cost line.</p>
+    <div class="callout warn">
+      <span class="callout-label">Build gate</span>
+      <p>Section 5.6 (image extraction) is built only if Phase 1 evidence justifies it. If sampling shows few PDFs carry meaningful diagrams, that stage is deferred and the overall estimate drops by roughly 1.5 weeks.</p>
+    </div>
+  </section>
+
+  <div class="footer-note">
+    Section 5 of the Enterprise RAG Platform Technical Design Document (v3) · Cross-references: §6.1.1 citation metadata contract · §8.1 SLAs · §9.2 golden dataset · §11 phased rollout
+  </div>
+</main>
+
+<script>
+  const links = document.querySelectorAll('.toc-list a');
+  const sections = document.querySelectorAll('section.stage');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        links.forEach(l => l.classList.remove('active'));
+        const match = document.querySelector('.toc-list a[href="#' + id + '"]');
+        if (match) match.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -75% 0px' });
+  sections.forEach(s => io.observe(s));
+</script>
+
+</body>
+</html>

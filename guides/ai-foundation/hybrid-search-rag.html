@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hybrid Search in RAG — Concept &amp; Google AI Implementation Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1220;
+  --bg-panel:#101A2C;
+  --bg-code:#0A1420;
+  --ink:#E8ECF1;
+  --ink-dim:#9AA9BF;
+  --ink-faint:#5D6E88;
+  --line:#213050;
+  --dense:#4FD1C5;      /* dense/vector lane */
+  --dense-dim:#1F4A47;
+  --sparse:#F4A73D;     /* sparse/keyword lane */
+  --sparse-dim:#4A3A1C;
+  --fusion:#9C8FE8;     /* fusion/rerank */
+  --fusion-dim:#2E2A50;
+  --danger:#E8697D;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'IBM Plex Sans', sans-serif;
+  font-size:16px;
+  line-height:1.65;
+}
+h1,h2,h3,h4{
+  font-family:'Space Grotesk', sans-serif;
+  font-weight:600;
+  color:#fff;
+  letter-spacing:-0.01em;
+}
+a{color:var(--dense);}
+code, pre, .mono{font-family:'IBM Plex Mono', monospace;}
+.wrap{display:grid;grid-template-columns:280px 1fr;max-width:1400px;margin:0 auto;}
+@media (max-width:960px){.wrap{grid-template-columns:1fr;} nav.toc{position:relative !important; height:auto !important; top:0 !important;}}
+
+/* ---- TOC ---- */
+nav.toc{
+  position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  padding:32px 20px 40px 28px; border-right:1px solid var(--line);
+}
+nav.toc .brand{
+  font-family:'Space Grotesk',sans-serif; font-size:13px; letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--ink-faint); margin-bottom:6px;
+}
+nav.toc .title{font-size:18px; font-weight:700; color:#fff; margin-bottom:28px; line-height:1.3;}
+nav.toc ol{list-style:none; margin:0; padding:0; counter-reset:toc;}
+nav.toc li{counter-increment:toc; margin-bottom:2px;}
+nav.toc a{
+  display:flex; gap:10px; padding:7px 10px; border-radius:6px; text-decoration:none;
+  color:var(--ink-dim); font-size:13.5px; font-weight:500; transition:background .15s,color .15s;
+}
+nav.toc a::before{
+  content:counter(toc,decimal-leading-zero); color:var(--ink-faint); font-family:'IBM Plex Mono',monospace; font-size:12px; padding-top:1px;
+}
+nav.toc a:hover, nav.toc a.active{background:var(--bg-panel); color:#fff;}
+nav.toc .legend{margin-top:28px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-faint);}
+nav.toc .legend .row{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+nav.toc .dot{width:9px; height:9px; border-radius:50%; flex:none;}
+
+/* ---- main ---- */
+main{padding:56px 56px 120px 56px; max-width:920px;}
+@media (max-width:640px){main{padding:32px 20px 80px;}}
+
+header.hero{margin-bottom:64px;}
+.eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--dense); margin-bottom:14px;}
+h1.title{font-size:42px; line-height:1.12; margin:0 0 18px 0;}
+.sub{color:var(--ink-dim); font-size:17px; max-width:640px; margin:0 0 28px 0;}
+.hero-tags{display:flex; gap:8px; flex-wrap:wrap;}
+.tag{font-family:'IBM Plex Mono',monospace; font-size:11.5px; border:1px solid var(--line); color:var(--ink-dim); padding:5px 10px; border-radius:20px;}
+
+section{margin-bottom:64px; scroll-margin-top:24px;}
+h2{font-size:26px; margin:0 0 6px 0; display:flex; align-items:baseline; gap:12px;}
+h2 .num{font-family:'IBM Plex Mono',monospace; color:var(--ink-faint); font-size:16px; font-weight:400;}
+h3{font-size:19px; margin:32px 0 12px 0; color:#fff;}
+p{color:#CBD5E5; margin:0 0 16px 0;}
+strong{color:#fff; font-weight:600;}
+.section-rule{height:1px; background:linear-gradient(90deg,var(--line),transparent); margin:0 0 28px 0;}
+
+ul,ol.steps{padding-left:0; margin:0 0 16px 0; list-style:none;}
+ul li{position:relative; padding-left:22px; color:#CBD5E5; margin-bottom:8px;}
+ul li::before{content:"—"; position:absolute; left:0; color:var(--ink-faint);}
+
+/* lane pills for dense/sparse/fusion labeling */
+.pill{display:inline-flex; align-items:center; gap:6px; font-family:'IBM Plex Mono',monospace; font-size:11.5px; font-weight:600; padding:3px 9px; border-radius:5px; letter-spacing:.02em;}
+.pill.dense{background:var(--dense-dim); color:var(--dense);}
+.pill.sparse{background:var(--sparse-dim); color:var(--sparse);}
+.pill.fusion{background:var(--fusion-dim); color:var(--fusion);}
+
+/* callout / note boxes */
+.box{border:1px solid var(--line); background:var(--bg-panel); border-radius:10px; padding:20px 22px; margin:20px 0;}
+.box.note{border-left:3px solid var(--dense);}
+.box.warn{border-left:3px solid var(--danger);}
+.box p:last-child{margin-bottom:0;}
+.box .label{font-family:'IBM Plex Mono',monospace; font-size:11.5px; text-transform:uppercase; letter-spacing:.1em; color:var(--ink-faint); margin-bottom:8px;}
+
+/* code */
+pre{
+  background:var(--bg-code); border:1px solid var(--line); border-radius:10px;
+  padding:18px 20px; overflow-x:auto; font-size:13.3px; line-height:1.6; margin:16px 0 20px 0;
+}
+pre code{color:#D6E2F0; font-family:'IBM Plex Mono',monospace; white-space:pre-wrap; word-break:break-word;}
+.cm{color:#5D6E88;} .kw{color:var(--dense);} .str{color:var(--sparse);} .fn{color:var(--fusion);}
+
+/* tables */
+table{width:100%; border-collapse:collapse; margin:16px 0 24px 0; font-size:14.5px;}
+th{text-align:left; font-family:'Space Grotesk',sans-serif; font-weight:600; color:#fff; padding:10px 14px; border-bottom:1px solid var(--line); background:var(--bg-panel);}
+td{padding:11px 14px; border-bottom:1px solid var(--line); color:#CBD5E5; vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+
+/* step cards */
+.steps{counter-reset:step;}
+.step{
+  counter-increment:step; position:relative; padding:22px 24px 22px 64px; margin-bottom:14px;
+  background:var(--bg-panel); border:1px solid var(--line); border-radius:10px;
+}
+.step::before{
+  content:counter(step); position:absolute; left:20px; top:22px; width:28px; height:28px;
+  border-radius:7px; background:var(--bg-code); border:1px solid var(--line); color:var(--dense);
+  font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; display:flex; align-items:center; justify-content:center;
+}
+.step h4{margin:0 0 8px 0; font-size:15.5px; color:#fff;}
+.step p{margin-bottom:8px;}
+
+/* formula block */
+.formula{
+  font-family:'IBM Plex Mono',monospace; background:var(--bg-code); border:1px solid var(--line);
+  border-radius:8px; padding:16px 20px; color:var(--fusion); font-size:14.5px; margin:14px 0 18px 0; overflow-x:auto;
+}
+.formula .op{color:var(--ink-dim);}
+
+footer{border-top:1px solid var(--line); padding:36px 56px 60px; color:var(--ink-faint); font-size:13px; max-width:920px; margin-left:56px;}
+@media (max-width:640px){footer{margin-left:20px; padding:28px 20px 60px;}}
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<div class="wrap">
+
+<nav class="toc" id="toc">
+  <div class="brand">Reference Guide</div>
+  <div class="title">Hybrid Search<br>for RAG on Google&nbsp;AI</div>
+  <ol>
+    <li><a href="#concept">What hybrid search is</a></li>
+    <li><a href="#why">Why dense alone fails</a></li>
+    <li><a href="#anatomy">Anatomy of a hybrid pipeline</a></li>
+    <li><a href="#fusion">Fusion math: RRF vs weighted</a></li>
+    <li><a href="#landscape">Google AI options landscape</a></li>
+    <li><a href="#option-a">Build A — Vertex AI Search</a></li>
+    <li><a href="#option-b">Build B — Vertex AI RAG Engine</a></li>
+    <li><a href="#ingestion-pipeline">Ingestion pipeline, end to end</a></li>
+    <li><a href="#chunking">Chunking strategies compared</a></li>
+    <li><a href="#parent-child">Parent-child chunking</a></li>
+    <li><a href="#managed-mechanics">How managed hybrid search works internally</a></li>
+    <li><a href="#option-c">Build C — DIY: Vector Search + BQ</a></li>
+    <li><a href="#frameworks">Other frameworks: LangChain, LlamaIndex</a></li>
+    <li><a href="#rerank">Adding a reranker</a></li>
+    <li><a href="#tuning">Tuning &amp; evaluation</a></li>
+    <li><a href="#pitfalls">Pitfalls &amp; best practices</a></li>
+  </ol>
+  <div class="legend">
+    <div class="row"><span class="dot" style="background:var(--dense)"></span> Dense / vector lane</div>
+    <div class="row"><span class="dot" style="background:var(--sparse)"></span> Sparse / keyword lane</div>
+    <div class="row"><span class="dot" style="background:var(--fusion)"></span> Fusion / rerank stage</div>
+  </div>
+</nav>
+
+<main>
+
+<header class="hero">
+  <div class="eyebrow">RAG Architecture &middot; Retrieval</div>
+  <h1 class="title">Hybrid Search Inside RAG,<br>and How to Build It on Google&nbsp;AI</h1>
+  <p class="sub">A deep-dive reference on why retrieval-augmented generation needs both dense and sparse retrieval, how the two are fused into one ranked list, and three concrete ways to implement it on Vertex AI — from a fully managed option to a do-it-yourself pipeline you control end to end.</p>
+  <div class="hero-tags">
+    <span class="tag">Vertex AI Search</span>
+    <span class="tag">Vertex AI RAG Engine</span>
+    <span class="tag">Vertex AI Vector Search</span>
+    <span class="tag">BigQuery</span>
+    <span class="tag">Reciprocal Rank Fusion</span>
+  </div>
+</header>
+
+<!-- ============ 1. CONCEPT ============ -->
+<section id="concept">
+  <h2><span class="num">01</span> What hybrid search actually is</h2>
+  <div class="section-rule"></div>
+  <p>A RAG system answers a question by first <strong>retrieving</strong> the passages most likely to contain the answer, then handing them to an LLM to <strong>generate</strong> a grounded response. Retrieval quality is the ceiling on the whole system — the model can't reason its way past a chunk that was never fetched. Hybrid search is a retrieval strategy that runs <strong>two different, complementary search algorithms over the same corpus and merges their results into one ranked list</strong> instead of relying on a single method.</p>
+  <p>The two algorithms are almost always:</p>
+  <ul>
+    <li><span class="pill dense">DENSE</span> &nbsp;Semantic vector search — embed the query and every chunk into the same high-dimensional space, retrieve by cosine or dot-product similarity.</li>
+    <li><span class="pill sparse">SPARSE</span> &nbsp;Lexical / keyword search — classic inverted-index term matching, scored with something like BM25, or Google's native full-text search.</li>
+  </ul>
+  <p>Their outputs are combined with a <span class="pill fusion">FUSION</span> step — a scoring formula that produces one ranking from two independently-ordered lists — before the top-k chunks are passed to the generator.</p>
+</section>
+
+<!-- ============ 2. WHY ============ -->
+<section id="why">
+  <h2><span class="num">02</span> Why dense retrieval alone falls short</h2>
+  <div class="section-rule"></div>
+  <p>Embedding models are excellent at capturing meaning and paraphrase, which is exactly what makes them blind to a specific, common failure mode: <strong>they smooth over the exact tokens that sometimes matter most.</strong></p>
+  <table>
+    <tr><th>Query pattern</th><th class="mono" style="color:var(--dense)">Dense alone</th><th class="mono" style="color:var(--sparse)">Sparse alone</th></tr>
+    <tr><td>Product/part/model numbers, SKUs, error codes (<span class="mono">"ORA-01555"</span>)</td><td>Often misses — near-random tokens don't embed distinctively</td><td>Exact match, very strong</td></tr>
+    <tr><td>Acronyms, ticket IDs, proper nouns unseen in training</td><td>Weak — out-of-distribution tokens compress poorly</td><td>Strong if the term appears verbatim</td></tr>
+    <tr><td>Paraphrased or conceptual questions ("how do I get my money back")</td><td>Strong — captures intent, not wording</td><td>Weak — misses if "refund" never appears</td></tr>
+    <tr><td>Negation, numeric thresholds, precise constraints</td><td>Weak — negation barely shifts embeddings</td><td>Neutral to weak</td></tr>
+    <tr><td>Cross-lingual or synonym-heavy queries</td><td>Strong</td><td>Weak</td></tr>
+  </table>
+  <p>Neither method dominates the other — they fail on <em>different, largely non-overlapping</em> query types. That non-overlap is precisely what makes combining them worthwhile: hybrid search's recall gain comes from the union of what each method independently gets right, not from either one getting individually better.</p>
+  <div class="box note">
+    <div class="label">Rule of thumb</div>
+    <p>If your corpus contains identifiers, codes, names, units, or domain jargon that a user might paste in verbatim (support tickets, legal clauses, part catalogs, log lines), you need the sparse lane. If your users ask natural-language questions that rarely reuse the source document's exact wording, you need the dense lane. Real enterprise corpora — PLM data, ServiceNow tickets, Confluence docs — usually need both at once.</p>
+  </div>
+</section>
+
+<!-- ============ 3. ANATOMY ============ -->
+<section id="anatomy">
+  <h2><span class="num">03</span> Anatomy of a hybrid pipeline</h2>
+  <div class="section-rule"></div>
+  <p>Every hybrid implementation, however it's built, follows the same five stages:</p>
+  <div class="steps">
+    <div class="step"><h4>1 &middot; Ingest &amp; chunk</h4><p>Split source documents into chunks (typically 200–800 tokens, often with overlap). The same chunks feed both lanes — you are not maintaining two separate corpora, just two indexes over one corpus.</p></div>
+    <div class="step"><h4>2 &middot; Dual-index</h4><p><span class="pill dense">DENSE</span> Embed each chunk with a text-embedding model and write it to a vector index (ANN — approximate nearest neighbor). <span class="pill sparse">SPARSE</span> Tokenize each chunk and write it to an inverted index / full-text index, typically scored with BM25 or a similar term-frequency function.</p></div>
+    <div class="step"><h4>3 &middot; Dual-retrieve</h4><p>At query time, run both searches independently against the same query text, each returning its own top-N candidates with its own scores. These are on <strong>incompatible scales</strong> — cosine similarity ∈ [-1,1] vs. an unbounded BM25 score — which is why they can't just be added together.</p></div>
+    <div class="step"><h4>4 &middot; Fuse</h4><p><span class="pill fusion">FUSION</span> Merge the two ranked lists into one, using either Reciprocal Rank Fusion or a normalized weighted sum (see next section).</p></div>
+    <div class="step"><h4>5 &middot; (Optional) Rerank</h4><p>Pass the fused top-k through a cross-encoder or a dedicated reranking API for a final, more expensive but more accurate reordering before the chunks reach the LLM's context window.</p></div>
+  </div>
+</section>
+
+<!-- ============ 4. FUSION MATH ============ -->
+<section id="fusion">
+  <h2><span class="num">04</span> Fusion math: how two rankings become one</h2>
+  <div class="section-rule"></div>
+  <h3>Reciprocal Rank Fusion (RRF) — the default choice</h3>
+  <p>RRF ignores the raw scores entirely and works purely off <strong>rank position</strong>, which sidesteps the scale-mismatch problem completely. For a document <span class="mono">d</span> that appears at rank <span class="mono">r</span> in a result list, its RRF contribution from that list is:</p>
+  <div class="formula">score(d) &nbsp;<span class="op">=</span>&nbsp; Σ<sub>lists</sub> &nbsp; 1 <span class="op">/</span> (k <span class="op">+</span> rank<sub>list</sub>(d))</div>
+  <p>Summed across the <span class="pill dense">DENSE</span> and <span class="pill sparse">SPARSE</span> lists, with <span class="mono">k</span> a smoothing constant (60 is the near-universal default from the original paper). A document that ranks highly in <em>either</em> list gets a strong overall score; a document appearing in both gets a boost from both terms. RRF needs no tuning, no score normalization, and is the built-in default in Vertex AI Search and most hybrid systems for exactly that reason.</p>
+
+  <h3>Weighted / convex combination — the tunable alternative</h3>
+  <p>If you want explicit control over how much each lane matters, normalize both score lists to [0,1] (min-max is common) and combine linearly:</p>
+  <div class="formula">score(d) &nbsp;<span class="op">=</span>&nbsp; α <span class="op">·</span> dense_score(d) &nbsp;<span class="op">+</span>&nbsp; (1<span class="op">-</span>α) <span class="op">·</span> sparse_score(d)</div>
+  <p>where <span class="mono">α</span> ∈ [0,1] is your dense/sparse weight — this is the parameter you'll see literally named <span class="mono">alpha</span> in Vertex AI RAG Engine's hybrid config. <span class="mono">α = 1</span> is pure dense, <span class="mono">α = 0</span> is pure sparse; most enterprise corpora land somewhere around 0.5–0.7 and are tuned empirically (see <a href="#tuning">§10</a>).</p>
+  <div class="box note">
+    <div class="label">Which to pick</div>
+    <p>Use RRF when you want a robust default with zero tuning. Use weighted/alpha fusion when you have evaluation data and want to explicitly dial the mix per use case — e.g. a support-ticket corpus full of error codes might warrant α = 0.3 (favor sparse), while a policy-document Q&amp;A corpus might warrant α = 0.8 (favor dense).</p>
+  </div>
+</section>
+
+<!-- ============ 5. LANDSCAPE ============ -->
+<section id="landscape">
+  <h2><span class="num">05</span> Where hybrid search lives inside Google AI</h2>
+  <div class="section-rule"></div>
+  <p>Google gives you three tiers of control, from "turn it on" to "build every stage yourself." All three are legitimate depending on how much you need to customize chunking, scoring, and filtering.</p>
+  <table>
+    <tr><th>Service</th><th>Hybrid support</th><th>Control level</th><th>Best for</th></tr>
+    <tr><td><strong>Vertex AI Search</strong><br><span class="mono" style="color:var(--ink-faint);font-size:12px;">(formerly Enterprise Search)</span></td><td>Native, on by default — dense + BM25-style fused automatically</td><td>Low — managed end to end</td><td>Fastest path to production; document/website/structured-data search apps</td></tr>
+    <tr><td><strong>Vertex AI RAG Engine</strong></td><td>Configurable <span class="mono">hybrid_search</span> retrieval config with explicit <span class="mono">alpha</span></td><td>Medium — managed retrieval, custom orchestration</td><td>Custom RAG apps built with the Gemini API / ADK that still want managed indexing</td></tr>
+    <tr><td><strong>Gemini File Search tool</strong></td><td>Managed hybrid retrieval built into the tool, no config exposed</td><td>Low — zero-infra</td><td>Fast prototypes, small-to-mid document sets, chat-first apps</td></tr>
+    <tr><td><strong>Vertex AI Vector Search</strong> <span class="mono" style="color:var(--ink-faint);font-size:12px;">(Matching Engine)</span> + <strong>BigQuery search</strong></td><td>None built-in — you implement both lanes and fusion yourself</td><td>Full — every stage is yours</td><td>Large-scale, latency-sensitive, or highly customized pipelines; full control over fusion formula and filters</td></tr>
+  </table>
+  <p>The rest of this guide walks through three concrete builds, roughly in order of how much you build yourself: <strong>Option A</strong> (Vertex AI Search, minimal code), <strong>Option B</strong> (Vertex AI RAG Engine, tunable alpha), and <strong>Option C</strong> (fully custom, Vector Search + BigQuery + your own RRF).</p>
+</section>
+
+<!-- ============ 6. OPTION A ============ -->
+<section id="option-a">
+  <h2><span class="num">06</span> Build A — Vertex AI Search (managed hybrid, fastest path)</h2>
+  <div class="section-rule"></div>
+  <p>Vertex AI Search runs dense and keyword retrieval together automatically — there is no fusion step for you to configure, which makes this the right starting point if you just need hybrid retrieval to work.</p>
+  <div class="steps">
+    <div class="step"><h4>Enable the API &amp; create a Search app</h4><p>In the Google Cloud console, go to <strong>Agent Builder → Search</strong>, enable the Discovery Engine API, and create a new <strong>App</strong> of type "Search," industry "Generic."</p></div>
+    <div class="step"><h4>Create a Data Store and import documents</h4><p>Create a Data Store pointing at Cloud Storage (PDF/HTML/TXT/DOCX), BigQuery, a website, or a third-party connector. Vertex AI Search handles chunking, embedding, and indexing internally — you don't manage either lane by hand.</p></div>
+    <div class="step"><h4>Query with hybrid search active by default</h4><p>Call the Search endpoint — hybrid dense+keyword fusion runs automatically, no flag required.</p>
+<pre><code><span class="cm"># REST — search a Vertex AI Search app</span>
+<span class="kw">POST</span> https://discoveryengine.googleapis.com/v1/projects/<span class="str">PROJECT_ID</span>/locations/global/collections/default_collection/engines/<span class="str">ENGINE_ID</span>/servingConfigs/default_search:search
+
+{
+  <span class="str">"query"</span>: <span class="str">"warranty terms for part number XJ-4471"</span>,
+  <span class="str">"pageSize"</span>: 10,
+  <span class="str">"queryExpansionSpec"</span>: { <span class="str">"condition"</span>: <span class="str">"AUTO"</span> },
+  <span class="str">"spellCorrectionSpec"</span>: { <span class="str">"mode"</span>: <span class="str">"AUTO"</span> }
+}</code></pre></div>
+    <div class="step"><h4>Wire it into a RAG answer with Vertex AI Search's grounded generation</h4><p>Use the <span class="mono">:answer</span> endpoint (or the Gemini API's Vertex AI Search grounding tool) to get retrieval + citation-grounded generation in one call, or take the raw ranked chunks and hand them to Gemini yourself for full prompt control.</p></div>
+  </div>
+  <div class="box note"><div class="label">Trade-off</div><p>You don't get to see or tune the fusion formula. If your evaluation shows the built-in mix under- or over-weights keyword matches for your corpus, move to Option B or C.</p></div>
+</section>
+
+<!-- ============ 7. OPTION B ============ -->
+<section id="option-b">
+  <h2><span class="num">07</span> Build B — Vertex AI RAG Engine with explicit alpha</h2>
+  <div class="section-rule"></div>
+  <p>RAG Engine (part of the Vertex AI SDK) gives you a managed corpus and retrieval index, but exposes the <span class="mono">alpha</span> weight from the weighted-fusion formula in §04 directly in the retrieval config — the middle ground between "fully managed" and "fully custom."</p>
+  <div class="steps">
+    <div class="step"><h4>Create a RAG Corpus</h4>
+<pre><code><span class="kw">from</span> vertexai <span class="kw">import</span> rag
+<span class="kw">import</span> vertexai
+
+vertexai.init(project=<span class="str">"your-project"</span>, location=<span class="str">"us-central1"</span>)
+
+corpus = rag.create_corpus(
+    display_name=<span class="str">"plm-support-corpus"</span>,
+    embedding_model_config=rag.EmbeddingModelConfig(
+        publisher_model=<span class="str">"publishers/google/models/text-embedding-005"</span>
+    ),
+)</code></pre></div>
+    <div class="step"><h4>Import documents (chunking handled for you)</h4>
+<pre><code>rag.import_files(
+    corpus_name=corpus.name,
+    paths=[<span class="str">"gs://your-bucket/plm-docs/"</span>],
+    chunk_size=512,
+    chunk_overlap=100,
+)</code></pre></div>
+    <div class="step"><h4>Query with hybrid search + explicit alpha</h4><p>This is the key call — <span class="mono">vector_distance_threshold</span> and the retrieval config expose the dense/sparse mix directly:</p>
+<pre><code>response = rag.retrieval_query(
+    rag_resources=[rag.RagResource(rag_corpus=corpus.name)],
+    text=<span class="str">"What is the RMA process for part XJ-4471?"</span>,
+    rag_retrieval_config=rag.RagRetrievalConfig(
+        top_k=10,
+        hybrid_search=rag.HybridSearch(alpha=<span class="fn">0.5</span>),  <span class="cm"># 0=sparse only, 1=dense only</span>
+        ranking=rag.Ranking(
+            rank_service=rag.RankService(model_name=<span class="str">"semantic-ranker-512@latest"</span>)
+        ),
+    ),
+)
+<span class="kw">for</span> ctx <span class="kw">in</span> response.contexts.contexts:
+    <span class="kw">print</span>(ctx.source_uri, ctx.score, ctx.text[:120])</code></pre></div>
+    <div class="step"><h4>Ground a Gemini generation call with the retrieved contexts</h4>
+<pre><code><span class="kw">from</span> vertexai.generative_models <span class="kw">import</span> GenerativeModel, Tool
+
+model = GenerativeModel(
+    <span class="str">"gemini-2.5-pro"</span>,
+    tools=[Tool.from_retrieval(
+        retrieval=rag.Retrieval(
+            source=rag.VertexRagStore(rag_resources=[rag.RagResource(rag_corpus=corpus.name)])
+        )
+    )],
+)
+answer = model.generate_content(<span class="str">"What is the RMA process for part XJ-4471?"</span>)</code></pre></div>
+  </div>
+</section>
+
+<!-- ============ 6b. INGESTION PIPELINE ============ -->
+<section id="ingestion-pipeline">
+  <h2><span class="num">08</span> Ingestion pipeline, end to end</h2>
+  <div class="section-rule"></div>
+  <p>Regardless of which build option you pick, getting documents from wherever they live today into a searchable, hybrid-ready store follows the same shape. For a mixed source set like Cloud Storage files and Confluence pages, here's the concrete path:</p>
+  <div class="steps">
+    <div class="step"><h4>1 &middot; Land everything in one place</h4><p>Cloud Storage is native to Vertex AI Search — point a data store straight at a bucket. Confluence has no first-party direct connector, so the common pattern is exporting or syncing pages out via the Confluence REST API (or a connector tool) into HTML/text files in that same bucket. Cloud Storage becomes the single landing zone even when the origin systems differ.</p></div>
+    <div class="step"><h4>2 &middot; Choose a chunking strategy</h4><p>Layout-aware (the managed default) or fixed-size — see <a href="#chunking">&sect;07</a> for the full comparison and when to pick each.</p></div>
+    <div class="step"><h4>3 &middot; Attach metadata per chunk</h4><p>Document title, source URI/path, page number, section heading, last-updated date, and — critically for a mixed corpus — a source-type field (e.g. <span class="mono">plm-doc</span> / <span class="mono">servicenow-ticket</span> / <span class="mono">confluence-page</span>) so you can filter or boost by origin. Layout-aware chunking captures some of this automatically (heading hierarchy, page number, URI); business-specific fields like category or access level you still define explicitly in the data store schema either way.</p></div>
+    <div class="step"><h4>4 &middot; Ingest</h4><p>Import runs chunking + embedding (dense) + tokenized indexing (sparse) in one pass — this is the step where, on the managed path, both lanes get built from a single ingestion call.</p></div>
+    <div class="step"><h4>5 &middot; Citations come for free</h4><p>Every chunk retains its source URI and metadata, so query results — and grounded-answer responses — carry back the originating document and location automatically.</p></div>
+  </div>
+</section>
+
+<!-- ============ 7. CHUNKING ============ -->
+<section id="chunking">
+  <h2><span class="num">09</span> Chunking strategies compared</h2>
+  <div class="section-rule"></div>
+  <h3>Layout-aware chunking (the managed default)</h3>
+  <p>Instead of cutting a document every fixed number of tokens, layout-aware chunking reads the document's actual structure first — headings, paragraph boundaries, tables, bullet lists — and cuts along those natural seams. A table stays whole, a paragraph stays whole, and a heading typically stays attached to the paragraph beneath it. That last part matters directly for citation quality: a retrieved chunk that includes its own section heading is self-contained and meaningful, versus a stray paragraph with no context about what section it came from. The trade-off is uneven chunk sizes — some eighty tokens, some six hundred — depending on how the source document happens to be structured.</p>
+  <h3>Fixed-size chunking</h3>
+  <p>You specify chunk size and overlap directly, both measured in the same unit — <strong>chunk size is expressed in tokens</strong>, there's no separate "token size" setting alongside it. Setting chunk size to 300 means each chunk is roughly 300 tokens; overlap, usually 10&ndash;20% of that size, repeats the tail of one chunk into the start of the next so an answer sitting right on a boundary doesn't get split. Beyond those two, the settings that matter are the splitting unit (most implementations default to sentence-aware splitting even within fixed-size, so a cut lands on the nearest sentence boundary rather than mid-word) and the same per-chunk metadata tagging described above — fixed-size chunking doesn't infer any of that for you the way layout-aware partially does.</p>
+  <table>
+    <tr><th>Pick this when...</th><th>Layout-aware</th><th>Fixed-size</th></tr>
+    <tr><td>Source is well-structured (formal docs, Confluence pages with real headings)</td><td>&check; Default choice</td><td>Unnecessary</td></tr>
+    <tr><td>Source is messy/unstructured (OCR output, raw chat/ticket logs, plain text dumps)</td><td>Nothing to anchor on</td><td>&check; Only real option</td></tr>
+    <tr><td>Need predictable, bounded chunk size for cost/latency budgeting</td><td>Variable size, harder to bound</td><td>&check; Uniform by design</td></tr>
+    <tr><td>Running your own BM25 index (DIY path)</td><td>Uneven lengths skew term-frequency stats</td><td>&check; Plays more predictably with BM25</td></tr>
+  </table>
+  <h3>Tables and structured data inside a document</h3>
+  <p>Small, explanatory tables &mdash; a short spec list, a handful of options embedded in a policy doc &mdash; are fine to keep inline in the same chunk; the model reads a modest table serialized as text well enough. Large, dense structured data &mdash; a big pricing table, a parts catalog, hundreds of rows &mdash; is a different situation: cramming it into a text chunk wastes context, and its embedding is close to meaningless since embeddings don't capture tabular relationships well. The better pattern there is to pull it out into a proper structured store, such as a BigQuery table, used for exact lookups or filtering, and leave only a text summary or pointer to it in the document store for retrieval and citation purposes.</p>
+</section>
+
+<!-- ============ 7b. PARENT-CHILD ============ -->
+<section id="parent-child">
+  <h2><span class="num">10</span> Parent-child chunking</h2>
+  <div class="section-rule"></div>
+  <p>Parent-child is a separate strategy layered on top of whichever chunking method you use underneath &mdash; not a subset of fixed-size, and not natively exposed as a config toggle in Vertex AI Search itself. It keeps two levels of granularity for the same content: small, precise <strong>child chunks</strong> (100&ndash;200 tokens) that are what actually gets embedded and searched, and a larger surrounding <strong>parent chunk</strong> (the full section, or a few paragraphs) that each child references by ID but that is never itself embedded or searched directly.</p>
+  <div class="box note">
+    <div class="label">Why bother</div>
+    <p>Small chunks give precise semantic matches; but handing the LLM only that tiny fragment often strips away context it needs to answer well. Parent-child gets both: precise retrieval via the child, coherent complete context via the parent.</p>
+  </div>
+  <h3>How the storage splits</h3>
+  <ul>
+    <li><strong>Only child chunks are embedded</strong> and live in the vector store, each tagged with a <span class="mono">parent_id</span> field alongside its vector.</li>
+    <li><strong>Parent chunks are never embedded</strong> &mdash; they live somewhere simpler and cheaper: a key-value store, a BigQuery table keyed by <span class="mono">parent_id</span>, or Cloud Storage with the parent ID as the object path. Since parents are only ever fetched by key, not searched, this can be a plain lookup table.</li>
+  </ul>
+  <h3>Query-time flow</h3>
+  <div class="formula">query <span class="op">&rarr;</span> child match (vector store) <span class="op">&rarr;</span> read parent_id <span class="op">&rarr;</span> key lookup in parent store <span class="op">&rarr;</span> parent text <span class="op">&rarr;</span> LLM context</div>
+  <p>The parent lookup is a direct key fetch, not another search, so it's typically single-digit to low-tens of milliseconds &mdash; and firing lookups for your top few child matches in parallel keeps this from adding meaningfully to end-to-end latency. Vertex AI Search and RAG Engine don't offer this as a built-in toggle; you implement the two-store pattern yourself on top of either. Frameworks like LangChain and LlamaIndex do have this built in as a "parent document retriever" abstraction if you'd rather not hand-roll it (see <a href="#frameworks">&sect;10</a>).</p>
+</section>
+
+<!-- ============ 7c. MANAGED MECHANICS ============ -->
+<section id="managed-mechanics">
+  <h2><span class="num">11</span> How managed hybrid search works internally</h2>
+  <div class="section-rule"></div>
+  <p>With <strong>Vertex AI Search</strong>, there's nothing to turn on &mdash; hybrid retrieval is active by default, and you never provision or manage a second index yourself. From a single ingestion pass, the service builds and stores <em>two</em> representations of every chunk against one logical store: a dense embedding vector for semantic matching, and a tokenized, indexed representation of the same text for keyword matching.</p>
+  <p>At query time, you send <strong>one</strong> plain natural-language query &mdash; no special syntax, no quoting for exact-match mode, no prefix to request semantic vs. keyword. Internally the service runs that same query text against both indexes simultaneously, producing a semantic ranking and a keyword ranking, then fuses them with reciprocal rank fusion before returning a single result list.</p>
+  <div class="box note">
+    <div class="label">What you actually get back</div>
+    <p>One already-fused, already-ranked, already-cited list. You don't see the two intermediate rankings, you don't run reciprocal rank fusion yourself, and there's no massaging step on your end &mdash; that's the entire value proposition of the managed path. Inspecting the two lanes separately for debugging is only possible on the DIY path (<a href="#option-c">&sect;08</a>), where you call Vector Search and BigQuery independently and get two literal result sets before fusing them yourself.</p>
+  </div>
+  <p><strong>Vertex AI RAG Engine</strong> behaves the same way under the hood, with one difference: it exposes the <span class="mono">alpha</span> weight from &sect;04 directly, so you can tilt the dense/sparse balance rather than accepting the default fusion as-is.</p>
+</section>
+
+<!-- ============ 8. OPTION C ============ -->
+<section id="option-c">
+  <h2><span class="num">12</span> Build C — fully custom: Vector Search + BigQuery + your own RRF</h2>
+  <div class="section-rule"></div>
+  <p>For maximum control — custom fusion logic, per-tenant filtering, or corpora too large/latency-sensitive for the managed options — run the two lanes yourself: <span class="pill dense">DENSE</span> Vertex AI Vector Search (Matching Engine) for the ANN index, <span class="pill sparse">SPARSE</span> BigQuery's native <span class="mono">SEARCH()</span> full-text function (or Cloud SQL/AlloyDB full-text search) for the keyword index, fused with RRF in application code.</p>
+  <div class="steps">
+    <div class="step"><h4>1 &middot; Index the dense lane — Vertex AI Vector Search</h4>
+<pre><code><span class="kw">from</span> vertexai.language_models <span class="kw">import</span> TextEmbeddingModel
+<span class="kw">from</span> google.cloud <span class="kw">import</span> aiplatform
+
+embed_model = TextEmbeddingModel.from_pretrained(<span class="str">"text-embedding-005"</span>)
+vectors = [e.values <span class="kw">for</span> e <span class="kw">in</span> embed_model.get_embeddings(chunks)]
+
+<span class="cm"># upsert into a deployed Vector Search index (datapoints keyed by chunk_id)</span>
+index.upsert_datapoints(datapoints=[
+    {<span class="str">"datapoint_id"</span>: cid, <span class="str">"feature_vector"</span>: vec}
+    <span class="kw">for</span> cid, vec <span class="kw">in</span> zip(chunk_ids, vectors)
+])</code></pre></div>
+    <div class="step"><h4>2 &middot; Index the sparse lane — BigQuery search index</h4>
+<pre><code><span class="kw">CREATE</span> <span class="kw">SEARCH</span> <span class="kw">INDEX</span> chunk_text_idx
+<span class="kw">ON</span> plm_support.chunks(chunk_text);
+
+<span class="cm">-- sparse retrieval at query time, scored by BQ's native relevance function</span>
+<span class="kw">SELECT</span> chunk_id, chunk_text,
+       SEARCH_SCORE(chunk_text, <span class="str">@query_text</span>) <span class="kw">AS</span> sparse_score
+<span class="kw">FROM</span> plm_support.chunks
+<span class="kw">WHERE</span> SEARCH(chunk_text, <span class="str">@query_text</span>)
+<span class="kw">ORDER</span> <span class="kw">BY</span> sparse_score <span class="kw">DESC</span>
+<span class="kw">LIMIT</span> 50;</code></pre></div>
+    <div class="step"><h4>3 &middot; Query both lanes in parallel</h4>
+<pre><code><span class="kw">import</span> asyncio
+
+<span class="kw">async</span> <span class="kw">def</span> hybrid_retrieve(query: <span class="kw">str</span>, k: <span class="kw">int</span> = 10):
+    dense_task  = asyncio.create_task(vector_search_query(query))   <span class="cm"># -> [(chunk_id, rank), ...]</span>
+    sparse_task = asyncio.create_task(bigquery_search_query(query)) <span class="cm"># -> [(chunk_id, rank), ...]</span>
+    dense_results, sparse_results = <span class="kw">await</span> asyncio.gather(dense_task, sparse_task)
+    <span class="kw">return</span> reciprocal_rank_fusion(dense_results, sparse_results, k=k)</code></pre></div>
+    <div class="step"><h4>4 &middot; Fuse with RRF (the formula from §04, in code)</h4>
+<pre><code><span class="kw">def</span> reciprocal_rank_fusion(*ranked_lists, k: <span class="kw">int</span> = 10, rrf_k: <span class="kw">int</span> = 60):
+    scores = {}
+    <span class="kw">for</span> ranked_list <span class="kw">in</span> ranked_lists:
+        <span class="kw">for</span> rank, chunk_id <span class="kw">in</span> enumerate(ranked_list, start=1):
+            scores[chunk_id] = scores.get(chunk_id, <span class="fn">0.0</span>) + <span class="fn">1.0</span> / (rrf_k + rank)
+    fused = <span class="kw">sorted</span>(scores.items(), key=<span class="kw">lambda</span> x: x[<span class="fn">1</span>], reverse=<span class="kw">True</span>)
+    <span class="kw">return</span> fused[:k]</code></pre></div>
+    <div class="step"><h4>5 &middot; Fetch full chunk text for the fused top-k and pass to Gemini</h4>
+<pre><code>top_chunk_ids = [cid <span class="kw">for</span> cid, _ <span class="kw">in</span> fused_results]
+context_text = fetch_chunks_by_id(top_chunk_ids)  <span class="cm"># your own lookup, e.g. from BigQuery</span>
+
+prompt = <span class="str">f"Answer using only this context:\n{context_text}\n\nQuestion: {query}"</span>
+response = GenerativeModel(<span class="str">"gemini-2.5-pro"</span>).generate_content(prompt)</code></pre></div>
+  </div>
+  <div class="box warn"><div class="label">Why go this far</div><p>This path exists for cases like per-tenant ACL filtering fused into scoring, sub-100ms latency budgets, non-Google embedding models, or a fusion formula more advanced than RRF/alpha (e.g. learned fusion weights per query type). If none of that applies, Option A or B will get you there faster and with less to operate.</p></div>
+</section>
+
+<!-- ============ 13. FRAMEWORKS ============ -->
+<section id="frameworks">
+  <h2><span class="num">13</span> Other frameworks: LangChain, LlamaIndex</h2>
+  <div class="section-rule"></div>
+  <p>Everything above assumes Google-native services end to end. If you'd rather orchestrate retrieval yourself in Python while still using Google embeddings and Gemini for generation, <strong>LangChain</strong> and <strong>LlamaIndex</strong> are the two mainstream choices &mdash; both work fine against Vertex AI Vector Search or a third-party vector DB, and both have hybrid search and parent-document retrieval as built-in abstractions rather than something you hand-roll.</p>
+  <table>
+    <tr><th>Framework</th><th>Hybrid search support</th><th>Parent-child support</th><th>Best for</th></tr>
+    <tr><td><strong>LangChain</strong></td><td><span class="mono">EnsembleRetriever</span> combines a dense retriever + <span class="mono">BM25Retriever</span> with configurable weights, using RRF-style merging out of the box</td><td><span class="mono">ParentDocumentRetriever</span> &mdash; native, handles the child/parent split and lookup for you</td><td>Teams already standardized on LangChain's chain/agent ecosystem</td></tr>
+    <tr><td><strong>LlamaIndex</strong></td><td><span class="mono">QueryFusionRetriever</span> over a vector index + a <span class="mono">BM25Retriever</span>, with RRF or relative-score fusion modes</td><td><span class="mono">AutoMergingRetriever</span> with a hierarchical node parser &mdash; a slightly more general version of parent-child (multi-level, not just two)</td><td>Document-heavy RAG apps, especially with complex hierarchical source structure</td></tr>
+  </table>
+  <pre><code><span class="cm"># LangChain — hybrid via EnsembleRetriever, using Vertex AI embeddings + Gemini</span>
+<span class="kw">from</span> langchain_google_vertexai <span class="kw">import</span> VertexAIEmbeddings, ChatVertexAI
+<span class="kw">from</span> langchain_community.retrievers <span class="kw">import</span> BM25Retriever
+<span class="kw">from</span> langchain.retrievers <span class="kw">import</span> EnsembleRetriever
+<span class="kw">from</span> langchain_community.vectorstores <span class="kw">import</span> FAISS  <span class="cm"># or any vector store incl. Vertex AI Vector Search</span>
+
+embeddings = VertexAIEmbeddings(model_name=<span class="str">"text-embedding-005"</span>)
+vector_store = FAISS.from_documents(chunks, embeddings)
+dense_retriever = vector_store.as_retriever(search_kwargs={<span class="str">"k"</span>: <span class="fn">10</span>})
+
+sparse_retriever = BM25Retriever.from_documents(chunks)
+sparse_retriever.k = <span class="fn">10</span>
+
+hybrid_retriever = EnsembleRetriever(
+    retrievers=[dense_retriever, sparse_retriever],
+    weights=[<span class="fn">0.5</span>, <span class="fn">0.5</span>],  <span class="cm"># same alpha concept as &sect;04, applied at merge time</span>
+)
+
+results = hybrid_retriever.invoke(<span class="str">"warranty terms for part XJ-4471"</span>)
+llm = ChatVertexAI(model=<span class="str">"gemini-2.5-pro"</span>)
+answer = llm.invoke(<span class="str">f"Answer using only this context:\n{results}\n\nQuestion: ..."</span>)</code></pre>
+  <div class="box note">
+    <div class="label">Which route to take</div>
+    <p>If you're already deep in Google Cloud tooling and want the least to operate, stay on Vertex AI Search or RAG Engine (&sect;06&ndash;07). Reach for LangChain or LlamaIndex when you want the DIY control of &sect;12 &mdash; custom fusion, parent-child, non-Google embeddings &mdash; without writing the fusion and retrieval orchestration code yourself; they're a faster way to get to the same place as a hand-rolled Vector Search + BigQuery pipeline.</p>
+  </div>
+</section>
+
+<!-- ============ 9. RERANK ============ -->
+<section id="rerank">
+  <h2><span class="num">14</span> Adding a reranking stage</h2>
+  <div class="section-rule"></div>
+  <p>Fusion (RRF or alpha) is a cheap, first-pass merge across possibly-hundreds of candidates. A <span class="pill fusion">FUSION</span> reranker is a second, more expensive model — typically a cross-encoder that scores the (query, chunk) pair jointly rather than comparing independent embeddings — run only on the fused top 20–50 to produce the final top-k. Vertex AI exposes this as the <strong>Ranking API</strong> (<span class="mono">semantic-ranker-512@latest</span>), which you saw wired into Option B's <span class="mono">rag_retrieval_config</span> above and can also call standalone against Option C's fused list:</p>
+<pre><code><span class="kw">from</span> google.cloud <span class="kw">import</span> discoveryengine_v1 <span class="kw">as</span> discoveryengine
+
+client = discoveryengine.RankServiceClient()
+request = discoveryengine.RankRequest(
+    ranking_config=<span class="str">"projects/PROJECT_ID/locations/global/rankingConfigs/default_ranking_config"</span>,
+    model=<span class="str">"semantic-ranker-512@latest"</span>,
+    query=query,
+    records=[
+        discoveryengine.RankingRecord(<span class="kw">id</span>=cid, content=text)
+        <span class="kw">for</span> cid, text <span class="kw">in</span> fused_chunks
+    ],
+    top_n=<span class="fn">6</span>,
+)
+reranked = client.rank(request=request)</code></pre>
+  <p>Rule of thumb: fusion decides <em>who gets considered</em>; reranking decides <em>who wins</em>. Skipping fusion and only reranking is expensive (cross-encoders don't scale to the full corpus); skipping reranking and shipping raw fusion output is usually fine to start, and worth adding once you have evaluation data showing it helps.</p>
+</section>
+
+<!-- ============ 10. TUNING ============ -->
+<section id="tuning">
+  <h2><span class="num">15</span> Tuning &amp; evaluating your hybrid mix</h2>
+  <div class="section-rule"></div>
+  <ul>
+    <li><strong>Build a labeled eval set first.</strong> 30–100 realistic queries with the known correct chunk(s) marked, drawn from real support tickets or docs if possible — you cannot responsibly tune <span class="mono">alpha</span> without this.</li>
+    <li><strong>Measure Recall@k and MRR</strong> for dense-only, sparse-only, RRF, and a sweep of alpha values (0.2, 0.4, 0.5, 0.6, 0.8). Hybrid should beat both single-lane baselines on recall — if it doesn't, check that your sparse index is actually indexing the right fields.</li>
+    <li><strong>Segment the eval set by query type</strong> (identifier lookups vs. conceptual questions) — this is usually where you discover you need per-intent alpha routing rather than one global value.</li>
+    <li><strong>Re-tune chunk size alongside alpha.</strong> Chunk boundaries affect BM25 term statistics and embedding quality differently — they aren't independent variables.</li>
+    <li><strong>Watch reranking's marginal gain,</strong> not just its absolute score — it's a meaningful latency/cost addition, and on small corpora fusion alone often gets you 90% of the benefit.</li>
+  </ul>
+</section>
+
+<!-- ============ 11. PITFALLS ============ -->
+<section id="pitfalls">
+  <h2><span class="num">16</span> Pitfalls &amp; best practices</h2>
+  <div class="section-rule"></div>
+  <div class="box warn">
+    <div class="label">Common mistakes</div>
+    <p><strong>Adding raw scores without normalizing.</strong> Cosine similarity and BM25 live on entirely different scales — a naive sum lets one lane silently dominate. Use RRF, or normalize before weighting.</p>
+    <p><strong>Retrieving too few candidates per lane before fusing.</strong> Fuse from each lane's top 30–50, not top 5 — a chunk that's rank 8 in dense but rank 2 in sparse should still surface, and a too-narrow candidate set kills that.</p>
+    <p><strong>One global alpha for a mixed-intent corpus.</strong> A single weight rarely serves both "find error code E-4471" and "explain the refund policy" well — consider query-type classification with routed alpha values, or just default to RRF.</p>
+    <p><strong>Skipping the sparse lane's tokenizer/field config.</strong> BigQuery <span class="mono">SEARCH()</span> and similar functions need the right analyzer settings (stemming, stopwords, case-folding) for your domain vocabulary, or exact-match recall will underperform expectations.</p>
+    <p><strong>Chunking once and never revisiting it.</strong> Chunk size/overlap is often a bigger lever on final quality than the fusion formula itself — treat it as a tunable parameter, not a one-time decision.</p>
+  </div>
+</section>
+
+</main>
+</div>
+
+<footer>Reference guide for internal study — Hybrid Search in RAG on Google AI / Vertex AI. Revisit and expand as Vertex AI Search, RAG Engine, and the Ranking API evolve.</footer>
+
+<script>
+const links = document.querySelectorAll('nav.toc a');
+const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const link = document.querySelector(`nav.toc a[href="#${entry.target.id}"]`);
+    if (entry.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      link && link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-15% 0px -70% 0px' });
+sections.forEach(s => s && obs.observe(s));
+</script>
+</body>
+</html>

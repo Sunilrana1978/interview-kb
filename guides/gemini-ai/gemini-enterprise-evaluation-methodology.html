@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gemini Enterprise Evaluation Methodology</title>
+<style>
+  :root {
+    --ink: #1a1d24;
+    --muted: #5b6270;
+    --line: #e2e5ea;
+    --accent: #7a3fd1;
+    --accent-soft: #f2eafd;
+    --accent2: #2662d9;
+    --accent2-soft: #eaf1fd;
+    --ok: #1e7d32;
+    --ok-soft: #eefaf0;
+    --bg: #fafbfc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+  header.doc-header {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  header.doc-header h1 { font-size: 26px; margin: 0 0 8px; }
+  header.doc-header p.sub { color: var(--muted); margin: 0; font-size: 15px; }
+  h2 {
+    font-size: 19px;
+    margin-top: 44px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  h3 { font-size: 16px; margin-top: 24px; }
+  p { font-size: 15px; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #f2f4f7; font-weight: 600; }
+  .metric-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 12px 0;
+  }
+  .metric-card h4 { margin: 0 0 4px; font-size: 14.5px; }
+  .metric-card p { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .metric-card .how {
+    margin-top: 8px;
+    font-size: 12.5px;
+    color: var(--ink);
+    background: #f7f5fc;
+    border-radius: 6px;
+    padding: 8px 10px;
+  }
+  .diagram {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  .split {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .split .col {
+    flex: 1 1 280px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+  }
+  .split .col.custom { border-top: 4px solid var(--accent2); }
+  .split .col.managed { border-top: 4px solid var(--accent); }
+  .split .col h4 { margin-top: 0; font-size: 14.5px; }
+  code {
+    background: #f2f4f7;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  .scorecard {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .scorecard table { margin: 8px 0 0; }
+  footer {
+    margin-top: 60px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<div class="wrap">
+
+  <header class="doc-header">
+    <h1>Gemini Enterprise — Evaluation Methodology</h1>
+    <p class="sub">Approach for validating search/answer quality against a client-provided golden test set</p>
+  </header>
+
+  <h2>1. Objective</h2>
+  <p>
+    To demonstrate to the client that the new Gemini Enterprise search app performs at an acceptable
+    quality bar before go-live, using their own golden set — questions paired with expected answers and
+    expected source citations — run automatically against the live application, with results distilled
+    into a scorecard.
+  </p>
+
+  <h2>2. Inputs required from the client</h2>
+  <table>
+    <tr><th style="width:25%">Field</th><th>Description</th></tr>
+    <tr><td>Question</td><td>A realistic user query, ideally 40–100+ questions spanning the different topic areas / data sources in scope, not cherry-picked.</td></tr>
+    <tr><td>Expected answer</td><td>The client's "golden" / ground-truth answer to compare generated output against.</td></tr>
+    <tr><td>Expected citation(s)</td><td>The specific document(s) or source(s) the answer should be grounded in.</td></tr>
+  </table>
+
+  <h2>3. Evaluation metrics</h2>
+
+  <div class="metric-card">
+    <h4>1. Retrieval accuracy</h4>
+    <p>Did the system retrieve the correct source document(s) at all — measured as a hit rate (e.g. precision at top-k).</p>
+    <div class="how">Custom check — compare returned source IDs against expected citations. Not covered by the managed evaluation service.</div>
+  </div>
+
+  <div class="metric-card">
+    <h4>2. Citation correctness</h4>
+    <p>Even where the system found the right general area, did it cite the exact document/page the client expected — catches cases where the answer sounds right but points to the wrong source.</p>
+    <div class="how">Custom check — same source-ID comparison logic as retrieval accuracy.</div>
+  </div>
+
+  <div class="metric-card">
+    <h4>3. Answer correctness</h4>
+    <p>Semantic match between the generated answer and the expected answer — scored on a scale (e.g. 0–1), not exact string matching, since correct answers can be worded very differently.</p>
+    <div class="how">Handled by Google's Gen AI Evaluation Service — LLM-as-judge scoring.</div>
+  </div>
+
+  <div class="metric-card">
+    <h4>4. Groundedness / faithfulness</h4>
+    <p>Does the generated answer actually stay true to what the cited source says — catches hallucination even when the final answer happens to sound plausible.</p>
+    <div class="how">Handled by Google's Gen AI Evaluation Service — built-in "grounding" metric, purpose-built for RAG systems.</div>
+  </div>
+
+  <h2>4. Division of labor: managed service vs. custom scripting</h2>
+  <div class="split">
+    <div class="col custom">
+      <h4>Custom scripting (build)</h4>
+      <ul>
+        <li>Loop through golden set, call the live Gemini Enterprise API per question</li>
+        <li>Capture generated answer + returned citations/source IDs</li>
+        <li>Compare returned source IDs vs. expected citations → retrieval accuracy &amp; citation correctness scores</li>
+        <li>Format captured output + golden reference into the input structure the Gen AI Evaluation Service expects</li>
+      </ul>
+    </div>
+    <div class="col managed">
+      <h4>Google Gen AI Evaluation Service (reuse)</h4>
+      <ul>
+        <li>Takes prompt, retrieved context, and reference ("golden") answer as input</li>
+        <li>Built-in <code>GROUNDING</code> metric — checks factuality/consistency against ground truth, purpose-built for RAG</li>
+        <li>LLM-as-judge scoring for answer correctness — no need to build a custom scoring/comparison model</li>
+        <li>Does <em>not</em> natively score pure retrieval correctness — that stays on the custom side</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>5. End-to-end evaluation flow</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Helvetica, Arial, sans-serif">
+      <!-- Step 1 -->
+      <rect x="40" y="10" width="780" height="60" rx="8" fill="#f2eafd" stroke="#7a3fd1"/>
+      <text x="430" y="34" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d24">1. Client provides golden set</text>
+      <text x="430" y="53" text-anchor="middle" font-size="11.5" fill="#5b6270">Question + expected answer + expected citation, per row</text>
+
+      <line x1="430" y1="70" x2="430" y2="98" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+      <!-- Step 2 -->
+      <rect x="40" y="98" width="780" height="60" rx="8" fill="#eaf1fd" stroke="#2662d9"/>
+      <text x="430" y="122" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d24">2. Custom script calls the live Gemini Enterprise API</text>
+      <text x="430" y="141" text-anchor="middle" font-size="11.5" fill="#5b6270">For every golden-set question — captures generated answer + returned citations</text>
+
+      <line x1="430" y1="158" x2="430" y2="186" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+      <!-- Step 3: split -->
+      <rect x="40" y="186" width="370" height="90" rx="8" fill="#eaf1fd" stroke="#2662d9"/>
+      <text x="225" y="210" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1d24">3a. Custom retrieval check</text>
+      <text x="225" y="230" text-anchor="middle" font-size="11.5" fill="#5b6270">Compare returned source IDs</text>
+      <text x="225" y="246" text-anchor="middle" font-size="11.5" fill="#5b6270">vs. expected citations</text>
+      <text x="225" y="264" text-anchor="middle" font-size="11" fill="#2662d9">→ retrieval accuracy, citation correctness</text>
+
+      <rect x="450" y="186" width="370" height="90" rx="8" fill="#f2eafd" stroke="#7a3fd1"/>
+      <text x="635" y="210" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1d24">3b. Gen AI Evaluation Service</text>
+      <text x="635" y="230" text-anchor="middle" font-size="11.5" fill="#5b6270">LLM-as-judge scores generated answer</text>
+      <text x="635" y="246" text-anchor="middle" font-size="11.5" fill="#5b6270">vs. reference answer + context</text>
+      <text x="635" y="264" text-anchor="middle" font-size="11" fill="#7a3fd1">→ answer correctness, groundedness</text>
+
+      <line x1="225" y1="276" x2="330" y2="330" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow2)"/>
+      <line x1="635" y1="276" x2="530" y2="330" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+      <!-- Step 4 -->
+      <rect x="180" y="330" width="500" height="70" rx="8" fill="#eefaf0" stroke="#1e7d32"/>
+      <text x="430" y="357" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d24">4. Combine into per-question + aggregate scorecard</text>
+      <text x="430" y="377" text-anchor="middle" font-size="11.5" fill="#5b6270">4 metrics per question, pass/fail, plus example mismatches</text>
+
+      <line x1="430" y1="400" x2="430" y2="428" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+      <!-- Step 5 -->
+      <rect x="180" y="428" width="500" height="70" rx="8" fill="#fff" stroke="#1a1d24" stroke-width="1.5"/>
+      <text x="430" y="455" text-anchor="middle" font-size="13.5" font-weight="600" fill="#1a1d24">5. Present to client</text>
+      <text x="430" y="475" text-anchor="middle" font-size="11.5" fill="#5b6270">Aggregate accuracy %, failure examples, recommended go-live threshold</text>
+
+      <defs>
+        <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#5b6270"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <h2>6. Scorecard output (what the client sees)</h2>
+  <div class="scorecard">
+    <p style="margin:0 0 8px;">Two levels of reporting:</p>
+    <table>
+      <tr><th>Level</th><th>Contents</th></tr>
+      <tr><td>Per-question</td><td>Question, expected vs. actual answer, expected vs. actual citation, pass/fail per metric</td></tr>
+      <tr><td>Aggregate</td><td>Retrieval accuracy %, citation correctness %, answer correctness %, groundedness %, overall pass rate, list of specific failures with reasoning</td></tr>
+    </table>
+    <p style="margin:12px 0 0; font-size:13.5px; color:var(--muted);">
+      Suggested recommended threshold to discuss with the client: ~85% aggregate pass rate before go-live —
+      to be adjusted based on risk tolerance and criticality of the use case.
+    </p>
+  </div>
+
+  <footer>
+    Internal working notes — evaluation approach to be validated against the actual Gen AI Evaluation
+    Service input format once API access to the Gemini Enterprise app is provisioned.
+  </footer>
+
+</div>
+</body>
+</html>

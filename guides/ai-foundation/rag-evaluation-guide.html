@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAG Evaluation: A Complete Guide</title>
+<style>
+  :root {
+    --ink: #1c1b1f;
+    --muted: #5a5763;
+    --paper: #faf9f7;
+    --card: #ffffff;
+    --accent: #7c5cff;
+    --accent-dark: #5b3fd6;
+    --accent-soft: #efe9ff;
+    --line: #e7e3ee;
+    --good: #1f8a5f;
+    --good-bg: #e6f6ee;
+    --bad: #c2402b;
+    --bad-bg: #fbeae6;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 96px; }
+
+  header.title {
+    margin-bottom: 40px;
+  }
+  header.title .eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  header.title h1 {
+    font-size: 34px;
+    margin: 0 0 10px;
+    line-height: 1.2;
+  }
+  header.title p.sub {
+    color: var(--muted);
+    font-size: 16px;
+    margin: 0;
+  }
+
+  nav.toc {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 48px;
+  }
+  nav.toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 12px; }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 24px; }
+  nav.toc li { margin-bottom: 6px; break-inside: avoid; }
+  nav.toc a { color: var(--ink); text-decoration: none; font-size: 14.5px; }
+  nav.toc a:hover { color: var(--accent-dark); text-decoration: underline; }
+
+  section { margin-bottom: 52px; }
+  section h2 {
+    font-size: 23px;
+    margin: 0 0 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+  }
+  section h2 .num {
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 16px;
+    margin-right: 10px;
+  }
+  section > p.lede { color: var(--muted); font-size: 15px; margin: 6px 0 22px; }
+
+  h3 { font-size: 17px; margin: 26px 0 10px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin: 16px 0;
+  }
+
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .split { grid-template-columns: 1fr; }
+    nav.toc ol { columns: 1; }
+  }
+
+  .term {
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 10px;
+    padding: 16px 18px;
+    background: var(--card);
+  }
+  .term .label { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .term .def { color: var(--muted); font-size: 14.5px; }
+
+  .formula {
+    font-family: var(--mono);
+    background: #1c1b1f;
+    color: #f4f1ff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    display: inline-block;
+    margin: 8px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 14px 0;
+    font-size: 14.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
+  tr.hit td.status { color: var(--good); font-weight: 600; }
+  tr.miss td.status { color: var(--bad); font-weight: 600; }
+  td.status::before { content: "●"; margin-right: 6px; font-size: 10px; }
+
+  .result-banner {
+    display: flex;
+    gap: 16px;
+    margin-top: 14px;
+  }
+  .result-banner .metric {
+    flex: 1;
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .result-banner .metric .value { font-size: 26px; font-weight: 700; color: var(--accent-dark); }
+  .result-banner .metric .label { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  .quad {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .quad .box {
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 14px;
+  }
+  .quad .box .h { font-weight: 700; margin-bottom: 4px; }
+  .quad .good { background: var(--good-bg); color: #14523a; }
+  .quad .bad { background: var(--bad-bg); color: #7a2a1d; }
+  .quad .mix { background: #fff6e0; color: #7a5b0e; }
+
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 16px 0; }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 44px;
+    margin-bottom: 18px;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .steps li .h { font-weight: 700; margin-bottom: 3px; }
+  .steps li .d { color: var(--muted); font-size: 14.5px; }
+
+  .callout {
+    background: var(--accent-soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 18px;
+    font-size: 14.5px;
+    margin: 16px 0;
+  }
+  .callout .h { font-weight: 700; margin-bottom: 4px; color: var(--accent-dark); }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .tag {
+    background: var(--accent-soft);
+    color: var(--accent-dark);
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  code, pre {
+    font-family: var(--mono);
+  }
+  pre.code-block {
+    background: #1c1b1f;
+    color: #e8e6f0;
+    padding: 18px 20px;
+    border-radius: 10px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 14px 0;
+  }
+  pre.code-block .cmt { color: #8b87a0; }
+  pre.code-block .str { color: #c9a4ff; }
+  pre.code-block .kw { color: #7fb8ff; }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<div class="wrap">
+
+  <header class="title">
+    <span class="eyebrow">Technical Reference</span>
+    <h1>Evaluating a RAG Application: End to End</h1>
+    <p class="sub">A reference guide to retrieval and generation evaluation methodology for Retrieval-Augmented Generation systems — covering golden set construction, retrieval metrics, and generation quality assessment.</p>
+    <p style="color:var(--muted); font-size:13px; margin-top:14px;">Prepared by Sunil Kumar · August 2026</p>
+  </header>
+
+  <section id="summary" style="margin-bottom:40px;">
+    <div class="card" style="background:var(--accent-soft); border:none;">
+      <h3 style="margin-top:0;">Executive Summary</h3>
+      <p style="color:var(--ink); font-size:14.5px; margin-bottom:0;">
+        RAG evaluation splits into two independent halves: <strong>retrieval</strong> (did the system find the right source material?) and <strong>generation</strong> (did the model write a good answer from it?). Retrieval quality is measured with precision, recall, and ranking metrics (MRR, NDCG) against a labeled "golden set" of question–answer pairs. Generation quality is measured with groundedness (is the answer faithful to its source material?) and correctness (does it match the true answer?). Because these dimensions are independent, a robust evaluation program tracks all of them separately rather than relying on a single end-to-end score.
+      </p>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#summary">Executive Summary</a></li>
+      <li><a href="#overview">The Two Halves of RAG</a></li>
+      <li><a href="#golden-set">Building a Golden Set</a></li>
+      <li><a href="#reindex">Surviving Re-indexing</a></li>
+      <li><a href="#precision-recall">Precision &amp; Recall, Defined</a></li>
+      <li><a href="#example">Worked Example</a></li>
+      <li><a href="#threshold">What Precision Is "Good Enough"?</a></li>
+      <li><a href="#ranking">Ranking Metrics: MRR &amp; NDCG</a></li>
+      <li><a href="#tooling">Automating It: Vertex AI Eval</a></li>
+      <li><a href="#generation">Generation: Groundedness &amp; Correctness</a></li>
+      <li><a href="#quadrants">The Four Outcome Combinations</a></li>
+      <li><a href="#scoring">Scoring Groundedness &amp; Correctness</a></li>
+      <li><a href="#frameworks">Evaluation Frameworks</a></li>
+      <li><a href="#human-loop">The Human Review Loop</a></li>
+    </ol>
+  </nav>
+
+  <section id="overview">
+    <h2><span class="num">01</span>The Two Halves of RAG</h2>
+    <p class="lede">Every RAG system, agentic or not, does exactly two things in order.</p>
+    <div class="split">
+      <div class="term">
+        <div class="label">Retrieval</div>
+        <div class="def">Takes the user's question and searches the knowledge source (vector store, Confluence, PDFs) to pull back relevant chunks of text.</div>
+      </div>
+      <div class="term">
+        <div class="label">Generation</div>
+        <div class="def">Takes those retrieved chunks plus the original question and hands them to the LLM, which writes the final answer.</div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="h">Why split evaluation this way</div>
+      A system can fail in one half while looking fine in the other — great retrieval with a poor written answer, or a beautifully written answer built on the wrong chunks. Agents don't change this; they just repeat retrieval and generation in a loop, sometimes with extra tool calls in between.
+    </div>
+  </section>
+
+  <section id="golden-set">
+    <h2><span class="num">02</span>Building a Golden Set</h2>
+    <p class="lede">You can't measure recall or precision without a labeled answer key. That's the golden set — and it's built separately from, and after, ingestion.</p>
+    <ul class="steps">
+      <li>
+        <div class="h">Ingest normally</div>
+        <div class="d">Documents get chunked and embedded into the vector store, independent of any evaluation work.</div>
+      </li>
+      <li>
+        <div class="h">Domain expert supplies realistic questions</div>
+        <div class="d">A set of questions real users would actually ask — start with 20–30 and grow over time.</div>
+      </li>
+      <li>
+        <div class="h">Run each question through the live RAG system</div>
+        <div class="d">The system returns an answer plus the chunk(s) it used.</div>
+      </li>
+      <li>
+        <div class="h">Expert reviews and confirms correctness</div>
+        <div class="d">Faster than writing answers from scratch — the expert is verifying, not searching cold.</div>
+      </li>
+      <li>
+        <div class="h">Lock in the golden set entry</div>
+        <div class="d">Store the <em>question</em>, the <em>correct answer text</em>, and the <em>source document + section</em> — deliberately not the chunk ID.</div>
+      </li>
+      <li>
+        <div class="h">Grow it continuously</div>
+        <div class="d">Real user complaints about wrong answers become new golden set entries over time, rather than trying to build it all upfront.</div>
+      </li>
+    </ul>
+  </section>
+
+  <section id="reindex">
+    <h2><span class="num">03</span>Surviving Re-indexing</h2>
+    <p class="lede">Chunk IDs are not stable. Re-chunking or re-embedding shuffles them completely, which breaks any golden set stored by chunk ID.</p>
+    <div class="callout">
+      <div class="h">The fix</div>
+      Store <strong>document name + section</strong> (or a content reference) as the source of truth — never the chunk ID itself. At evaluation time, re-derive the current chunk ID fresh by matching text against the document/section. Re-indexing then just means the lookup runs again; the golden set itself never goes stale.
+    </div>
+  </section>
+
+  <section id="precision-recall">
+    <h2><span class="num">04</span>Precision &amp; Recall, Defined</h2>
+    <p class="lede">The two foundational retrieval metrics — everything else on the retrieval side is a variation on these.</p>
+    <div class="split">
+      <div class="term">
+        <div class="label">Precision</div>
+        <div class="def">Of the chunks I retrieved, how many were actually relevant?</div>
+        <div class="formula">hits ÷ chunks retrieved</div>
+      </div>
+      <div class="term">
+        <div class="label">Recall</div>
+        <div class="def">Of everything relevant that existed, how many did I actually retrieve?</div>
+        <div class="formula">hits ÷ chunks in golden set</div>
+      </div>
+    </div>
+    <p style="color:var(--muted); font-size:14.5px;">Precision is judged from the <em>retrieved</em> side, looking for correctness. Recall is judged from the <em>golden set</em> side, looking for coverage. Same underlying data, opposite direction of checking.</p>
+  </section>
+
+  <section id="example">
+    <h2><span class="num">05</span>Worked Example</h2>
+    <p class="lede"><strong>Question:</strong> "What's our policy for damaged goods returns?"<br>
+    <strong>Golden set says:</strong> the full answer requires <em>Section 2</em> (general return process) and <em>Section 5</em> (damaged goods exception).</p>
+
+    <div class="card">
+      <table>
+        <thead><tr><th>Retrieved chunk</th><th>Source</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr class="hit"><td>Chunk 1</td><td>Section 2</td><td class="status">Hit</td></tr>
+          <tr class="hit"><td>Chunk 2</td><td>Section 2</td><td class="status">Hit</td></tr>
+          <tr class="hit"><td>Chunk 3</td><td>Section 5</td><td class="status">Hit</td></tr>
+          <tr class="miss"><td>Chunk 4</td><td>Shipping policy doc</td><td class="status">Miss</td></tr>
+          <tr class="hit"><td>Chunk 5</td><td>Section 2</td><td class="status">Hit</td></tr>
+          <tr class="miss"><td>Chunk 6</td><td>Unrelated FAQ</td><td class="status">Miss</td></tr>
+        </tbody>
+      </table>
+      <div class="result-banner">
+        <div class="metric">
+          <div class="value">4 / 6</div>
+          <div class="label">Precision ≈ 67%</div>
+        </div>
+        <div class="metric">
+          <div class="value">2 / 2</div>
+          <div class="label">Recall = 100%</div>
+        </div>
+      </div>
+      <p style="color:var(--muted); font-size:14.5px; margin-top:14px; margin-bottom:0;">Both required sections were found (100% recall), but noise from unrelated documents dragged precision down to 67%. High recall with mediocre precision is a very common real-world pattern.</p>
+    </div>
+  </section>
+
+  <section id="threshold">
+    <h2><span class="num">06</span>What Precision Is "Good Enough"?</h2>
+    <p class="lede">No universal passing grade — it's a judgment call based on how costly a noisy answer is downstream.</p>
+    <div class="split">
+      <div class="term">
+        <div class="label">Rough industry range</div>
+        <div class="def">70–85% precision at top-k is typical for production systems. Below ~60%, hallucination and irrelevant answers tend to creep in. Above ~90%, you may be too conservative and hurting recall.</div>
+      </div>
+      <div class="term">
+        <div class="label">What actually decides it</div>
+        <div class="def">How well the generation model ignores irrelevant context, and how costly a wrong answer is for the use case. High-stakes flows (e.g. a support agent guiding troubleshooting) justify aiming higher.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="ranking">
+    <h2><span class="num">07</span>Ranking Metrics: MRR &amp; NDCG</h2>
+    <p class="lede">Precision and recall don't care about order — but generation models tend to weight earlier context more heavily, so order matters in practice.</p>
+    <div class="split">
+      <div class="term">
+        <div class="label">Mean Reciprocal Rank (MRR)</div>
+        <div class="def">How far down the list did the <em>first</em> correct chunk appear? Position 1 scores higher than position 5.</div>
+      </div>
+      <div class="term">
+        <div class="label">NDCG</div>
+        <div class="def">Normalized Discounted Cumulative Gain — rewards having <em>all</em> correct chunks bunched near the top, not just the first one.</div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="h">Also worth tracking</div>
+      Latency and cost per query — a retrieval step that's perfectly accurate but takes eight seconds isn't usable in a real support agent.
+    </div>
+  </section>
+
+  <section id="tooling">
+    <h2><span class="num">08</span>Automating It: Vertex AI Eval</h2>
+    <p class="lede">Relevant given the Gemini Enterprise migration and multimodal RAG platform work.</p>
+    <div class="split">
+      <div class="term">
+        <div class="label">Vertex AI Rapid Evaluation</div>
+        <div class="def">Feed in the golden set (questions + expected answers/sections), run it against your retrieval pipeline, and it computes precision/recall at a chosen top-k automatically.</div>
+      </div>
+      <div class="term">
+        <div class="label">Vertex AI Search Evaluation</div>
+        <div class="def">Purpose-built for the search/retrieval layer specifically — relevant if Vertex AI Search is the retrieval backbone.</div>
+      </div>
+    </div>
+    <div class="tag-row">
+      <span class="tag">Gemini Enterprise migration</span>
+      <span class="tag">Multimodal RAG platform</span>
+      <span class="tag">Vertex AI Search</span>
+    </div>
+  </section>
+
+  <section id="generation">
+    <h2><span class="num">09</span>Generation: Groundedness &amp; Correctness</h2>
+    <p class="lede">Two distinct dimensions of the written answer — not two names for the same thing.</p>
+    <div class="split">
+      <div class="term">
+        <div class="label">Groundedness (Faithfulness)</div>
+        <div class="def">Can every claim in the answer be traced back to the retrieved chunks? Purely about hallucination — has nothing to do with whether the answer is true in the real world.</div>
+      </div>
+      <div class="term">
+        <div class="label">Correctness</div>
+        <div class="def">Does the answer match the ground-truth answer a human would consider correct? Doesn't care where the information came from or whether retrieval was even used well.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="quadrants">
+    <h2><span class="num">10</span>The Four Outcome Combinations</h2>
+    <p class="lede">Groundedness and correctness are independent axes, so all four combinations are possible.</p>
+    <div class="quad">
+      <div class="box good">
+        <div class="h">Grounded + Correct</div>
+        The goal. Answer is faithful to retrieved context, and that context supports the true answer.
+      </div>
+      <div class="box mix">
+        <div class="h">Grounded + Incorrect</div>
+        Retrieval handed the model bad or outdated information, and it faithfully repeated it.
+      </div>
+      <div class="box mix">
+        <div class="h">Not Grounded + Correct</div>
+        The model got lucky, or answered from its own background knowledge instead of the retrieved chunks.
+      </div>
+      <div class="box bad">
+        <div class="h">Not Grounded + Incorrect</div>
+        The model hallucinating badly — worst-case failure mode.
+      </div>
+    </div>
+  </section>
+
+  <section id="scoring">
+    <h2><span class="num">11</span>Scoring Groundedness &amp; Correctness</h2>
+    <p class="lede">In practice, these are scored using LLM-as-a-judge rather than hand-written rules.</p>
+    <ul class="steps">
+      <li>
+        <div class="h">Judge model compares answer to source</div>
+        <div class="d">A strong model — often different from the one that generated the answer, to avoid self-preference bias — is prompted to check whether each claim in the answer is supported by the retrieved chunks (groundedness) or matches the golden answer (correctness).</div>
+      </li>
+      <li>
+        <div class="h">Score or pass/fail with reasoning</div>
+        <div class="d">The judge returns a numeric score or a pass/fail verdict, typically along with a short justification, so failures can be audited rather than treated as a black box.</div>
+      </li>
+      <li>
+        <div class="h">Human spot-checks validate the judge</div>
+        <div class="d">Judge models have their own blind spots and biases, so a sample of judged outputs is periodically reviewed by a human to confirm the judge's scores are trustworthy.</div>
+      </li>
+    </ul>
+
+    <h3>Two additional generation metrics</h3>
+    <div class="split">
+      <div class="term">
+        <div class="label">Answer Relevancy</div>
+        <div class="def">Does the answer actually address what was asked? A response can be fully grounded and factually correct while still dodging or under-answering the actual question.</div>
+      </div>
+      <div class="term">
+        <div class="label">Citation / Attribution Accuracy</div>
+        <div class="def">If the system shows source links or footnotes, does the cited source actually support the specific claim placed next to it — not just appear somewhere in the answer.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="frameworks">
+    <h2><span class="num">12</span>Evaluation Frameworks</h2>
+    <p class="lede">Tooling that packages groundedness, correctness, and relevancy scoring so teams aren't writing judge prompts from scratch.</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Framework</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>RAGAS</td>
+            <td>Open-source; computes groundedness/faithfulness, answer relevancy, and context precision/recall in a single evaluation pass.</td>
+          </tr>
+          <tr>
+            <td>Vertex AI Rapid Evaluation</td>
+            <td>Includes generation-side metrics (groundedness, answer quality) alongside the retrieval metrics covered earlier, in the same pipeline.</td>
+          </tr>
+          <tr>
+            <td>DeepEval</td>
+            <td>Similar metric set to RAGAS, oriented toward test-suite and CI/CD integration.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Vertex AI Rapid Evaluation — example</h3>
+    <p style="color:var(--muted); font-size:14.5px;">Scoring a set of RAG responses for groundedness using the Vertex AI Gen AI Evaluation SDK.</p>
+    <pre class="code-block"><span class="cmt"># pip install google-cloud-aiplatform[evaluation]</span>
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">from</span> vertexai.evaluation <span class="kw">import</span> EvalTask, MetricPromptTemplateExamples
+
+<span class="cmt"># eval_dataset columns: "prompt", "response", "context"
+# - prompt: the user question
+# - response: the answer generated by your RAG pipeline
+# - context: the chunks retrieved for that question</span>
+eval_dataset = pd.DataFrame({
+    <span class="str">"prompt"</span>: [<span class="str">"What's our policy for damaged goods returns?"</span>],
+    <span class="str">"response"</span>: [<span class="str">"Damaged goods can be returned within 30 days..."</span>],
+    <span class="str">"context"</span>: [<span class="str">"Section 2: General returns... Section 5: Damaged goods..."</span>],
+})
+
+eval_task = EvalTask(
+    dataset=eval_dataset,
+    metrics=[
+        MetricPromptTemplateExamples.Pointwise.GROUNDEDNESS,
+        MetricPromptTemplateExamples.Pointwise.QUESTION_ANSWERING_CORRECTNESS,
+        MetricPromptTemplateExamples.Pointwise.QUESTION_ANSWERING_RELEVANCE,
+    ],
+)
+
+result = eval_task.evaluate()
+<span class="kw">print</span>(result.summary_metrics)   <span class="cmt"># aggregate scores across the dataset</span>
+<span class="kw">print</span>(result.metrics_table)   <span class="cmt"># per-row scores + judge reasoning</span></pre>
+    <div class="callout">
+      <div class="h">Note</div>
+      <code>context</code> is what makes this a RAG-aware eval — the judge model checks the response against those retrieved chunks for groundedness, and against a reference answer (if supplied) for correctness.
+    </div>
+
+    <h3>RAGAS — example</h3>
+    <p style="color:var(--muted); font-size:14.5px;">Scoring the same fields with the open-source RAGAS library.</p>
+    <pre class="code-block"><span class="cmt"># pip install ragas datasets</span>
+<span class="kw">from</span> datasets <span class="kw">import</span> Dataset
+<span class="kw">from</span> ragas <span class="kw">import</span> evaluate
+<span class="kw">from</span> ragas.metrics <span class="kw">import</span> (
+    faithfulness,
+    answer_relevancy,
+    context_precision,
+    context_recall,
+)
+
+<span class="cmt"># Each field is a list, one entry per question
+# - question: the user prompt
+# - answer: the RAG-generated response
+# - contexts: list of retrieved chunks for that question
+# - ground_truth: the golden-set answer, for correctness/recall</span>
+data = {
+    <span class="str">"question"</span>: [<span class="str">"What's our policy for damaged goods returns?"</span>],
+    <span class="str">"answer"</span>: [<span class="str">"Damaged goods can be returned within 30 days..."</span>],
+    <span class="str">"contexts"</span>: [[<span class="str">"Section 2: General returns..."</span>, <span class="str">"Section 5: Damaged goods..."</span>]],
+    <span class="str">"ground_truth"</span>: [<span class="str">"Damaged goods may be returned within 30 days of delivery for a full refund."</span>],
+}
+dataset = Dataset.from_dict(data)
+
+result = evaluate(
+    dataset,
+    metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
+)
+
+<span class="kw">print</span>(result)                 <span class="cmt"># aggregate scores</span>
+<span class="kw">print</span>(result.to_pandas())    <span class="cmt"># per-row breakdown for auditing</span></pre>
+    <div class="callout">
+      <div class="h">Note</div>
+      <code>faithfulness</code> here is RAGAS's term for groundedness. <code>context_precision</code> and <code>context_recall</code> reuse the retrieval definitions covered earlier in this document, computed automatically from the <code>contexts</code> and <code>ground_truth</code> fields.
+    </div>
+  </section>
+
+  <section id="human-loop">
+    <h2><span class="num">13</span>The Human Review Loop</h2>
+    <p class="lede">Automated judging reduces manual effort but doesn't eliminate the need for human review.</p>
+    <div class="callout">
+      <div class="h">Recommended cadence</div>
+      Even with a well-tuned LLM judge in place, teams typically keep a periodic human review loop — spot-checking a sample of judged outputs weekly or per release — to catch cases where the judge model's own biases or blind spots let an error through unflagged.
+    </div>
+  </section>
+
+
+    RAG Evaluation Notes — compiled from working session notes. Covers retrieval (precision, recall, MRR, NDCG, golden set methodology) and generation (groundedness, correctness, answer relevancy, citation accuracy, LLM-as-a-judge scoring, evaluation frameworks) for RAG applications.
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Glean → Gemini Enterprise Migration: Architecture &amp; Open Questions</title>
+<style>
+  :root {
+    --ink: #1a1d24;
+    --muted: #5b6270;
+    --line: #e2e5ea;
+    --accent: #2662d9;
+    --accent-soft: #eaf1fd;
+    --warn: #b5651d;
+    --warn-soft: #fdf1e6;
+    --ok-soft: #eefaf0;
+    --ok: #1e7d32;
+    --bg: #fafbfc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 80px; }
+  header.doc-header {
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 20px;
+    margin-bottom: 32px;
+  }
+  header.doc-header h1 { font-size: 26px; margin: 0 0 8px; }
+  header.doc-header p.sub { color: var(--muted); margin: 0; font-size: 15px; }
+  h2 {
+    font-size: 19px;
+    margin-top: 44px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+  }
+  h3 { font-size: 16px; margin-top: 26px; }
+  p { font-size: 15px; }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: stretch;
+    margin: 20px 0;
+  }
+  .flow .node {
+    background: var(--accent-soft);
+    border: 1px solid #c7dafa;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    flex: 1 1 150px;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .flow .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 20px;
+    flex: 0 0 auto;
+  }
+  .diagram {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .diagram svg { width: 100%; height: auto; display: block; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #f2f4f7; font-weight: 600; }
+  .open-q {
+    background: var(--warn-soft);
+    border: 1px solid #f0d3ae;
+    border-left: 4px solid var(--warn);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin: 14px 0;
+  }
+  .open-q .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--warn);
+    margin-bottom: 6px;
+  }
+  .resolved {
+    background: var(--ok-soft);
+    border: 1px solid #bfe5c6;
+    border-left: 4px solid var(--ok);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin: 14px 0;
+  }
+  .resolved .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ok);
+    margin-bottom: 6px;
+  }
+  .pill {
+    display: inline-block;
+    background: #eef0f3;
+    border-radius: 100px;
+    padding: 2px 10px;
+    font-size: 12px;
+    color: var(--muted);
+    margin-right: 6px;
+  }
+  code {
+    background: #f2f4f7;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
+  footer {
+    margin-top: 60px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12.5px;
+  }
+</style>
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+<script>(function(){var t=localStorage.getItem('theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches;if(t==='dark'||(t===null&&p))document.documentElement.classList.add('dark');})();</script>
+<style id="kb-shared">
+/* ── Light mode base (default = no class) ── */
+html:not(.dark) body{background:#f4f6fb!important;color:#374151!important;font-family:'Inter',system-ui,sans-serif!important;font-size:15px!important;line-height:1.7!important;-webkit-font-smoothing:antialiased!important}
+/* Make all elements transparent so body light bg shows through */
+html:not(.dark) body *:not(pre):not(code){background:transparent!important;border-color:#e2e8f0!important;color:inherit!important}
+/* Restore blue nav */
+html:not(.dark) #kb-topnav{background:#1565c0!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a,html:not(.dark) #kb-topnav span{color:#fff!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav button{background:rgba(255,255,255,0.08)!important;border-color:rgba(255,255,255,0.2)!important}
+html:not(.dark) #kb-topnav a[href="../../index.html"]{background:rgba(255,255,255,0.12)!important}
+/* Typography */
+html:not(.dark) h1{color:#111827!important;font-family:'Inter',sans-serif!important;font-size:2rem!important;font-weight:700!important;line-height:1.3!important;margin-bottom:1rem!important}
+html:not(.dark) h2{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.5rem!important;font-weight:600!important;margin:1.5rem 0 .75rem!important}
+html:not(.dark) h3{color:#1e293b!important;font-family:'Inter',sans-serif!important;font-size:1.2rem!important;font-weight:600!important;margin:1.25rem 0 .5rem!important}
+html:not(.dark) h4,html:not(.dark) h5,html:not(.dark) h6{color:#374151!important;font-family:'Inter',sans-serif!important;font-weight:600!important}
+html:not(.dark) p{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.75rem!important}
+html:not(.dark) li{color:#374151!important;font-family:'Inter',sans-serif!important;margin-bottom:.25rem!important}
+html:not(.dark) a:not([id^="kb"]){color:#1565c0!important;text-decoration:none!important}
+html:not(.dark) a:not([id^="kb"]):hover{color:#1976d2!important;text-decoration:underline!important}
+/* Code */
+html:not(.dark) code{background:#f1f5f9!important;color:#1e293b!important;font-family:'JetBrains Mono',monospace!important;border-radius:3px!important;padding:.1em .35em!important;font-size:.87em!important}
+html:not(.dark) pre{background:#1e293b!important;color:#e8eaf2!important;padding:1.1rem 1.25rem!important;border-radius:8px!important;font-family:'JetBrains Mono',monospace!important;overflow-x:auto!important;margin:1rem 0!important;border:none!important}
+html:not(.dark) pre code{background:transparent!important;color:inherit!important;padding:0!important;font-size:1em!important}
+/* Tables */
+html:not(.dark) table{border-collapse:collapse!important;width:100%!important;margin:1rem 0!important}
+html:not(.dark) th{background:#f1f5f9!important;color:#111827!important;border-bottom:2px solid #e2e8f0!important;padding:.65rem 1rem!important;font-family:'Inter',sans-serif!important;font-weight:600!important;font-size:.82rem!important;letter-spacing:.04em!important;text-align:left!important}
+html:not(.dark) td{padding:.6rem 1rem!important;border-bottom:1px solid #e2e8f0!important;color:#374151!important;font-family:'Inter',sans-serif!important}
+html:not(.dark) tr:hover td{background:#eff6ff!important}
+/* ── Dark mode ── */
+html.dark body{background:#0d0f14!important;color:#e8eaf2!important;font-family:'Inter',system-ui,sans-serif!important}
+html.dark h1,html.dark h2,html.dark h3,html.dark h4{color:#e8eaf2!important;font-family:'Inter',sans-serif!important}
+html.dark p,html.dark li{color:#9aa3be!important;font-family:'Inter',sans-serif!important}
+html.dark a{color:#5b9cf6!important}
+html.dark code{background:#1a1f2e!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre{background:#111318!important;color:#e8eaf2!important;font-family:'JetBrains Mono',monospace!important}
+html.dark pre code{background:transparent!important;color:inherit!important}
+html.dark th{background:#111318!important;color:#e8eaf2!important;border-color:#1e2230!important}
+html.dark td{border-color:#1e2230!important;color:#9aa3be!important}
+html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
+</style>
+</head>
+<body>
+<nav id="kb-topnav" style="position:fixed;top:0;left:0;right:0;height:54px;background:#1565c0;z-index:9999;display:flex;align-items:center;padding:0 1.25rem;gap:0.75rem;font-family:Inter,system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+  <a href="../../index.html" style="font-size:1.2rem;font-weight:700;color:#fff;text-decoration:none;letter-spacing:-0.03em;white-space:nowrap;flex-shrink:0;">Interview <span style="opacity:0.7;font-weight:400;">KB</span></a>
+  <div style="flex:1"></div>
+  <a href="../../index.html" style="display:inline-flex;align-items:center;gap:5px;padding:4px 12px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:6px;color:rgba(255,255,255,0.9);font-size:0.78rem;font-weight:500;text-decoration:none;white-space:nowrap;">&#8592; All Guides</a>
+  <button onclick="(function(){var d=document.documentElement.classList.toggle('dark');localStorage.setItem('theme',d?'dark':'light');})()" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.8);flex-shrink:0;" title="Toggle theme"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+</nav>
+<div style="height:54px"></div>
+
+<div class="wrap">
+
+  <header class="doc-header">
+    <h1>Glean → Gemini Enterprise Migration</h1>
+    <p class="sub">Architecture overview and open questions for the MCP-based bridging approach — internal working notes</p>
+  </header>
+
+  <h2>1. Migration goal &amp; approach</h2>
+  <p>
+    The organization is moving its primary enterprise search from Glean to Google Gemini Enterprise.
+    Users today search across sources like SharePoint, Outlook, and other systems through Glean's
+    unified knowledge graph. Rather than a hard cutover, the plan is a phased migration: keep Glean
+    active as a bridge via a custom MCP (Model Context Protocol) connector inside Gemini Enterprise,
+    while native Gemini Enterprise connectors are progressively built out for each source.
+  </p>
+
+  <div class="flow">
+    <div class="node">User query in Gemini Enterprise</div>
+    <div class="arrow">→</div>
+    <div class="node">Orchestrator routes to relevant data store(s)</div>
+    <div class="arrow">→</div>
+    <div class="node">Native connectors<br><span class="pill">SharePoint, Outlook, etc.</span></div>
+  </div>
+  <div class="flow">
+    <div class="node" style="visibility:hidden;">spacer</div>
+    <div class="arrow" style="visibility:hidden;">→</div>
+    <div class="node">Custom MCP data store → Glean MCP endpoint<br><span class="pill">bridges not-yet-migrated sources</span></div>
+  </div>
+
+  <h2>2. High-level architecture</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 820 420" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Helvetica, Arial, sans-serif">
+      <!-- User -->
+      <rect x="330" y="10" width="160" height="46" rx="8" fill="#eaf1fd" stroke="#2662d9"/>
+      <text x="410" y="38" text-anchor="middle" font-size="13" fill="#1a1d24">End user</text>
+
+      <!-- Arrow down -->
+      <line x1="410" y1="56" x2="410" y2="90" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Gemini Enterprise box -->
+      <rect x="180" y="90" width="460" height="70" rx="8" fill="#fff" stroke="#1a1d24" stroke-width="1.5"/>
+      <text x="410" y="115" text-anchor="middle" font-size="14" font-weight="600" fill="#1a1d24">Google Gemini Enterprise</text>
+      <text x="410" y="136" text-anchor="middle" font-size="12" fill="#5b6270">Query orchestrator — routes by data-store description/instructions</text>
+
+      <!-- Two arrows down -->
+      <line x1="300" y1="160" x2="160" y2="200" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="520" y1="160" x2="660" y2="200" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Native connectors box -->
+      <rect x="20" y="200" width="280" height="90" rx="8" fill="#eefaf0" stroke="#1e7d32"/>
+      <text x="160" y="225" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1d24">Native Gemini Enterprise connectors</text>
+      <text x="160" y="245" text-anchor="middle" font-size="11.5" fill="#5b6270">SharePoint, Outlook, Google Workspace,</text>
+      <text x="160" y="261" text-anchor="middle" font-size="11.5" fill="#5b6270">and sources migrated off Glean over time</text>
+      <text x="160" y="279" text-anchor="middle" font-size="11" fill="#2662d9">(grows as migration progresses)</text>
+
+      <!-- MCP connector box -->
+      <rect x="520" y="200" width="280" height="90" rx="8" fill="#fdf1e6" stroke="#b5651d"/>
+      <text x="660" y="225" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1d24">Custom MCP data store</text>
+      <text x="660" y="245" text-anchor="middle" font-size="11.5" fill="#5b6270">Single registered MCP server URL</text>
+      <text x="660" y="261" text-anchor="middle" font-size="11.5" fill="#5b6270">(StreamableHTTP transport, OAuth)</text>
+      <text x="660" y="279" text-anchor="middle" font-size="11" fill="#b5651d">(bridges not-yet-migrated sources)</text>
+
+      <!-- Arrow down from MCP box -->
+      <line x1="660" y1="290" x2="660" y2="330" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+      <!-- Glean box -->
+      <rect x="500" y="330" width="320" height="80" rx="8" fill="#fff" stroke="#1a1d24" stroke-width="1.5"/>
+      <text x="660" y="356" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1d24">Glean</text>
+      <text x="660" y="375" text-anchor="middle" font-size="11.5" fill="#5b6270">Unified knowledge graph, permission-aware</text>
+      <text x="660" y="391" text-anchor="middle" font-size="11.5" fill="#5b6270">Multi-region HA, 99.9% SLA (premium tier)</text>
+
+      <!-- native sources under native box -->
+      <line x1="160" y1="290" x2="160" y2="330" stroke="#5b6270" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <rect x="20" y="330" width="280" height="60" rx="8" fill="#fff" stroke="#1a1d24" stroke-width="1.5"/>
+      <text x="160" y="356" text-anchor="middle" font-size="12" fill="#1a1d24">Underlying source systems</text>
+      <text x="160" y="373" text-anchor="middle" font-size="11" fill="#5b6270">(directly indexed by Gemini Enterprise)</text>
+
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#5b6270"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <h2>3. Key configuration facts confirmed</h2>
+  <table>
+    <tr><th style="width:30%">Item</th><th>Detail</th></tr>
+    <tr>
+      <td>MCP registration path</td>
+      <td>Glean is added as a <strong>custom MCP server data store</strong> inside the Gemini Enterprise console (Data stores → Create data store → Custom MCP Server), pointed at Glean's MCP endpoint (backend domain + <code>/mcp/default</code>).</td>
+    </tr>
+    <tr>
+      <td>Endpoint count</td>
+      <td>Just <strong>one</strong> URL is registered on your side. Glean's multi-region HA and failover live entirely behind that single endpoint — there's no dual-endpoint failover config for you to manage.</td>
+    </tr>
+    <tr>
+      <td>Transport</td>
+      <td>Gemini Enterprise's custom MCP connector only supports <strong>StreamableHTTP</strong> — the older SSE transport is not supported.</td>
+    </tr>
+    <tr>
+      <td>Org policy prerequisite</td>
+      <td>Custom MCP data stores are <strong>blocked by default</strong> via an org policy constraint. An Org Policy Administrator must override it before setup.</td>
+    </tr>
+    <tr>
+      <td>Permissions model</td>
+      <td>Every MCP call runs under the <strong>end user's own identity</strong> — Glean never elevates privileges. Results stay scoped to what that user could already see in source systems.</td>
+    </tr>
+    <tr>
+      <td>Routing instructions</td>
+      <td>Set per-connector, in the <strong>MCP Server Description</strong> field on that specific data store's configuration (not a global setting). This is where you'd write guidance like "only use this source for content not yet natively connected."</td>
+    </tr>
+  </table>
+
+  <h2>4. Open questions to validate</h2>
+
+  <div class="open-q">
+    <span class="tag">Open — validate with Google Cloud account team</span>
+    <strong>How does Gemini Enterprise behave if the Glean MCP data store is unreachable?</strong>
+    <p style="margin:8px 0 0;">
+      Not publicly documented. Best-guess inference (not confirmed): since each data store is a separate
+      connector feeding into blended search, an outage on the Glean side likely means that one data store
+      returns no results/times out while other native connectors (SharePoint, Outlook, etc.) keep working —
+      i.e. partial degradation rather than a full search failure. Whether the end user sees an explicit error
+      for that one source, or it silently drops out, is unconfirmed and should be tested directly or asked of
+      Google.
+    </p>
+  </div>
+
+  <div class="open-q">
+    <span class="tag">Open — validate with Glean account team</span>
+    <strong>Does Glean's "multi-region HA" mean true multi-region, or multi-AZ within one region?</strong>
+    <p style="margin:8px 0 0;">
+      Glean states MCP endpoints inherit the same platform guarantees as the rest of Glean — including
+      multi-region HA and regional data residency (AMER/EMEA/APAC) — backed by a 99.9% uptime SLA at the
+      premium support tier. What's not clear from public docs is whether "multi-region HA" for your specific
+      tenant/plan actually spans multiple regions or just availability zones within a single region. This
+      matters directly for a Germany-based deployment and its data residency requirements.
+    </p>
+  </div>
+
+  <div class="resolved">
+    <span class="tag">Resolved / working approach</span>
+    <strong>How to avoid duplicate results when a source is connected both natively and via Glean MCP?</strong>
+    <p style="margin:8px 0 0;">
+      Gemini Enterprise has no platform-level failover switch ("try native, only fall back to MCP on failure").
+      What it offers is intent-based routing via the MCP Server Description field. The working approach: write
+      explicit instructions in that field telling the orchestrator to only invoke the Glean MCP tool for content
+      not yet available through a native connector, and manually retire the overlap as each source is migrated
+      natively. This is a soft, LLM-followed instruction, not a hard platform rule — worth testing and refining
+      once live.
+    </p>
+  </div>
+
+  <h2>5. Scale considerations (100,000+ users)</h2>
+  <p>
+    No public source publishes one blanket concurrency ceiling for Glean's MCP layer. What's documented is
+    tiered: agent-run initiation is capped around 30 queries/minute, and individual native connectors (e.g.
+    Confluence) default to about 2 queries/second per user. There's no single number that maps cleanly to
+    "100,000 concurrent users through one MCP bridge" — at this scale, deployment-tier capacity is a
+    negotiated conversation with Glean's account team, not something derivable from public docs alone.
+  </p>
+
+  <footer>
+    Internal working notes — compiled from research and discussion. Items marked "Open" should be confirmed
+    directly with Google Cloud and Glean before being treated as final.
+  </footer>
+
+</div>
+</body>
+</html>
