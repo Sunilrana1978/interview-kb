@@ -138,8 +138,10 @@
     border-bottom: 1px solid var(--line);
   }
   th { color: var(--muted); font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.03em; }
-  tr.hit td.status { color: var(--good); font-weight: 600; }
-  tr.miss td.status { color: var(--bad); font-weight: 600; }
+  .card tr.hit td { background: var(--good-bg) !important; }
+  .card tr.miss td { background: var(--bad-bg) !important; }
+  .card tr.hit td.status { color: var(--good) !important; font-weight: 600; }
+  .card tr.miss td.status { color: var(--bad) !important; font-weight: 600; }
   td.status::before { content: "●"; margin-right: 6px; font-size: 10px; }
 
   .result-banner {
