@@ -337,6 +337,41 @@ html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
   <section id="overview">
     <h2><span class="num">01</span>The Two Halves of RAG</h2>
     <p class="lede">Every RAG system, agentic or not, does exactly two things in order.</p>
+    <div class="flow-diagram" style="margin:20px 0;">
+      <svg viewBox="0 0 800 140" width="100%" style="max-width:800px; display:block;">
+        <defs>
+          <marker id="rag-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M1 1L9 5L1 9" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <rect x="10" y="50" width="110" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+        <text x="65" y="75" text-anchor="middle" font-size="13" fill="var(--ink)">Question</text>
+
+        <line x1="120" y1="70" x2="158" y2="70" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#rag-arrow)"/>
+
+        <rect x="160" y="30" width="150" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+        <text x="235" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent-dark)">Retrieval</text>
+        <text x="235" y="85" text-anchor="middle" font-size="10.5" fill="var(--muted)">search knowledge source</text>
+
+        <line x1="310" y1="70" x2="348" y2="70" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#rag-arrow)"/>
+
+        <rect x="350" y="45" width="90" height="16" rx="4" fill="var(--card)" stroke="var(--line)"/>
+        <rect x="358" y="58" width="90" height="16" rx="4" fill="var(--card)" stroke="var(--line)"/>
+        <rect x="366" y="71" width="90" height="16" rx="4" fill="var(--card)" stroke="var(--line)"/>
+        <text x="405" y="105" text-anchor="middle" font-size="10" fill="var(--muted)">retrieved chunks</text>
+
+        <line x1="460" y1="70" x2="498" y2="70" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#rag-arrow)"/>
+
+        <rect x="500" y="30" width="150" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)"/>
+        <text x="575" y="65" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent-dark)">Generation</text>
+        <text x="575" y="85" text-anchor="middle" font-size="10.5" fill="var(--muted)">LLM writes the answer</text>
+
+        <line x1="650" y1="70" x2="688" y2="70" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#rag-arrow)"/>
+
+        <rect x="690" y="50" width="100" height="40" rx="8" fill="var(--card)" stroke="var(--line)"/>
+        <text x="740" y="75" text-anchor="middle" font-size="13" fill="var(--ink)">Answer</text>
+      </svg>
+    </div>
     <div class="split">
       <div class="term">
         <div class="label">Retrieval</div>
@@ -438,6 +473,20 @@ html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
           <div class="label">Recall = 100%</div>
         </div>
       </div>
+      <div style="margin-top:18px;">
+        <div style="margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-bottom:4px;"><span>Precision</span><span>67%</span></div>
+          <div style="height:10px; background:var(--line); border-radius:6px; overflow:hidden;">
+            <div style="height:100%; width:67%; background:var(--accent); border-radius:6px;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:12.5px; color:var(--muted); margin-bottom:4px;"><span>Recall</span><span>100%</span></div>
+          <div style="height:10px; background:var(--line); border-radius:6px; overflow:hidden;">
+            <div style="height:100%; width:100%; background:var(--good); border-radius:6px;"></div>
+          </div>
+        </div>
+      </div>
       <p style="color:var(--muted); font-size:14.5px; margin-top:14px; margin-bottom:0;">Both required sections were found (100% recall), but noise from unrelated documents dragged precision down to 67%. High recall with mediocre precision is a very common real-world pattern.</p>
     </div>
   </section>
@@ -514,6 +563,38 @@ html.dark tr:hover td{background:rgba(255,255,255,0.04)!important}
   <section id="quadrants">
     <h2><span class="num">10</span>The Four Outcome Combinations</h2>
     <p class="lede">Groundedness and correctness are independent axes, so all four combinations are possible.</p>
+    <div style="display:flex; gap:10px; margin:20px auto 4px; max-width:480px;">
+      <div style="writing-mode:vertical-rl; transform:rotate(180deg); display:flex; flex-direction:column; justify-content:space-between; font-size:11px; color:var(--muted); font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:4px 0;">
+        <span>Correct</span><span>Incorrect</span>
+      </div>
+      <div style="flex:1;">
+        <svg viewBox="0 0 460 460" width="100%" style="display:block;">
+          <rect x="0" y="0" width="225" height="225" rx="10" fill="#fff6e0"/>
+          <rect x="235" y="0" width="225" height="225" rx="10" fill="var(--good-bg)"/>
+          <rect x="0" y="235" width="225" height="225" rx="10" fill="var(--bad-bg)"/>
+          <rect x="235" y="235" width="225" height="225" rx="10" fill="#fff6e0"/>
+
+          <text x="112" y="100" text-anchor="middle" font-size="14" font-weight="700" fill="#7a5b0e">Not Grounded</text>
+          <text x="112" y="120" text-anchor="middle" font-size="12" fill="#7a5b0e">+ Correct</text>
+          <text x="112" y="145" text-anchor="middle" font-size="10.5" fill="#7a5b0e">Got lucky / used own knowledge</text>
+
+          <text x="347" y="100" text-anchor="middle" font-size="14" font-weight="700" fill="#14523a">Grounded</text>
+          <text x="347" y="120" text-anchor="middle" font-size="12" fill="#14523a">+ Correct</text>
+          <text x="347" y="145" text-anchor="middle" font-size="10.5" fill="#14523a">The goal</text>
+
+          <text x="112" y="335" text-anchor="middle" font-size="14" font-weight="700" fill="#7a2a1d">Not Grounded</text>
+          <text x="112" y="355" text-anchor="middle" font-size="12" fill="#7a2a1d">+ Incorrect</text>
+          <text x="112" y="380" text-anchor="middle" font-size="10.5" fill="#7a2a1d">Worst case: hallucination</text>
+
+          <text x="347" y="335" text-anchor="middle" font-size="14" font-weight="700" fill="#7a5b0e">Grounded</text>
+          <text x="347" y="355" text-anchor="middle" font-size="12" fill="#7a5b0e">+ Incorrect</text>
+          <text x="347" y="380" text-anchor="middle" font-size="10.5" fill="#7a5b0e">Bad/outdated source, repeated faithfully</text>
+        </svg>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--muted); font-weight:600; letter-spacing:.04em; text-transform:uppercase; margin-top:6px;">
+          <span>Not Grounded</span><span>Grounded</span>
+        </div>
+      </div>
+    </div>
     <div class="quad">
       <div class="box good">
         <div class="h">Grounded + Correct</div>
